@@ -21,6 +21,7 @@ const ReviewPanel = () => {
                 const candidate = candidates.find(c => c.id === attempt.candidate_id);
                 const exam = exams.find(e => e.id === attempt.exam_id);
                 const dept = departments.find(d => d.id === exam?.department_id);
+                const deptName = dept?.name || (exam?.department_id ? exam.department_id.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : 'Unknown Department');
 
                 return {
                     id: attempt.id,
@@ -31,7 +32,7 @@ const ReviewPanel = () => {
                     remarks: candidate?.remarks || '',
                     attempt,
                     exam,
-                    deptName: dept?.name || 'Unknown Department'
+                    deptName
                 };
             })
             .filter(item => {

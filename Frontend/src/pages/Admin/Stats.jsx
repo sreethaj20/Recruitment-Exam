@@ -26,8 +26,14 @@ const Stats = () => {
     ];
 
     const getDeptPerformance = () => {
-        return db.departments.map(dept => {
-            const deptExams = db.exams.filter(e => e.department_id === dept.id);
+        // Get unique department IDs from all exams to include custom ones
+        const uniqueDeptIds = [...new Set(db.exams.map(e => e.department_id))];
+
+        return uniqueDeptIds.map(deptId => {
+            const dept = db.departments.find(d => d.id === deptId);
+            const deptName = dept?.name || deptId.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+
+            const deptExams = db.exams.filter(e => e.department_id === deptId);
             const deptExamIds = deptExams.map(e => e.id);
             const deptAttempts = db.attempts.filter(a => deptExamIds.includes(a.exam_id) && a.status === 'completed');
 
@@ -38,7 +44,7 @@ const Stats = () => {
                 }, 0) / deptAttempts.length)
                 : 0;
 
-            return { ...dept, avg };
+            return { id: deptId, name: deptName, avg };
         });
     };
 
@@ -119,9 +125,6 @@ const Stats = () => {
                             </div>
                         ))}
                     </div>
-                    <button className="primary" style={{ width: '100%' }}>
-                        Download Report <ArrowUpRight size={18} style={{ marginLeft: '0.5rem' }} />
-                    </button>
                 </div>
             </div>
         </div>
