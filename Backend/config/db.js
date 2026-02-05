@@ -10,6 +10,12 @@ const sequelize = new Sequelize(
         dialect: 'postgres',
         port: process.env.DB_PORT,
         logging: false,
+        dialectOptions: {
+            ssl: {
+                require: true,
+                rejectUnauthorized: false // For RDS, this is usually necessary unless you provide the CA certificate
+            }
+        },
         pool: {
             max: 5,
             min: 0,
