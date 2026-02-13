@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Filter, ExternalLink, CheckCircle, XCircle, Clock, MoreVertical, MessageSquare } from 'lucide-react';
+import { Search, Filter, ExternalLink, CheckCircle, XCircle, Clock, MoreVertical, MessageSquare, Download } from 'lucide-react';
 import { useStore } from '../../store';
+import * as XLSX from 'xlsx';
 
 const ReviewPanel = () => {
     const { db, refreshData } = useStore();
@@ -55,6 +56,41 @@ const ReviewPanel = () => {
         }
     };
 
+    const handleDownloadExcel = () => {
+        const dataToExport = reviewData.map(item => ({
+            'Candidate Name': item.name,
+            'Email': item.email,
+            'Department': item.deptName,
+            'Exam Title': item.exam?.title || 'N/A',
+            'Score': item.attempt?.score || 0,
+            'Total Questions': item.attempt?.total_questions || 0,
+            'Percentage': `${Math.round(item.attempt?.percentage || 0)}%`,
+            'Status': (item.attempt?.percentage >= 95) ? 'CLEARED' : 'NOT CLEARED',
+            'Remarks': item.remarks || ''
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Candidates');
+
+        // Set column widths
+        const wscols = [
+            { wch: 25 }, // Name
+            { wch: 30 }, // Email
+            { wch: 20 }, // Dept
+            { wch: 30 }, // Exam
+            { wch: 10 }, // Score
+            { wch: 15 }, // Total
+            { wch: 12 }, // Percentage
+            { wch: 15 }, // Status
+            { wch: 40 }  // Remarks
+        ];
+        worksheet['!cols'] = wscols;
+
+        const fileName = `Candidate_Report_${selectedDept === 'all' ? 'All' : selectedDept}_${new Date().toISOString().split('T')[0]}.xlsx`;
+        XLSX.writeFile(workbook, fileName);
+    };
+
     const reviewData = getReviewData();
 
     return (
@@ -78,6 +114,14 @@ const ReviewPanel = () => {
                             ))}
                         </select>
                     </div>
+                    <button
+                        className="secondary"
+                        onClick={handleDownloadExcel}
+                        disabled={reviewData.length === 0}
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                    >
+                        <Download size={18} /> Download Excel
+                    </button>
                 </div>
             </div>
 
