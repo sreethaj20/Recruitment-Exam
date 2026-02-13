@@ -124,7 +124,6 @@ const Exams = () => {
                                     <FileText size={20} color="white" />
                                 </div>
                                 <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                    <button className="secondary" style={{ padding: '0.5rem' }} onClick={() => openEditModal(exam)}><Edit size={16} /></button>
                                     <button
                                         className="secondary"
                                         style={{ padding: '0.5rem', color: 'var(--danger)' }}

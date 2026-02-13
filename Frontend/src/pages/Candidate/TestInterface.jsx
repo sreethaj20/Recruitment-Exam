@@ -78,10 +78,8 @@ const TestInterface = () => {
     const onViolation = useCallback((count) => {
         if (isSubmitting) return;
 
-        if (count === 1) {
-            setShowWarning(true);
-        } else if (count >= 2) {
-            handleSubmit('Auto-submitted due to security violation');
+        if (count >= 1) {
+            handleSubmit('Auto-submitted due to security violation (Tab Switch)');
         }
     }, [isSubmitting]);
 

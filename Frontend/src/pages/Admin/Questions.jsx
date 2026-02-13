@@ -141,7 +141,6 @@ const Questions = () => {
                                 </div>
                             </div>
                             <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                <button className="secondary" style={{ padding: '0.5rem' }} onClick={(e) => e.stopPropagation()}><Edit2 size={16} /></button>
                                 <button className="secondary" style={{ padding: '0.5rem', color: 'var(--danger)' }} onClick={(e) => { e.stopPropagation(); handleDeleteQuestion(q.id); }}><Trash2 size={16} /></button>
                                 <div style={{ padding: '0.5rem', color: 'var(--text-muted)' }}>
                                     {expandedId === q.id ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
