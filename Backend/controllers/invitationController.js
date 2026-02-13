@@ -112,7 +112,22 @@ const getAssessmentData = async (req, res) => {
             return res.status(410).json({ message: 'This assessment link has expired (8 hour limit exceeded)' });
         }
 
-        res.json(invitation.Exam);
+        const exam = invitation.Exam.toJSON();
+        let questions = [...exam.Questions];
+
+        // Shuffle questions
+        for (let i = questions.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [questions[i], questions[j]] = [questions[j], questions[i]];
+        }
+
+        // Slice if pool size is set
+        if (exam.question_pool_size && exam.question_pool_size > 0) {
+            questions = questions.slice(0, exam.question_pool_size);
+        }
+
+        exam.Questions = questions;
+        res.json(exam);
     } catch (error) {
         console.error('Error fetching assessment data:', error);
         res.status(500).json({ message: 'Error fetching assessment data' });

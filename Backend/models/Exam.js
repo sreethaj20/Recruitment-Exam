@@ -25,6 +25,10 @@ const Exam = sequelize.define('Exam', {
     duration_minutes: {
         type: DataTypes.INTEGER,
         defaultValue: 60
+    },
+    question_pool_size: {
+        type: DataTypes.INTEGER,
+        allowNull: true
     }
 }, {
     timestamps: false

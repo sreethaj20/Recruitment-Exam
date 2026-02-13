@@ -13,7 +13,8 @@ const Exams = () => {
         title: '',
         department_id: db.departments[0]?.id || '',
         candidate_type_id: db.candidateTypes[0]?.id || '',
-        duration_minutes: 30
+        duration_minutes: 30,
+        question_pool_size: ''
     });
 
     const handleDeleteExam = async (id) => {
@@ -52,7 +53,8 @@ const Exams = () => {
                 title: '',
                 department_id: db.departments[0]?.id || '',
                 candidate_type_id: db.candidateTypes[0]?.id || '',
-                duration_minutes: 30
+                duration_minutes: 30,
+                question_pool_size: ''
             });
         } catch (err) {
             console.error("Error creating exam:", err);
@@ -118,7 +120,7 @@ const Exams = () => {
                                     <Clock size={14} /> {exam.duration_minutes} Mins
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-                                    <Users size={14} /> {exam.questions_count || 0} Questions
+                                    <Users size={14} /> {exam.question_pool_size ? `${exam.question_pool_size} (Pool: ${exam.questions_count})` : `${exam.questions_count} Questions`}
                                 </div>
                             </div>
 
@@ -190,15 +192,27 @@ const Exams = () => {
                                 </div>
                             </div>
 
-                            <div>
-                                <label>Duration (Minutes)</label>
-                                <input
-                                    type="number"
-                                    min="1"
-                                    required
-                                    value={formData.duration_minutes || ''}
-                                    onChange={(e) => setFormData({ ...formData, duration_minutes: parseInt(e.target.value) || 0 })}
-                                />
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <div>
+                                    <label>Duration (Minutes)</label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        required
+                                        value={formData.duration_minutes || ''}
+                                        onChange={(e) => setFormData({ ...formData, duration_minutes: parseInt(e.target.value) || 0 })}
+                                    />
+                                </div>
+                                <div>
+                                    <label>Question Pool Size (Optional)</label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        placeholder="Pick N random questions"
+                                        value={formData.question_pool_size || ''}
+                                        onChange={(e) => setFormData({ ...formData, question_pool_size: parseInt(e.target.value) || '' })}
+                                    />
+                                </div>
                             </div>
 
                             <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
