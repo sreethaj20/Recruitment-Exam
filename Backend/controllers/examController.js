@@ -36,6 +36,16 @@ const deleteExam = async (req, res) => {
     }
 };
 
+const updateExam = async (req, res) => {
+    try {
+        const { id } = req.params;
+        await Exam.update(req.body, { where: { id } });
+        res.json({ message: 'Exam updated' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error updating exam' });
+    }
+};
+
 // Question Controllers
 const getQuestions = async (req, res) => {
     try {
@@ -73,6 +83,7 @@ module.exports = {
     getExams,
     createExam,
     deleteExam,
+    updateExam,
     getQuestions,
     addQuestion,
     deleteQuestion

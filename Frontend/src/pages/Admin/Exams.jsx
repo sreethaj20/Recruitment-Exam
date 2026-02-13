@@ -6,8 +6,9 @@ import { useStore } from '../../store';
 
 const Exams = () => {
     const navigate = useNavigate();
-    const { db, addExam, addDepartment, refreshData } = useStore();
+    const { db, addExam, updateExam, addDepartment, refreshData } = useStore();
     const [showModal, setShowModal] = useState(false);
+    const [editingExam, setEditingExam] = useState(null);
     const [customDeptName, setCustomDeptName] = useState('');
     const [formData, setFormData] = useState({
         title: '',
@@ -29,6 +30,30 @@ const Exams = () => {
         }
     };
 
+    const openCreateModal = () => {
+        setEditingExam(null);
+        setFormData({
+            title: '',
+            department_id: db.departments[0]?.id || '',
+            candidate_type_id: db.candidateTypes[0]?.id || '',
+            duration_minutes: 30,
+            question_pool_size: ''
+        });
+        setShowModal(true);
+    };
+
+    const openEditModal = (exam) => {
+        setEditingExam(exam);
+        setFormData({
+            title: exam.title,
+            department_id: exam.department_id,
+            candidate_type_id: exam.candidate_type_id,
+            duration_minutes: exam.duration_minutes,
+            question_pool_size: exam.question_pool_size || ''
+        });
+        setShowModal(true);
+    };
+
     const handleCreate = async (e) => {
         e.preventDefault();
         if (!formData.title.trim()) return;
@@ -42,11 +67,18 @@ const Exams = () => {
             finalDepartmentId = newDept.id;
         }
 
+        const payload = {
+            ...formData,
+            department_id: finalDepartmentId,
+            question_pool_size: formData.question_pool_size === '' ? null : parseInt(formData.question_pool_size)
+        };
+
         try {
-            await addExam({
-                ...formData,
-                department_id: finalDepartmentId
-            });
+            if (editingExam) {
+                await updateExam(editingExam.id, payload);
+            } else {
+                await addExam(payload);
+            }
             setShowModal(false);
             setCustomDeptName('');
             setFormData({
@@ -57,7 +89,7 @@ const Exams = () => {
                 question_pool_size: ''
             });
         } catch (err) {
-            console.error("Error creating exam:", err);
+            console.error("Error saving exam:", err);
         }
     };
 
@@ -68,7 +100,7 @@ const Exams = () => {
                     <h2>Exam Management</h2>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Create and organize assessments for different departments.</p>
                 </div>
-                <button className="primary" onClick={() => setShowModal(true)}>
+                <button className="primary" onClick={openCreateModal}>
                     <Plus size={20} /> New Exam
                 </button>
             </div>
@@ -92,7 +124,7 @@ const Exams = () => {
                                     <FileText size={20} color="white" />
                                 </div>
                                 <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                    <button className="secondary" style={{ padding: '0.5rem' }}><Edit size={16} /></button>
+                                    <button className="secondary" style={{ padding: '0.5rem' }} onClick={() => openEditModal(exam)}><Edit size={16} /></button>
                                     <button
                                         className="secondary"
                                         style={{ padding: '0.5rem', color: 'var(--danger)' }}
@@ -144,8 +176,10 @@ const Exams = () => {
                         className="glass card"
                         style={{ maxWidth: '500px', width: '90%', padding: '2rem' }}
                     >
-                        <h3>Create New Exam</h3>
-                        <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: '2rem' }}>Define a new assessment module for candidates.</p>
+                        <h3>{editingExam ? 'Edit Exam' : 'Create New Exam'}</h3>
+                        <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: '2rem' }}>
+                            {editingExam ? 'Update assessment module details.' : 'Define a new assessment module for candidates.'}
+                        </p>
 
                         <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                             <div>
@@ -217,7 +251,7 @@ const Exams = () => {
 
                             <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
                                 <button type="button" className="secondary" style={{ flex: 1 }} onClick={() => setShowModal(false)}>Cancel</button>
-                                <button type="submit" className="primary" style={{ flex: 1 }}>Create Exam</button>
+                                <button type="submit" className="primary" style={{ flex: 1 }}>{editingExam ? 'Save Changes' : 'Create Exam'}</button>
                             </div>
                         </form>
                     </motion.div>

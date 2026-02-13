@@ -67,6 +67,12 @@ export const useStore = () => {
     refreshData();
   };
 
+  const updateExam = async (id, examData) => {
+    // Assuming backend supports PUT/PATCH on /exams/:id. Let's check api.js or add it.
+    await examAPI.update(id, examData);
+    refreshData();
+  };
+
   const addInvitation = async (invitationData) => {
     await invitationAPI.create(invitationData);
     refreshData();

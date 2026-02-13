@@ -27,6 +27,7 @@ export const authAPI = {
 export const examAPI = {
     getAll: () => api.get('/exams'),
     create: (data) => api.post('/exams', data),
+    update: (id, data) => api.put(`/exams/${id}`, data),
     delete: (id) => api.delete(`/exams/${id}`),
     getQuestions: (examId) => api.get(`/exams/questions/${examId}`),
     addQuestion: (data) => api.post('/exams/questions', data),

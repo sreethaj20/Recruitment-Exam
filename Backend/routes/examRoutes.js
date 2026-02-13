@@ -3,6 +3,7 @@ const router = express.Router();
 const {
     getExams,
     createExam,
+    updateExam,
     deleteExam,
     getQuestions,
     addQuestion,
@@ -12,6 +13,7 @@ const { protect } = require('../middleware/authMiddleware');
 
 router.get('/', protect, getExams);
 router.post('/', protect, createExam);
+router.put('/:id', protect, updateExam);
 router.delete('/:id', protect, deleteExam);
 
 router.get('/questions/:examId', protect, getQuestions);

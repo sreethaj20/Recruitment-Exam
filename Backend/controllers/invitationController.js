@@ -115,6 +115,10 @@ const getAssessmentData = async (req, res) => {
         const exam = invitation.Exam.toJSON();
         let questions = [...exam.Questions];
 
+        console.log(`Assessment start for exam: ${exam.title}`);
+        console.log(`Total questions in pool: ${questions.length}`);
+        console.log(`Configured pool size: ${exam.question_pool_size}`);
+
         // Shuffle questions
         for (let i = questions.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -123,6 +127,7 @@ const getAssessmentData = async (req, res) => {
 
         // Slice if pool size is set
         if (exam.question_pool_size && exam.question_pool_size > 0) {
+            console.log(`Slicing questions to size: ${exam.question_pool_size}`);
             questions = questions.slice(0, exam.question_pool_size);
         }
 
