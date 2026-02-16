@@ -27,6 +27,8 @@ const TestInterface = () => {
     const [isModelsLoaded, setIsModelsLoaded] = useState(false);
     const violationCheckRef = useRef({ face: 0 });
     const handleSubmitRef = useRef(null);
+    const isSubmittingRef = useRef(false);
+    const examRef = useRef(null);
 
     const enterFullscreen = () => {
         if (containerRef.current) {
@@ -91,10 +93,12 @@ const TestInterface = () => {
         }
     }, [isSubmitting, attemptId, questions, answers, token, navigate]);
 
-    // Update handleSubmitRef whenever handleSubmit changes
+    // Update refs whenever state changes
     useEffect(() => {
         handleSubmitRef.current = handleSubmit;
-    }, [handleSubmit]);
+        isSubmittingRef.current = isSubmitting;
+        examRef.current = exam;
+    }, [handleSubmit, isSubmitting, exam]);
 
     // Anti-Cheating Handler
     const onViolation = useCallback((count) => {
@@ -116,8 +120,9 @@ const TestInterface = () => {
         const handleFullscreenChange = () => {
             const isFull = !!document.fullscreenElement;
             setIsFullscreen(isFull);
-            if (!isFull && !isSubmitting && exam) {
-                handleSubmit('Auto-submitted: Exited fullscreen mode');
+            if (!isFull && !isSubmittingRef.current && examRef.current) {
+                console.log("Proctoring: Fullscreen exit detected. Auto-submitting...");
+                handleSubmitRef.current('Auto-submitted: Exited fullscreen mode');
             }
         };
 
@@ -127,7 +132,7 @@ const TestInterface = () => {
             window.removeEventListener('popstate', handlePopState);
             document.removeEventListener('fullscreenchange', handleFullscreenChange);
         };
-    }, [handleSubmit, isSubmitting, exam]);
+    }, []); // Clean dependencies
 
     // Load Exam and Initialize Attempt
     useEffect(() => {
@@ -162,7 +167,10 @@ const TestInterface = () => {
     // Timer Logic
     useEffect(() => {
         if (timeLeft <= 0 || isSubmitting) {
-            if (timeLeft === 0 && exam) handleSubmit();
+            if (timeLeft === 0 && examRef.current) {
+                console.log("Proctoring: Time limit reached. Submitting...");
+                handleSubmitRef.current();
+            }
             return;
         }
 
@@ -171,10 +179,12 @@ const TestInterface = () => {
         }, 1000);
 
         return () => clearInterval(timer);
-    }, [timeLeft, isSubmitting, exam, handleSubmit]);
+    }, [timeLeft, isSubmitting]);
 
-
-    useTabVisibility(onViolation);
+    useTabVisibility((count) => {
+        console.log(`Proctoring: Visibility violation detected (Count: ${count})`);
+        onViolation(count);
+    });
 
     // Load Face-API models
     useEffect(() => {
@@ -216,9 +226,10 @@ const TestInterface = () => {
                     const videoTrack = stream.getVideoTracks()[0];
                     const audioTrack = stream.getAudioTracks()[0];
 
-                    // 1. Check if device is physically disconnected or disabled in browser
-                    if (!videoTrack || videoTrack.readyState !== 'live' || !audioTrack || audioTrack.readyState !== 'live') {
-                        setProctoringError('Camera or microphone access lost. Please ensure your devices are connected.');
+                    // 1. Check for physical disconnection
+                    if (!videoTrack || videoTrack.readyState === 'ended' || !audioTrack || audioTrack.readyState === 'ended') {
+                        console.warn("Proctoring: Device disconnected!");
+                        setProctoringError('Camera or microphone disconnected. Please check your hardware.');
                         return;
                     }
 
@@ -226,14 +237,15 @@ const TestInterface = () => {
 
                     // 2. Check for Mic Mute
                     if (!audioTrack.enabled || audioTrack.muted) {
-                        if (handleSubmitRef.current) {
+                        console.log("Proctoring: Mic muted detected.");
+                        if (handleSubmitRef.current && !isSubmittingRef.current) {
                             handleSubmitRef.current('Auto-submitted: Microphone was muted during the exam');
                         }
                         return;
                     }
 
-                    // 3. Face Detection (if models are loaded and video is playing)
-                    if (isModelsLoaded && videoRef.current && !isSubmitting && exam) {
+                    // 3. Face Detection
+                    if (isModelsLoaded && videoRef.current && videoRef.current.readyState >= 2 && !isSubmittingRef.current && examRef.current) {
                         try {
                             const detections = await window.faceapi.detectAllFaces(
                                 videoRef.current,
@@ -242,39 +254,45 @@ const TestInterface = () => {
 
                             if (detections.length === 0) {
                                 violationCheckRef.current.face++;
-                                if (violationCheckRef.current.face >= 3) { // ~15 seconds of no face
+                                console.log(`Proctoring: Face not detected. (Violation count: ${violationCheckRef.current.face}/3)`);
+                                if (violationCheckRef.current.face >= 3) {
                                     if (handleSubmitRef.current) {
                                         handleSubmitRef.current('Auto-submitted: No face detected for a sustained period');
                                     }
                                 }
                             } else if (detections.length > 1) {
+                                console.log(`Proctoring: Multiple faces detected! (${detections.length} faces)`);
                                 if (handleSubmitRef.current) {
                                     handleSubmitRef.current('Auto-submitted: Multiple faces detected in the camera frame');
                                 }
                             } else {
-                                violationCheckRef.current.face = 0; // Reset on success
+                                violationCheckRef.current.face = 0;
                             }
                         } catch (faceErr) {
-                            console.error("Face detection error:", faceErr);
+                            console.error("Proctoring: AI detection error", faceErr);
                         }
                     }
                 }, 5000);
 
                 return () => clearInterval(monitorInterval);
             } catch (err) {
-                console.error("Proctoring error:", err);
+                console.error("Proctoring: Setup error", err);
                 setProctoringError('Camera and microphone access is required throughout the exam.');
             }
         };
 
-        if (exam) startProctoring();
+        if (exam) {
+            console.log("Proctoring: Starting monitoring session...");
+            startProctoring();
+        }
 
         return () => {
             if (streamRef.current) {
+                console.log("Proctoring: Ending monitoring session...");
                 streamRef.current.getTracks().forEach(track => track.stop());
             }
         };
-    }, [isModelsLoaded, exam]); // Removed handleSubmit and isSubmitting to prevent re-runs
+    }, [isModelsLoaded, exam]); // Stable dependency array
 
     if (!exam || questions.length === 0) return null;
 
