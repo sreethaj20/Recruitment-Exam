@@ -77,16 +77,6 @@ const TestInterface = () => {
         return () => clearInterval(timer);
     }, [timeLeft, isSubmitting, exam]);
 
-    // Anti-Cheating Handler
-    const onViolation = useCallback((count) => {
-        if (isSubmitting) return;
-
-        if (count >= 1) {
-            handleSubmit('Auto-submitted due to security violation (Tab Switch)');
-        }
-    }, [isSubmitting, handleSubmit]);
-
-    useTabVisibility(onViolation);
 
     const handleAnswerSelect = (questionId, optionIndex) => {
         setAnswers({ ...answers, [questionId]: optionIndex });
@@ -136,6 +126,17 @@ const TestInterface = () => {
             setIsSubmitting(false);
         }
     }, [isSubmitting, attemptId, questions, answers, token, navigate]);
+
+    // Anti-Cheating Handler
+    const onViolation = useCallback((count) => {
+        if (isSubmitting) return;
+
+        if (count >= 1) {
+            handleSubmit('Auto-submitted due to security violation (Tab Switch)');
+        }
+    }, [isSubmitting, handleSubmit]);
+
+    useTabVisibility(onViolation);
 
     // Proctoring Logic: Initialize and monitor camera/mic
     useEffect(() => {
