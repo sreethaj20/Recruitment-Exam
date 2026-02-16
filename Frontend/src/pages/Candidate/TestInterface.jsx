@@ -22,6 +22,8 @@ const TestInterface = () => {
     const videoRef = useRef(null);
     const streamRef = useRef(null);
     const [proctoringError, setProctoringError] = useState(null);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const containerRef = useRef(null);
 
     // Prevent back button
     useEffect(() => {
@@ -30,8 +32,22 @@ const TestInterface = () => {
             window.history.pushState(null, null, window.location.href);
         };
         window.addEventListener('popstate', handlePopState);
-        return () => window.removeEventListener('popstate', handlePopState);
-    }, []);
+
+        const handleFullscreenChange = () => {
+            const isFull = !!document.fullscreenElement;
+            setIsFullscreen(isFull);
+            if (!isFull && !isSubmitting && exam) {
+                handleSubmit('Auto-submitted: Exited fullscreen mode');
+            }
+        };
+
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+
+        return () => {
+            window.removeEventListener('popstate', handlePopState);
+            document.removeEventListener('fullscreenchange', handleFullscreenChange);
+        };
+    }, [handleSubmit, isSubmitting, exam]);
 
     // Load Exam and Initialize Attempt
     useEffect(() => {
@@ -179,6 +195,14 @@ const TestInterface = () => {
         };
     }, []);
 
+    const enterFullscreen = () => {
+        if (containerRef.current) {
+            containerRef.current.requestFullscreen().catch(err => {
+                console.error(`Error attempting to enable full-screen mode: ${err.message}`);
+            });
+        }
+    };
+
     const formatTime = (seconds) => {
         const mins = Math.floor(seconds / 60);
         const secs = seconds % 60;
@@ -191,133 +215,134 @@ const TestInterface = () => {
     const isLastQuestion = currentQuestionIndex === questions.length - 1;
 
     return (
-        <div style={{ minHeight: '100vh', padding: '2rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-            {/* Header */}
-            <header className="glass container" style={{ padding: '1rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: '1rem', zIndex: 10 }}>
-                <div>
-                    <h3 style={{ fontSize: '1.25rem' }}>{exam.title}</h3>
-                    <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Question {currentQuestionIndex + 1} of {questions.length}</p>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                    <div className="glass" style={{ padding: '0.5rem 1.25rem', borderRadius: '2rem', display: 'flex', alignItems: 'center', gap: '0.75rem', border: timeLeft < 60 ? '1px solid var(--danger)' : '1px solid var(--glass-border)' }}>
-                        <Clock size={20} color={timeLeft < 60 ? 'var(--danger)' : 'var(--primary)'} />
-                        <span style={{ fontWeight: '700', fontSize: '1.1rem', color: timeLeft < 60 ? 'var(--danger)' : 'white' }}>
-                            {formatTime(timeLeft)}
-                        </span>
-                    </div>
-                    <button className="primary" onClick={() => handleSubmit()}>Submit Test</button>
-                </div>
-            </header>
-
-            {/* Main Content */}
-            <main className="container" style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
-                <div style={{ width: '100%', maxWidth: '800px', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-
-                    <div className="card glass fade-in" style={{ padding: '3rem' }}>
-                        <h2 style={{ marginBottom: '2.5rem', lineHeight: '1.4' }}>{currentQuestion.text}</h2>
-
-                        {currentQuestion.type === 'text' ? (
-                            <div className="fade-in">
-                                <label style={{ marginBottom: '1rem', display: 'block', color: 'var(--text-muted)' }}>Enter your answer below:</label>
-                                <textarea
-                                    rows={6}
-                                    placeholder="Type your response here..."
-                                    value={answers[currentQuestion.id] || ''}
-                                    onChange={(e) => handleAnswerSelect(currentQuestion.id, e.target.value)}
-                                    style={{
-                                        width: '100%',
-                                        padding: '1.5rem',
-                                        borderRadius: '1rem',
-                                        background: 'var(--glass-bg)',
-                                        border: '1px solid var(--glass-border)',
-                                        fontSize: '1.1rem',
-                                        lineHeight: '1.6',
-                                        resize: 'none',
-                                        transition: 'all 0.3s ease',
-                                    }}
-                                    onFocus={(e) => e.target.style.border = '2px solid var(--primary)'}
-                                    onBlur={(e) => e.target.style.border = '1px solid var(--glass-border)'}
-                                />
-                                <p style={{ marginTop: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                                    Tip: Ensure your answer includes key terminology related to the question.
-                                </p>
-                            </div>
-                        ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                {currentQuestion.options.map((option, idx) => {
-                                    const isSelected = answers[currentQuestion.id] === idx;
-                                    return (
-                                        <motion.div
-                                            key={idx}
-                                            whileHover={{ x: 5 }}
-                                            whileTap={{ scale: 0.99 }}
-                                            onClick={() => handleAnswerSelect(currentQuestion.id, idx)}
-                                            className="glass"
-                                            style={{
-                                                padding: '1.25rem 1.5rem',
-                                                borderRadius: '1rem',
-                                                cursor: 'pointer',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '1.25rem',
-                                                border: isSelected ? '2px solid var(--primary)' : '1px solid var(--glass-border)',
-                                                background: isSelected ? 'rgba(99, 102, 241, 0.1)' : 'var(--glass-bg)',
-                                                transition: 'all 0.2s ease'
-                                            }}
-                                        >
-                                            <div style={{
-                                                width: '24px',
-                                                height: '24px',
-                                                borderRadius: '50%',
-                                                border: isSelected ? '6px solid var(--primary)' : '2px solid var(--glass-border)',
-                                                background: 'transparent'
-                                            }}></div>
-                                            <span style={{ fontSize: '1.1rem', fontWeight: isSelected ? '600' : '400' }}>{option}</span>
-                                        </motion.div>
-                                    );
-                                })}
-                            </div>
-                        )}
+        <div ref={containerRef} style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
+            <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '2rem', filter: !isFullscreen ? 'blur(10px)' : 'none', pointerEvents: !isFullscreen ? 'none' : 'auto' }}>
+                {/* Header */}
+                <header className="glass container" style={{ padding: '1rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: '1rem', zIndex: 10 }}>
+                    <div>
+                        <h3 style={{ fontSize: '1.25rem' }}>{exam.title}</h3>
+                        <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Question {currentQuestionIndex + 1} of {questions.length}</p>
                     </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <button
-                            className="secondary"
-                            disabled={currentQuestionIndex === 0}
-                            onClick={() => setCurrentQuestionIndex(prev => prev - 1)}
-                            style={{ opacity: currentQuestionIndex === 0 ? 0.5 : 1 }}
-                        >
-                            <ChevronLeft size={20} /> Previous
-                        </button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                        <div className="glass" style={{ padding: '0.5rem 1.25rem', borderRadius: '2rem', display: 'flex', alignItems: 'center', gap: '0.75rem', border: timeLeft < 60 ? '1px solid var(--danger)' : '1px solid var(--glass-border)' }}>
+                            <Clock size={20} color={timeLeft < 60 ? 'var(--danger)' : 'var(--primary)'} />
+                            <span style={{ fontWeight: '700', fontSize: '1.1rem', color: timeLeft < 60 ? 'var(--danger)' : 'white' }}>
+                                {formatTime(timeLeft)}
+                            </span>
+                        </div>
+                        <button className="primary" onClick={() => handleSubmit()}>Submit Test</button>
+                    </div>
+                </header>
 
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            {questions.map((_, idx) => (
-                                <div
-                                    key={idx}
-                                    style={{
-                                        width: '8px',
-                                        height: '8px',
-                                        borderRadius: '50%',
-                                        background: currentQuestionIndex === idx ? 'var(--primary)' : 'var(--glass-border)'
-                                    }}
-                                />
-                            ))}
+                {/* Main Content */}
+                <main className="container" style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
+                    <div style={{ width: '100%', maxWidth: '800px', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+
+                        <div className="card glass fade-in" style={{ padding: '3rem' }}>
+                            <h2 style={{ marginBottom: '2.5rem', lineHeight: '1.4' }}>{currentQuestion.text}</h2>
+
+                            {currentQuestion.type === 'text' ? (
+                                <div className="fade-in">
+                                    <label style={{ marginBottom: '1rem', display: 'block', color: 'var(--text-muted)' }}>Enter your answer below:</label>
+                                    <textarea
+                                        rows={6}
+                                        placeholder="Type your response here..."
+                                        value={answers[currentQuestion.id] || ''}
+                                        onChange={(e) => handleAnswerSelect(currentQuestion.id, e.target.value)}
+                                        style={{
+                                            width: '100%',
+                                            padding: '1.5rem',
+                                            borderRadius: '1rem',
+                                            background: 'var(--glass-bg)',
+                                            border: '1px solid var(--glass-border)',
+                                            fontSize: '1.1rem',
+                                            lineHeight: '1.6',
+                                            resize: 'none',
+                                            transition: 'all 0.3s ease',
+                                        }}
+                                        onFocus={(e) => e.target.style.border = '2px solid var(--primary)'}
+                                        onBlur={(e) => e.target.style.border = '1px solid var(--glass-border)'}
+                                    />
+                                    <p style={{ marginTop: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                                        Tip: Ensure your answer includes key terminology related to the question.
+                                    </p>
+                                </div>
+                            ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                    {currentQuestion.options.map((option, idx) => {
+                                        const isSelected = answers[currentQuestion.id] === idx;
+                                        return (
+                                            <motion.div
+                                                key={idx}
+                                                whileHover={{ x: 5 }}
+                                                whileTap={{ scale: 0.99 }}
+                                                onClick={() => handleAnswerSelect(currentQuestion.id, idx)}
+                                                className="glass"
+                                                style={{
+                                                    padding: '1.25rem 1.5rem',
+                                                    borderRadius: '1rem',
+                                                    cursor: 'pointer',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '1.25rem',
+                                                    border: isSelected ? '2px solid var(--primary)' : '1px solid var(--glass-border)',
+                                                    background: isSelected ? 'rgba(99, 102, 241, 0.1)' : 'var(--glass-bg)',
+                                                    transition: 'all 0.2s ease'
+                                                }}
+                                            >
+                                                <div style={{
+                                                    width: '24px',
+                                                    height: '24px',
+                                                    borderRadius: '50%',
+                                                    border: isSelected ? '6px solid var(--primary)' : '2px solid var(--glass-border)',
+                                                    background: 'transparent'
+                                                }}></div>
+                                                <span style={{ fontSize: '1.1rem', fontWeight: isSelected ? '600' : '400' }}>{option}</span>
+                                            </motion.div>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
 
-                        {isLastQuestion ? (
-                            <button className="primary" onClick={() => handleSubmit()} style={{ background: 'var(--accent)' }}>
-                                Final Submission <Send size={18} style={{ marginLeft: '0.5rem' }} />
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <button
+                                className="secondary"
+                                disabled={currentQuestionIndex === 0}
+                                onClick={() => setCurrentQuestionIndex(prev => prev - 1)}
+                                style={{ opacity: currentQuestionIndex === 0 ? 0.5 : 1 }}
+                            >
+                                <ChevronLeft size={20} /> Previous
                             </button>
-                        ) : (
-                            <button className="secondary" onClick={() => setCurrentQuestionIndex(prev => prev + 1)}>
-                                Next Question <ChevronRight size={20} style={{ marginLeft: '0.5rem' }} />
-                            </button>
-                        )}
-                    </div>
-                </div>
-            </main>
 
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                {questions.map((_, idx) => (
+                                    <div
+                                        key={idx}
+                                        style={{
+                                            width: '8px',
+                                            height: '8px',
+                                            borderRadius: '50%',
+                                            background: currentQuestionIndex === idx ? 'var(--primary)' : 'var(--glass-border)'
+                                        }}
+                                    />
+                                ))}
+                            </div>
+
+                            {isLastQuestion ? (
+                                <button className="primary" onClick={() => handleSubmit()} style={{ background: 'var(--accent)' }}>
+                                    Final Submission <Send size={18} style={{ marginLeft: '0.5rem' }} />
+                                </button>
+                            ) : (
+                                <button className="secondary" onClick={() => setCurrentQuestionIndex(prev => prev + 1)}>
+                                    Next Question <ChevronRight size={20} style={{ marginLeft: '0.5rem' }} />
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </main>
+            </div>
             {/* Warning Overlay */}
             <AnimatePresence>
                 {showWarning && (
@@ -434,6 +459,41 @@ const TestInterface = () => {
                                 Re-enable Access
                             </button>
                         </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Fullscreen Requirement Overlay */}
+            <AnimatePresence>
+                {!isFullscreen && !isSubmitting && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        style={{
+                            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                            background: 'rgba(0,0,0,0.95)', backdropFilter: 'blur(20px)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            zIndex: 3000, padding: '2rem'
+                        }}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            className="glass card"
+                            style={{ maxWidth: '500px', textAlign: 'center', border: '1px solid var(--primary)' }}
+                        >
+                            <AlertCircle size={64} color="var(--primary)" style={{ marginBottom: '1.5rem' }} />
+                            <h2 style={{ marginBottom: '1rem' }}>Fullscreen Mode Required</h2>
+                            <p style={{ marginBottom: '2rem', lineHeight: '1.6', color: 'var(--text-muted)' }}>
+                                To maintain examination integrity, you must be in fullscreen mode.
+                                <br />
+                                <strong>Exiting fullscreen will result in immediate automatic submission.</strong>
+                            </p>
+                            <button className="primary" style={{ width: '100%' }} onClick={enterFullscreen}>
+                                Enter Fullscreen & Start Exam
+                            </button>
+                        </motion.div>
                     </motion.div>
                 )}
             </AnimatePresence>
