@@ -84,7 +84,7 @@ const TestInterface = () => {
         if (count >= 1) {
             handleSubmit('Auto-submitted due to security violation (Tab Switch)');
         }
-    }, [isSubmitting]);
+    }, [isSubmitting, handleSubmit]);
 
     useTabVisibility(onViolation);
 
@@ -92,7 +92,7 @@ const TestInterface = () => {
         setAnswers({ ...answers, [questionId]: optionIndex });
     };
 
-    const handleSubmit = async (reason = 'Normal submission') => {
+    const handleSubmit = useCallback(async (reason = 'Normal submission') => {
         if (isSubmitting || !attemptId) return;
         setIsSubmitting(true);
 
@@ -135,7 +135,7 @@ const TestInterface = () => {
             console.error("Submission error:", err);
             setIsSubmitting(false);
         }
-    };
+    }, [isSubmitting, attemptId, questions, answers, token, navigate]);
 
     // Proctoring Logic: Initialize and monitor camera/mic
     useEffect(() => {
