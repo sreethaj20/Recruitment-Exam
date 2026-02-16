@@ -254,10 +254,10 @@ const TestInterface = () => {
 
                             if (detections.length === 0) {
                                 violationCheckRef.current.face++;
-                                console.log(`Proctoring: Face not detected. (Violation count: ${violationCheckRef.current.face}/3)`);
-                                if (violationCheckRef.current.face >= 3) {
+                                console.log(`Proctoring: Face not detected. (Violation count: ${violationCheckRef.current.face}/1)`);
+                                if (violationCheckRef.current.face >= 1) {
                                     if (handleSubmitRef.current) {
-                                        handleSubmitRef.current('Auto-submitted: No face detected for a sustained period');
+                                        handleSubmitRef.current('Auto-submitted: No face detected (3-second violation)');
                                     }
                                 }
                             } else if (detections.length > 1) {
@@ -272,7 +272,7 @@ const TestInterface = () => {
                             console.error("Proctoring: AI detection error", faceErr);
                         }
                     }
-                }, 5000);
+                }, 3000);
 
                 return () => clearInterval(monitorInterval);
             } catch (err) {
