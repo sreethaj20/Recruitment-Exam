@@ -37,10 +37,6 @@ const SystemCheck = () => {
             const hasVideo = stream.getVideoTracks().some(track => track.readyState === 'live');
             const hasAudio = stream.getAudioTracks().some(track => track.readyState === 'live');
 
-            if (videoRef.current) {
-                videoRef.current.srcObject = stream;
-            }
-
             setStatus({
                 camera: hasVideo ? 'success' : 'error',
                 microphone: hasAudio ? 'success' : 'error',
@@ -65,6 +61,14 @@ const SystemCheck = () => {
             setIsChecking(false);
         }
     };
+
+    // Attach stream to video element when it becomes available
+    useEffect(() => {
+        if (status.camera === 'success' && videoRef.current && streamRef.current) {
+            videoRef.current.srcObject = streamRef.current;
+            videoRef.current.play().catch(e => console.error("Video play error:", e));
+        }
+    }, [status.camera, isChecking]);
 
     useEffect(() => {
         checkSystems();
