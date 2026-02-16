@@ -26,6 +26,7 @@ const TestInterface = () => {
     const containerRef = useRef(null);
     const [isModelsLoaded, setIsModelsLoaded] = useState(false);
     const violationCheckRef = useRef({ face: 0 });
+    const handleSubmitRef = useRef(null);
 
     const enterFullscreen = () => {
         if (containerRef.current) {
@@ -89,6 +90,11 @@ const TestInterface = () => {
             setIsSubmitting(false);
         }
     }, [isSubmitting, attemptId, questions, answers, token, navigate]);
+
+    // Update handleSubmitRef whenever handleSubmit changes
+    useEffect(() => {
+        handleSubmitRef.current = handleSubmit;
+    }, [handleSubmit]);
 
     // Anti-Cheating Handler
     const onViolation = useCallback((count) => {
@@ -220,7 +226,9 @@ const TestInterface = () => {
 
                     // 2. Check for Mic Mute
                     if (!audioTrack.enabled || audioTrack.muted) {
-                        handleSubmit('Auto-submitted: Microphone was muted during the exam');
+                        if (handleSubmitRef.current) {
+                            handleSubmitRef.current('Auto-submitted: Microphone was muted during the exam');
+                        }
                         return;
                     }
 
@@ -235,10 +243,14 @@ const TestInterface = () => {
                             if (detections.length === 0) {
                                 violationCheckRef.current.face++;
                                 if (violationCheckRef.current.face >= 3) { // ~15 seconds of no face
-                                    handleSubmit('Auto-submitted: No face detected for a sustained period');
+                                    if (handleSubmitRef.current) {
+                                        handleSubmitRef.current('Auto-submitted: No face detected for a sustained period');
+                                    }
                                 }
                             } else if (detections.length > 1) {
-                                handleSubmit('Auto-submitted: Multiple faces detected in the camera frame');
+                                if (handleSubmitRef.current) {
+                                    handleSubmitRef.current('Auto-submitted: Multiple faces detected in the camera frame');
+                                }
                             } else {
                                 violationCheckRef.current.face = 0; // Reset on success
                             }
@@ -262,7 +274,7 @@ const TestInterface = () => {
                 streamRef.current.getTracks().forEach(track => track.stop());
             }
         };
-    }, [isModelsLoaded, isSubmitting, exam, handleSubmit]);
+    }, [isModelsLoaded, exam]); // Removed handleSubmit and isSubmitting to prevent re-runs
 
     if (!exam || questions.length === 0) return null;
 
