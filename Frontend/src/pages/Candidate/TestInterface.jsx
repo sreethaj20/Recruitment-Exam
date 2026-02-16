@@ -24,6 +24,8 @@ const TestInterface = () => {
     const [proctoringError, setProctoringError] = useState(null);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const containerRef = useRef(null);
+    const [isModelsLoaded, setIsModelsLoaded] = useState(false);
+    const violationCheckRef = useRef({ face: 0 });
 
     const enterFullscreen = () => {
         if (containerRef.current) {
@@ -168,6 +170,28 @@ const TestInterface = () => {
 
     useTabVisibility(onViolation);
 
+    // Load Face-API models
+    useEffect(() => {
+        const loadModels = async () => {
+            const SCRIPT_URL = 'https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js';
+            const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights';
+
+            if (!window.faceapi) {
+                const script = document.createElement('script');
+                script.src = SCRIPT_URL;
+                script.async = true;
+                script.onload = async () => {
+                    await window.faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+                    setIsModelsLoaded(true);
+                };
+                document.body.appendChild(script);
+            } else {
+                setIsModelsLoaded(true);
+            }
+        };
+        loadModels();
+    }, []);
+
     // Proctoring Logic: Initialize and monitor camera/mic
     useEffect(() => {
         const startProctoring = async () => {
@@ -181,17 +205,48 @@ const TestInterface = () => {
                     videoRef.current.srcObject = stream;
                 }
 
-                // Monitor stream health
-                const monitorInterval = setInterval(() => {
+                // Monitor stream health and AI conditions
+                const monitorInterval = setInterval(async () => {
                     const videoTrack = stream.getVideoTracks()[0];
                     const audioTrack = stream.getAudioTracks()[0];
 
+                    // 1. Check if device is physically disconnected or disabled in browser
                     if (!videoTrack || videoTrack.readyState !== 'live' || !audioTrack || audioTrack.readyState !== 'live') {
                         setProctoringError('Camera or microphone access lost. Please ensure your devices are connected.');
-                    } else {
-                        setProctoringError(null);
+                        return;
                     }
-                }, 3000);
+
+                    setProctoringError(null);
+
+                    // 2. Check for Mic Mute
+                    if (!audioTrack.enabled || audioTrack.muted) {
+                        handleSubmit('Auto-submitted: Microphone was muted during the exam');
+                        return;
+                    }
+
+                    // 3. Face Detection (if models are loaded and video is playing)
+                    if (isModelsLoaded && videoRef.current && !isSubmitting && exam) {
+                        try {
+                            const detections = await window.faceapi.detectAllFaces(
+                                videoRef.current,
+                                new window.faceapi.TinyFaceDetectorOptions()
+                            );
+
+                            if (detections.length === 0) {
+                                violationCheckRef.current.face++;
+                                if (violationCheckRef.current.face >= 3) { // ~15 seconds of no face
+                                    handleSubmit('Auto-submitted: No face detected for a sustained period');
+                                }
+                            } else if (detections.length > 1) {
+                                handleSubmit('Auto-submitted: Multiple faces detected in the camera frame');
+                            } else {
+                                violationCheckRef.current.face = 0; // Reset on success
+                            }
+                        } catch (faceErr) {
+                            console.error("Face detection error:", faceErr);
+                        }
+                    }
+                }, 5000);
 
                 return () => clearInterval(monitorInterval);
             } catch (err) {
@@ -200,14 +255,14 @@ const TestInterface = () => {
             }
         };
 
-        startProctoring();
+        if (exam) startProctoring();
 
         return () => {
             if (streamRef.current) {
                 streamRef.current.getTracks().forEach(track => track.stop());
             }
         };
-    }, []);
+    }, [isModelsLoaded, isSubmitting, exam, handleSubmit]);
 
     if (!exam || questions.length === 0) return null;
 
