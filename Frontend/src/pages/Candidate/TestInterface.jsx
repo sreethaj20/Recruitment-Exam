@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, AlertTriangle, ChevronLeft, ChevronRight, Send, AlertCircle } from 'lucide-react';
@@ -19,6 +19,9 @@ const TestInterface = () => {
     const [showWarning, setShowWarning] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [attemptId, setAttemptId] = useState(null);
+    const videoRef = useRef(null);
+    const streamRef = useRef(null);
+    const [proctoringError, setProctoringError] = useState(null);
 
     // Prevent back button
     useEffect(() => {
@@ -133,6 +136,47 @@ const TestInterface = () => {
             setIsSubmitting(false);
         }
     };
+
+    // Proctoring Logic: Initialize and monitor camera/mic
+    useEffect(() => {
+        const startProctoring = async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: true,
+                    audio: true
+                });
+                streamRef.current = stream;
+                if (videoRef.current) {
+                    videoRef.current.srcObject = stream;
+                }
+
+                // Monitor stream health
+                const monitorInterval = setInterval(() => {
+                    const videoTrack = stream.getVideoTracks()[0];
+                    const audioTrack = stream.getAudioTracks()[0];
+
+                    if (!videoTrack || videoTrack.readyState !== 'live' || !audioTrack || audioTrack.readyState !== 'live') {
+                        setProctoringError('Camera or microphone access lost. Please ensure your devices are connected.');
+                    } else {
+                        setProctoringError(null);
+                    }
+                }, 3000);
+
+                return () => clearInterval(monitorInterval);
+            } catch (err) {
+                console.error("Proctoring error:", err);
+                setProctoringError('Camera and microphone access is required throughout the exam.');
+            }
+        };
+
+        startProctoring();
+
+        return () => {
+            if (streamRef.current) {
+                streamRef.current.getTracks().forEach(track => track.stop());
+            }
+        };
+    }, []);
 
     const formatTime = (seconds) => {
         const mins = Math.floor(seconds / 60);
@@ -327,6 +371,67 @@ const TestInterface = () => {
                             </div>
                             <h2>Submitting Your Responses...</h2>
                             <p style={{ color: 'var(--text-muted)', marginTop: '1rem' }}>Please do not close this window.</p>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Continuous Proctoring Preview (Floating Circle) */}
+            <div style={{
+                position: 'fixed',
+                bottom: '2rem',
+                right: '2rem',
+                width: '150px',
+                height: '150px',
+                borderRadius: '50%',
+                overflow: 'hidden',
+                border: '3px solid var(--primary)',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+                zIndex: 1000,
+                background: '#000',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+            }}>
+                <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover'
+                    }}
+                />
+                {!streamRef.current && (
+                    <div style={{ position: 'absolute', color: 'red', textAlign: 'center', padding: '10px' }}>
+                        <AlertCircle size={32} style={{ margin: '0 auto' }} />
+                    </div>
+                )}
+            </div>
+
+            {/* Proctoring Error Overlay */}
+            <AnimatePresence>
+                {proctoringError && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        style={{
+                            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                            background: 'rgba(239, 68, 68, 0.2)', backdropFilter: 'blur(10px)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            zIndex: 2000
+                        }}
+                    >
+                        <div className="glass card" style={{ maxWidth: '400px', textAlign: 'center', border: '2px solid var(--danger)' }}>
+                            <AlertCircle size={64} style={{ color: 'var(--danger)', marginBottom: '1rem' }} />
+                            <h2 style={{ color: 'var(--danger)' }}>Action Required!</h2>
+                            <p style={{ marginTop: '1rem', lineHeight: '1.6' }}>{proctoringError}</p>
+                            <button className="primary" style={{ marginTop: '2rem', background: 'var(--danger)' }} onClick={() => window.location.reload()}>
+                                Re-enable Access
+                            </button>
                         </div>
                     </motion.div>
                 )}
