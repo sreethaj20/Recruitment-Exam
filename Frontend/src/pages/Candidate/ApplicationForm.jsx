@@ -70,7 +70,7 @@ const ApplicationForm = () => {
             sessionStorage.setItem('current_candidate', JSON.stringify(candidate));
             sessionStorage.setItem('current_attempt', JSON.stringify(attempt));
 
-            navigate(`/exam/${token}/test`, { replace: true });
+            navigate(`/exam/${token}/system-check`, { replace: true });
         } catch (err) {
             setError(err.response?.data?.message || 'Verification failed. Please contact HR.');
         }

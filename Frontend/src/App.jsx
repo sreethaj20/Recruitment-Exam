@@ -5,6 +5,7 @@ import AdminLogin from './pages/Admin/Login';
 import AdminDashboard from './pages/Admin/Dashboard';
 import ExamLanding from './pages/Candidate/ExamLanding';
 import ApplicationForm from './pages/Candidate/ApplicationForm';
+import SystemCheck from './pages/Candidate/SystemCheck';
 import TestInterface from './pages/Candidate/TestInterface';
 import SuccessPage from './pages/Candidate/SuccessPage';
 
@@ -35,6 +36,7 @@ function App() {
           {/* Candidate Routes */}
           <Route path="/exam/:token" element={<ExamLanding />} />
           <Route path="/exam/:token/form" element={<ApplicationForm />} />
+          <Route path="/exam/:token/system-check" element={<SystemCheck />} />
           <Route path="/exam/:token/test" element={<TestInterface />} />
           <Route path="/exam/:token/success" element={<SuccessPage />} />
 
