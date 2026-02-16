@@ -25,6 +25,78 @@ const TestInterface = () => {
     const [isFullscreen, setIsFullscreen] = useState(false);
     const containerRef = useRef(null);
 
+    const enterFullscreen = () => {
+        if (containerRef.current) {
+            containerRef.current.requestFullscreen().catch(err => {
+                console.error(`Error attempting to enable full-screen mode: ${err.message}`);
+            });
+        }
+    };
+
+    const formatTime = (seconds) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    };
+
+    const handleAnswerSelect = (questionId, optionIndex) => {
+        setAnswers({ ...answers, [questionId]: optionIndex });
+    };
+
+    const handleSubmit = useCallback(async (reason = 'Normal submission') => {
+        if (isSubmitting || !attemptId) return;
+        setIsSubmitting(true);
+
+        // Calculate Score
+        let score = 0;
+        questions.forEach(q => {
+            if (q.type === 'text') {
+                const answer = (answers[q.id] || '').toLowerCase();
+                const matchedKeywords = q.keywords.filter(keyword =>
+                    answer.includes(keyword.toLowerCase())
+                );
+                // Mark correct if matches 3 to 5 keywords (as requested)
+                if (matchedKeywords.length >= 3) {
+                    score++;
+                }
+            } else {
+                if (answers[q.id] === q.correct_answer) {
+                    score++;
+                }
+            }
+        });
+
+        const results = {
+            score,
+            total_questions: questions.length,
+            percentage: questions.length > 0 ? (score / questions.length) * 100 : 0
+        };
+
+        try {
+            // Submit attempt to backend
+            await attemptAPI.submit(attemptId, results);
+
+            sessionStorage.setItem('last_result', JSON.stringify({
+                ...results,
+                submissionType: reason
+            }));
+
+            navigate(`/exam/${token}/success`, { replace: true });
+        } catch (err) {
+            console.error("Submission error:", err);
+            setIsSubmitting(false);
+        }
+    }, [isSubmitting, attemptId, questions, answers, token, navigate]);
+
+    // Anti-Cheating Handler
+    const onViolation = useCallback((count) => {
+        if (isSubmitting) return;
+
+        if (count >= 1) {
+            handleSubmit('Auto-submitted due to security violation (Tab Switch)');
+        }
+    }, [isSubmitting, handleSubmit]);
+
     // Prevent back button
     useEffect(() => {
         window.history.pushState(null, null, window.location.href);
@@ -91,66 +163,8 @@ const TestInterface = () => {
         }, 1000);
 
         return () => clearInterval(timer);
-    }, [timeLeft, isSubmitting, exam]);
+    }, [timeLeft, isSubmitting, exam, handleSubmit]);
 
-
-    const handleAnswerSelect = (questionId, optionIndex) => {
-        setAnswers({ ...answers, [questionId]: optionIndex });
-    };
-
-    const handleSubmit = useCallback(async (reason = 'Normal submission') => {
-        if (isSubmitting || !attemptId) return;
-        setIsSubmitting(true);
-
-        // Calculate Score
-        let score = 0;
-        questions.forEach(q => {
-            if (q.type === 'text') {
-                const answer = (answers[q.id] || '').toLowerCase();
-                const matchedKeywords = q.keywords.filter(keyword =>
-                    answer.includes(keyword.toLowerCase())
-                );
-                // Mark correct if matches 3 to 5 keywords (as requested)
-                if (matchedKeywords.length >= 3) {
-                    score++;
-                }
-            } else {
-                if (answers[q.id] === q.correct_answer) {
-                    score++;
-                }
-            }
-        });
-
-        const results = {
-            score,
-            total_questions: questions.length,
-            percentage: questions.length > 0 ? (score / questions.length) * 100 : 0
-        };
-
-        try {
-            // Submit attempt to backend
-            await attemptAPI.submit(attemptId, results);
-
-            sessionStorage.setItem('last_result', JSON.stringify({
-                ...results,
-                submissionType: reason
-            }));
-
-            navigate(`/exam/${token}/success`, { replace: true });
-        } catch (err) {
-            console.error("Submission error:", err);
-            setIsSubmitting(false);
-        }
-    }, [isSubmitting, attemptId, questions, answers, token, navigate]);
-
-    // Anti-Cheating Handler
-    const onViolation = useCallback((count) => {
-        if (isSubmitting) return;
-
-        if (count >= 1) {
-            handleSubmit('Auto-submitted due to security violation (Tab Switch)');
-        }
-    }, [isSubmitting, handleSubmit]);
 
     useTabVisibility(onViolation);
 
@@ -194,20 +208,6 @@ const TestInterface = () => {
             }
         };
     }, []);
-
-    const enterFullscreen = () => {
-        if (containerRef.current) {
-            containerRef.current.requestFullscreen().catch(err => {
-                console.error(`Error attempting to enable full-screen mode: ${err.message}`);
-            });
-        }
-    };
-
-    const formatTime = (seconds) => {
-        const mins = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    };
 
     if (!exam || questions.length === 0) return null;
 
