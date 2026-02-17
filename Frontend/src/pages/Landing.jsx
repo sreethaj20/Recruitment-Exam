@@ -29,10 +29,10 @@ const Landing = () => {
                 transition={{ duration: 0.6 }}
             >
                 <h1 style={{ fontSize: '3.5rem', marginBottom: '1rem' }}>
-                    <span className="gradient-text">Recruitment</span>
+                    <span className="gradient-text">Merit Matters</span>
                 </h1>
                 <p style={{ color: 'var(--text-muted)', fontSize: '1.25rem', marginBottom: '3rem', maxWidth: '600px' }}>
-                    Welcome to our secure examination portal. Please select your role to proceed with the recruitment process.
+                    Welcome to our secure examination portal. Please select your role to proceed.
                 </p>
             </motion.div>
 

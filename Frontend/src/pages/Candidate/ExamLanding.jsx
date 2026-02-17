@@ -61,7 +61,7 @@ const ExamLanding = () => {
                 <div className="gradient-bg" style={{ padding: '2rem', borderRadius: '1rem', marginBottom: '2rem', textAlign: 'center', color: 'white' }}>
                     <BookOpen size={40} style={{ marginBottom: '1rem' }} />
                     <h2>{exam.title}</h2>
-                    <p style={{ opacity: 0.9 }}>Recruitment Assessment Portal</p>
+                    <p style={{ opacity: 0.9 }}>Merit Matters</p>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2.5rem' }}>
@@ -76,7 +76,7 @@ const ExamLanding = () => {
                         <CheckCircle2 size={24} color="var(--accent)" />
                         <div>
                             <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Format</p>
-                            <p style={{ fontWeight: '600' }}>MCQ Questions</p>
+                            <p style={{ fontWeight: '600' }}>Mixed-Format Assessment</p>
                         </div>
                     </div>
                 </div>
