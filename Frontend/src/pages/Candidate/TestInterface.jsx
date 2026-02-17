@@ -66,7 +66,14 @@ const TestInterface = () => {
                 if (matchedKeywords.length >= 3) {
                     score++;
                 }
+            } else if (q.type === 'fill_in_the_blank') {
+                const answer = (answers[q.id] || '').toLowerCase().trim();
+                const correct = (q.correct_answer || '').toLowerCase().trim();
+                if (answer === correct) {
+                    score++;
+                }
             } else {
+                // Default to MCQ logic
                 if (answers[q.id] === q.correct_answer) {
                     score++;
                 }
@@ -374,6 +381,55 @@ const TestInterface = () => {
                                     <p style={{ marginTop: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                                         Tip: Ensure your answer includes key terminology related to the question.
                                     </p>
+                                </div>
+                            ) : currentQuestion.type === 'fill_in_the_blank' ? (
+                                <div className="fade-in" style={{ fontSize: '1.25rem', lineHeight: '1.8' }}>
+                                    {(() => {
+                                        const parts = currentQuestion.text.split('________');
+                                        if (parts.length > 1) {
+                                            return (
+                                                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.5rem' }}>
+                                                    {parts[0]}
+                                                    <input
+                                                        type="text"
+                                                        value={answers[currentQuestion.id] || ''}
+                                                        onChange={(e) => handleAnswerSelect(currentQuestion.id, e.target.value)}
+                                                        style={{
+                                                            padding: '0.2rem 1rem',
+                                                            borderRadius: '0.5rem',
+                                                            background: 'var(--glass-bg)',
+                                                            border: '2px solid var(--primary)',
+                                                            fontSize: '1.1rem',
+                                                            width: '200px',
+                                                            color: 'white'
+                                                        }}
+                                                        placeholder="answer..."
+                                                    />
+                                                    {parts[1]}
+                                                </div>
+                                            );
+                                        }
+                                        return (
+                                            <div>
+                                                <h2 style={{ marginBottom: '2rem' }}>{currentQuestion.text}</h2>
+                                                <input
+                                                    type="text"
+                                                    value={answers[currentQuestion.id] || ''}
+                                                    onChange={(e) => handleAnswerSelect(currentQuestion.id, e.target.value)}
+                                                    style={{
+                                                        width: '100%',
+                                                        padding: '1rem 1.5rem',
+                                                        borderRadius: '1rem',
+                                                        background: 'var(--glass-bg)',
+                                                        border: '2px solid var(--primary)',
+                                                        fontSize: '1.1rem',
+                                                        color: 'white'
+                                                    }}
+                                                    placeholder="Enter your answer here..."
+                                                />
+                                            </div>
+                                        );
+                                    })()}
                                 </div>
                             ) : (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

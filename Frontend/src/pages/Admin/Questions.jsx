@@ -165,6 +165,11 @@ const Questions = () => {
                                             ))}
                                         </div>
                                     </div>
+                                ) : q.type === 'fill_in_the_blank' ? (
+                                    <div style={{ paddingTop: '1rem', borderTop: '1px solid var(--border)' }}>
+                                        <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '0.5rem' }}>Correct Answer:</div>
+                                        <div style={{ fontWeight: '600', color: 'var(--accent)' }}>{q.correct_answer}</div>
+                                    </div>
                                 ) : (
                                     <div style={{ paddingTop: '1rem', borderTop: '1px solid var(--border)' }}>
                                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
@@ -227,6 +232,7 @@ const Questions = () => {
                                 >
                                     <option value="mcq">Multiple Choice (MCQ)</option>
                                     <option value="text">Text Response (Keyword Graded)</option>
+                                    <option value="fill_in_the_blank">Fill in the Blank</option>
                                 </select>
                             </div>
 
@@ -235,7 +241,7 @@ const Questions = () => {
                                 <textarea
                                     required
                                     rows={3}
-                                    placeholder="Enter your question here..."
+                                    placeholder={formData.type === 'fill_in_the_blank' ? "Use ________ (8 underscores) to represent the blank. E.g. The capital of France is ________." : "Enter your question here..."}
                                     value={formData.text}
                                     onChange={(e) => setFormData({ ...formData, text: e.target.value })}
                                 />
@@ -262,7 +268,7 @@ const Questions = () => {
                                         </div>
                                     ))}
                                 </div>
-                            ) : (
+                            ) : formData.type === 'text' ? (
                                 <div className="fade-in">
                                     <label>Target Keywords (Comma separated)</label>
                                     <input
@@ -273,6 +279,19 @@ const Questions = () => {
                                     />
                                     <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
                                         Candidate must match at least 3-5 of these keywords for a correct mark.
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="fade-in">
+                                    <label>Correct Answer</label>
+                                    <input
+                                        required
+                                        placeholder="Enter the correct word or phrase"
+                                        value={typeof formData.correct_answer === 'string' ? formData.correct_answer : ''}
+                                        onChange={(e) => setFormData({ ...formData, correct_answer: e.target.value })}
+                                    />
+                                    <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+                                        Grading will be case-insensitive.
                                     </p>
                                 </div>
                             )}
