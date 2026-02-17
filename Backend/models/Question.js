@@ -17,14 +17,14 @@ const Question = sequelize.define('Question', {
     },
     type: {
         type: DataTypes.STRING,
-        defaultValue: 'mcq' // 'mcq', 'text'
+        defaultValue: 'mcq' // 'mcq', 'text', 'fill_in_the_blank'
     },
     options: {
         type: DataTypes.JSONB,
         allowNull: true
     },
     correct_answer: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.STRING,
         allowNull: true
     },
     keywords: {

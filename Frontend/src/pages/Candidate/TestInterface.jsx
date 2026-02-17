@@ -74,7 +74,7 @@ const TestInterface = () => {
                 }
             } else {
                 // Default to MCQ logic
-                if (answers[q.id] === q.correct_answer) {
+                if (answers[q.id] == q.correct_answer) {
                     score++;
                 }
             }

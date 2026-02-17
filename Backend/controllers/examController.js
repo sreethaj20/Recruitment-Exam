@@ -62,6 +62,10 @@ const addQuestion = async (req, res) => {
         if (questionData.type === 'text' && typeof questionData.keywords === 'string') {
             questionData.keywords = questionData.keywords.split(',').map(k => k.trim().toLowerCase()).filter(k => k !== '');
         }
+        if (questionData.type === 'fill_in_the_blank') {
+            questionData.options = null;
+            questionData.keywords = null;
+        }
         const question = await Question.create(questionData);
         res.status(201).json(question);
     } catch (error) {
