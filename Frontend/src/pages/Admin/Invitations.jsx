@@ -89,7 +89,7 @@ const Invitations = () => {
                     </div>
 
                     <div style={{ marginBottom: '1.5rem' }}>
-                        <label>Test Mode</label>
+                        <label>Exam Type</label>
                         <select value={testType} onChange={(e) => setTestType(e.target.value)}>
                             <option value="internal">Internal (Hardware Confirmation Flow)</option>
                             <option value="external">External (Strict Mandatory Proctoring)</option>
