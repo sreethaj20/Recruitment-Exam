@@ -50,7 +50,7 @@ const AdminDashboard = () => {
     ];
 
     return (
-        <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-deep)' }}>
+        <div style={{ display: 'flex', height: '100vh', background: 'var(--bg-deep)', overflow: 'hidden' }}>
             {/* Sidebar */}
             <aside className="glass" style={{ width: '280px', margin: '1rem', borderRadius: '1.5rem', display: 'flex', flexDirection: 'column', padding: '1.5rem' }}>
                 <div style={{ padding: '1rem', marginBottom: '2rem' }}>
