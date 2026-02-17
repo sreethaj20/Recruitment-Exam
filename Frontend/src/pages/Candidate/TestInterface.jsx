@@ -303,7 +303,7 @@ const TestInterface = () => {
     const isLastQuestion = currentQuestionIndex === questions.length - 1;
 
     return (
-        <div ref={containerRef} style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
+        <div ref={containerRef} style={{ height: '100vh', overflowY: 'auto', background: 'var(--bg)', color: 'var(--text)' }}>
             <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '2rem', filter: !isFullscreen ? 'blur(10px)' : 'none', pointerEvents: !isFullscreen ? 'none' : 'auto' }}>
                 {/* Header */}
                 <header className="glass container" style={{ padding: '1rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: '1rem', zIndex: 10 }}>
