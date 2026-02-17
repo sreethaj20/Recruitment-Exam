@@ -35,6 +35,35 @@ const ExamLanding = () => {
         validateLink();
     }, [token]);
 
+    const [camChoice, setCamChoice] = useState(null);
+    const [micChoice, setMicChoice] = useState(null);
+    const [showHardwareCheck, setShowHardwareCheck] = useState(false);
+
+    const handleProceed = () => {
+        if (invitation.test_type === 'internal') {
+            setShowHardwareCheck(true);
+        } else {
+            // For external, we assume mandatory or skip check screen
+            sessionStorage.setItem('hardware_requirements', JSON.stringify({
+                cam: true,
+                mic: true
+            }));
+            navigate(`/exam/${token}/form`);
+        }
+    };
+
+    const handleHardwareSubmit = () => {
+        if (camChoice === null || micChoice === null) {
+            alert("Please select an option for both camera and microphone.");
+            return;
+        }
+        sessionStorage.setItem('hardware_requirements', JSON.stringify({
+            cam: camChoice === 'yes',
+            mic: micChoice === 'yes'
+        }));
+        navigate(`/exam/${token}/form`);
+    };
+
     if (error) {
         return (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '2rem' }}>
@@ -49,6 +78,60 @@ const ExamLanding = () => {
     }
 
     if (!exam) return null;
+
+    if (showHardwareCheck) {
+        return (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '2rem' }}>
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="glass card"
+                    style={{ maxWidth: '500px', width: '100%', textAlign: 'center' }}
+                >
+                    <h2 style={{ marginBottom: '2rem' }}>Hardware Check</h2>
+                    <p style={{ color: 'var(--text-muted)', marginBottom: '2.5rem' }}>Please confirm your hardware availability for this internal assessment.</p>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', marginBottom: '3rem' }}>
+                        <div>
+                            <p style={{ fontWeight: '600', marginBottom: '1rem' }}>Are you having a camera?</p>
+                            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                                <button
+                                    className={camChoice === 'yes' ? "primary" : "secondary"}
+                                    onClick={() => setCamChoice('yes')}
+                                    style={{ flex: 1 }}
+                                >Yes</button>
+                                <button
+                                    className={camChoice === 'no' ? "primary" : "secondary"}
+                                    onClick={() => setCamChoice('no')}
+                                    style={{ flex: 1 }}
+                                >No</button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p style={{ fontWeight: '600', marginBottom: '1rem' }}>Are you having a microphone?</p>
+                            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                                <button
+                                    className={micChoice === 'yes' ? "primary" : "secondary"}
+                                    onClick={() => setMicChoice('yes')}
+                                    style={{ flex: 1 }}
+                                >Yes</button>
+                                <button
+                                    className={micChoice === 'no' ? "primary" : "secondary"}
+                                    onClick={() => setMicChoice('no')}
+                                    style={{ flex: 1 }}
+                                >No</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button className="primary" style={{ width: '100%' }} onClick={handleHardwareSubmit}>
+                        Confirm & Continue
+                    </button>
+                </motion.div>
+            </div>
+        );
+    }
 
     return (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '2rem' }}>
@@ -94,7 +177,7 @@ const ExamLanding = () => {
                 <button
                     className="primary"
                     style={{ width: '100%', padding: '1rem' }}
-                    onClick={() => navigate(`/exam/${token}/form`)}
+                    onClick={handleProceed}
                 >
                     Proceed to Registration
                 </button>

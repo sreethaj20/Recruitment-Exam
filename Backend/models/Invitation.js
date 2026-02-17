@@ -23,6 +23,18 @@ const Invitation = sequelize.define('Invitation', {
     is_multi_use: {
         type: DataTypes.BOOLEAN,
         defaultValue: false
+    },
+    test_type: {
+        type: DataTypes.STRING,
+        defaultValue: 'internal' // 'internal', 'external'
+    },
+    require_camera: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true
+    },
+    require_microphone: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true
     }
 }, {
     timestamps: true

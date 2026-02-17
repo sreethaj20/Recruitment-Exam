@@ -14,12 +14,15 @@ const getInvitations = async (req, res) => {
 
 const createInvitation = async (req, res) => {
     try {
-        const { exam_id, is_multi_use } = req.body;
+        const { exam_id, is_multi_use, test_type, require_camera, require_microphone } = req.body;
         const token = Math.random().toString(36).substr(2, 12); // Simple token for now
         const invitation = await Invitation.create({
             exam_id,
             token,
-            is_multi_use: !!is_multi_use
+            is_multi_use: !!is_multi_use,
+            test_type: test_type || 'internal',
+            require_camera: require_camera !== undefined ? !!require_camera : true,
+            require_microphone: require_microphone !== undefined ? !!require_microphone : true
         });
         res.status(201).json(invitation);
     } catch (error) {
@@ -132,6 +135,9 @@ const getAssessmentData = async (req, res) => {
         }
 
         exam.Questions = questions;
+        exam.test_type = invitation.test_type;
+        exam.require_camera = invitation.require_camera;
+        exam.require_microphone = invitation.require_microphone;
         res.json(exam);
     } catch (error) {
         console.error('Error fetching assessment data:', error);

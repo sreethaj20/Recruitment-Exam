@@ -8,6 +8,9 @@ const Invitations = () => {
     const [copied, setCopied] = useState(null);
     const [selectedExam, setSelectedExam] = useState(db.exams[0]?.id || '');
     const [isMultiUse, setIsMultiUse] = useState(false);
+    const [testType, setTestType] = useState('internal');
+    const [requireCamera, setRequireCamera] = useState(true);
+    const [requireMicrophone, setRequireMicrophone] = useState(true);
     const [loading, setLoading] = useState(false);
 
     // Auto-select first exam when exams are loaded
@@ -26,7 +29,10 @@ const Invitations = () => {
             setLoading(true);
             await addInvitation({
                 exam_id: selectedExam,
-                is_multi_use: isMultiUse
+                is_multi_use: isMultiUse,
+                test_type: testType,
+                require_camera: requireCamera,
+                require_microphone: requireMicrophone
             });
             refreshData();
         } catch (err) {
@@ -78,8 +84,39 @@ const Invitations = () => {
                         <label>Link Usage Type</label>
                         <select value={isMultiUse ? 'multiple' : 'single'} onChange={(e) => setIsMultiUse(e.target.value === 'multiple')}>
                             <option value="single">Single Use (Expires after one entry)</option>
-                            <option value="multiple">Multiple Use (Shared shared link)</option>
+                            <option value="multiple">Multiple Use (Shared link)</option>
                         </select>
+                    </div>
+
+                    <div style={{ marginBottom: '1.5rem' }}>
+                        <label>Test Mode</label>
+                        <select value={testType} onChange={(e) => setTestType(e.target.value)}>
+                            <option value="internal">Internal (Hardware Confirmation Flow)</option>
+                            <option value="external">External (Strict Mandatory Proctoring)</option>
+                        </select>
+                    </div>
+
+                    <div style={{ marginBottom: '1.5rem', display: 'flex', gap: '1rem' }}>
+                        <div style={{ flex: 1 }}>
+                            <label style={{ fontSize: '0.75rem', marginBottom: '0.5rem', display: 'block' }}>Camera</label>
+                            <button
+                                className={requireCamera ? "primary" : "secondary"}
+                                onClick={() => setRequireCamera(!requireCamera)}
+                                style={{ width: '100%', fontSize: '0.8rem', padding: '0.5rem' }}
+                            >
+                                {requireCamera ? "Required" : "Optional"}
+                            </button>
+                        </div>
+                        <div style={{ flex: 1 }}>
+                            <label style={{ fontSize: '0.75rem', marginBottom: '0.5rem', display: 'block' }}>Microphone</label>
+                            <button
+                                className={requireMicrophone ? "primary" : "secondary"}
+                                onClick={() => setRequireMicrophone(!requireMicrophone)}
+                                style={{ width: '100%', fontSize: '0.8rem', padding: '0.5rem' }}
+                            >
+                                {requireMicrophone ? "Required" : "Optional"}
+                            </button>
+                        </div>
                     </div>
 
                     <button className="primary" onClick={generateInvite} style={{ width: '100%' }} disabled={loading}>
@@ -126,8 +163,12 @@ const Invitations = () => {
                                     <div>
                                         <div style={{ fontSize: '0.9rem', fontWeight: '600' }}>{exam?.title}</div>
                                         <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>ID: {invite.token}</div>
-                                        <div style={{ fontSize: '0.65rem', color: 'var(--primary)', fontWeight: '600', marginTop: '0.2rem' }}>
-                                            {invite.is_multi_use ? 'Multiple Use Link' : 'Single Use Link'}
+                                        <div style={{ fontSize: '0.65rem', color: 'var(--primary)', fontWeight: '600', marginTop: '0.2rem', display: 'flex', gap: '0.5rem' }}>
+                                            <span>{invite.is_multi_use ? 'Multiple Use' : 'Single Use'}</span>
+                                            <span>•</span>
+                                            <span style={{ color: invite.test_type === 'external' ? 'var(--accent)' : 'var(--warning)' }}>
+                                                {invite.test_type?.toUpperCase()}
+                                            </span>
                                         </div>
                                     </div>
                                     <div style={{

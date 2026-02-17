@@ -221,32 +221,41 @@ const TestInterface = () => {
     // Proctoring Logic: Initialize and monitor camera/mic
     useEffect(() => {
         const startProctoring = async () => {
+            const hardwareRequirements = JSON.parse(sessionStorage.getItem('hardware_requirements')) || { cam: true, mic: true };
+
+            if (!hardwareRequirements.cam && !hardwareRequirements.mic) {
+                console.log("Proctoring: No hardware monitoring required.");
+                return;
+            }
+
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({
-                    video: true,
-                    audio: true
+                    video: hardwareRequirements.cam,
+                    audio: hardwareRequirements.mic
                 });
                 streamRef.current = stream;
-                if (videoRef.current) {
+                if (videoRef.current && hardwareRequirements.cam) {
                     videoRef.current.srcObject = stream;
                 }
 
                 // Monitor stream health and AI conditions
                 const monitorInterval = setInterval(async () => {
-                    const videoTrack = stream.getVideoTracks()[0];
-                    const audioTrack = stream.getAudioTracks()[0];
+                    const hardwareRequirements = JSON.parse(sessionStorage.getItem('hardware_requirements')) || { cam: true, mic: true };
+                    const videoTrack = hardwareRequirements.cam ? stream.getVideoTracks()[0] : null;
+                    const audioTrack = hardwareRequirements.mic ? stream.getAudioTracks()[0] : null;
 
                     // 1. Check for physical disconnection
-                    if (!videoTrack || videoTrack.readyState === 'ended' || !audioTrack || audioTrack.readyState === 'ended') {
-                        console.warn("Proctoring: Device disconnected!");
-                        setProctoringError('Camera or microphone disconnected. Please check your hardware.');
+                    if ((hardwareRequirements.cam && (!videoTrack || videoTrack.readyState === 'ended')) ||
+                        (hardwareRequirements.mic && (!audioTrack || audioTrack.readyState === 'ended'))) {
+                        console.warn("Proctoring: Required device disconnected!");
+                        setProctoringError('Required hardware disconnected. Please check your connection.');
                         return;
                     }
 
                     setProctoringError(null);
 
-                    // 2. Check for Mic Mute
-                    if (!audioTrack.enabled || audioTrack.muted) {
+                    // 2. Check for Mic Mute (only if required)
+                    if (hardwareRequirements.mic && (!audioTrack.enabled || audioTrack.muted)) {
                         console.log("Proctoring: Mic muted detected.");
                         if (handleSubmitRef.current && !isSubmittingRef.current) {
                             handleSubmitRef.current('Auto-submitted: Microphone was muted during the exam');
@@ -254,8 +263,8 @@ const TestInterface = () => {
                         return;
                     }
 
-                    // 3. Face Detection
-                    if (isModelsLoaded && videoRef.current && videoRef.current.readyState >= 2 && !isSubmittingRef.current && examRef.current) {
+                    // 3. Face Detection (only if camera is required)
+                    if (hardwareRequirements.cam && isModelsLoaded && videoRef.current && videoRef.current.readyState >= 2 && !isSubmittingRef.current && examRef.current) {
                         try {
                             const options = new window.faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.3, inputSize: 224 });
                             const detections = await window.faceapi.detectAllFaces(videoRef.current, options);
@@ -566,39 +575,45 @@ const TestInterface = () => {
             </AnimatePresence>
 
             {/* Continuous Proctoring Preview (Floating Circle) */}
-            <div style={{
-                position: 'fixed',
-                bottom: '2rem',
-                right: '2rem',
-                width: '150px',
-                height: '150px',
-                borderRadius: '50%',
-                overflow: 'hidden',
-                border: '3px solid var(--primary)',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-                zIndex: 1000,
-                background: '#000',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-            }}>
-                <video
-                    ref={videoRef}
-                    autoPlay
-                    playsInline
-                    muted
-                    style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover'
-                    }}
-                />
-                {!streamRef.current && (
-                    <div style={{ position: 'absolute', color: 'red', textAlign: 'center', padding: '10px' }}>
-                        <AlertCircle size={32} style={{ margin: '0 auto' }} />
+            {(() => {
+                const hardwareRequirements = JSON.parse(sessionStorage.getItem('hardware_requirements')) || { cam: true, mic: true };
+                if (!hardwareRequirements.cam) return null;
+                return (
+                    <div style={{
+                        position: 'fixed',
+                        bottom: '2rem',
+                        right: '2rem',
+                        width: '150px',
+                        height: '150px',
+                        borderRadius: '50%',
+                        overflow: 'hidden',
+                        border: '3px solid var(--primary)',
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+                        zIndex: 1000,
+                        background: '#000',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}>
+                        <video
+                            ref={videoRef}
+                            autoPlay
+                            playsInline
+                            muted
+                            style={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover'
+                            }}
+                        />
+                        {!streamRef.current && (
+                            <div style={{ position: 'absolute', color: 'red', textAlign: 'center', padding: '10px' }}>
+                                <AlertCircle size={32} style={{ margin: '0 auto' }} />
+                            </div>
+                        )}
                     </div>
-                )}
-            </div>
+                );
+            })()}
 
             {/* Proctoring Error Overlay */}
             <AnimatePresence>
