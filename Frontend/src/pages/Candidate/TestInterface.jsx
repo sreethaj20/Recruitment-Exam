@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, AlertTriangle, ChevronLeft, ChevronRight, Send, AlertCircle } from 'lucide-react';
+import { Clock, AlertTriangle, ChevronLeft, ChevronRight, Send, AlertCircle, Users } from 'lucide-react';
 import { useStore } from '../../store';
 import useTabVisibility from '../../hooks/useTabVisibility';
 import { examAPI, attemptAPI } from '../../services/api';
@@ -30,6 +30,7 @@ const TestInterface = () => {
     const handleSubmitRef = useRef(null);
     const isSubmittingRef = useRef(false);
     const examRef = useRef(null);
+    const showMultiFaceWarningRef = useRef(false);
 
     const enterFullscreen = () => {
         if (containerRef.current) {
@@ -99,7 +100,8 @@ const TestInterface = () => {
         handleSubmitRef.current = handleSubmit;
         isSubmittingRef.current = isSubmitting;
         examRef.current = exam;
-    }, [handleSubmit, isSubmitting, exam]);
+        showMultiFaceWarningRef.current = showMultiFaceWarning;
+    }, [handleSubmit, isSubmitting, exam, showMultiFaceWarning]);
 
     // Anti-Cheating Handler
     const onViolation = useCallback((count) => {
@@ -262,8 +264,9 @@ const TestInterface = () => {
                                     }
                                 }
                             } else if (detections.length > 1) {
+                                if (showMultiFaceWarningRef.current) return; // Ignore additional detections while warning is active
                                 violationCheckRef.current.multiFace++;
-                                console.log(`Proctoring: Multiple faces detected! (${detections.length} faces, Violation: ${violationCheckRef.current.multiFace}/2)`);
+                                console.log(`Proctoring: Multiple faces identified! Violation: ${violationCheckRef.current.multiFace}/2`);
                                 if (violationCheckRef.current.multiFace === 1) {
                                     setShowMultiFaceWarning(true);
                                 } else if (violationCheckRef.current.multiFace >= 2) {
