@@ -50,9 +50,9 @@ const AdminDashboard = () => {
     ];
 
     return (
-        <div style={{ display: 'flex', height: '100vh', background: 'var(--bg-deep)', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-deep)' }}>
             {/* Sidebar */}
-            <aside className="glass" style={{ width: '280px', margin: '1rem', borderRadius: '1.5rem', display: 'flex', flexDirection: 'column', padding: '1.5rem' }}>
+            <aside className="glass" style={{ width: '280px', margin: '1rem', borderRadius: '1.5rem', display: 'flex', flexDirection: 'column', padding: '1.5rem', position: 'sticky', top: '1rem', alignSelf: 'flex-start', maxHeight: 'calc(100vh - 2rem)', overflowY: 'auto' }}>
                 <div style={{ padding: '1rem', marginBottom: '2rem' }}>
                     <h2 className="gradient-text" style={{ fontSize: '1.5rem' }}>HR Admin</h2>
                 </div>
@@ -96,7 +96,7 @@ const AdminDashboard = () => {
             </aside>
 
             {/* Main Content */}
-            <main style={{ flex: 1, padding: '2rem', display: 'flex', flexDirection: 'column', gap: '2rem', overflowY: 'auto' }}>
+            <main style={{ flex: 1, padding: '2rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
                 <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                         <h1 style={{ fontSize: '1.75rem' }}>Dashboard</h1>
