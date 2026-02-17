@@ -254,10 +254,10 @@ const TestInterface = () => {
 
                             if (detections.length === 0) {
                                 violationCheckRef.current.face++;
-                                console.log(`Proctoring: Face not detected. (Violation count: ${violationCheckRef.current.face}/1)`);
-                                if (violationCheckRef.current.face >= 1) {
+                                console.log(`Proctoring: Face not detected. (Violation count: ${violationCheckRef.current.face}/5)`);
+                                if (violationCheckRef.current.face >= 5) {
                                     if (handleSubmitRef.current) {
-                                        handleSubmitRef.current('Auto-submitted: No face detected (3-second violation)');
+                                        handleSubmitRef.current('Auto-submitted: No face detected (15-second violation)');
                                     }
                                 }
                             } else if (detections.length > 1) {
@@ -266,6 +266,9 @@ const TestInterface = () => {
                                     handleSubmitRef.current('Auto-submitted: Multiple faces detected in the camera frame');
                                 }
                             } else {
+                                if (violationCheckRef.current.face > 0) {
+                                    console.log("Proctoring: Face recovered.");
+                                }
                                 violationCheckRef.current.face = 0;
                             }
                         } catch (faceErr) {
