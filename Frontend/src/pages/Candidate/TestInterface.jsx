@@ -250,10 +250,15 @@ const TestInterface = () => {
                     // 3. Face Detection
                     if (isModelsLoaded && videoRef.current && videoRef.current.readyState >= 2 && !isSubmittingRef.current && examRef.current) {
                         try {
-                            const detections = await window.faceapi.detectAllFaces(
-                                videoRef.current,
-                                new window.faceapi.TinyFaceDetectorOptions()
-                            );
+                            const options = new window.faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.3, inputSize: 224 });
+                            const detections = await window.faceapi.detectAllFaces(videoRef.current, options);
+
+                            // Log detection results for debugging
+                            if (detections.length > 0) {
+                                console.log(`Proctoring: Detected ${detections.length} face(s) with confidence scores:`,
+                                    detections.map(d => d.score.toFixed(2)).join(', ')
+                                );
+                            }
 
                             if (detections.length === 0) {
                                 violationCheckRef.current.face++;
@@ -283,8 +288,13 @@ const TestInterface = () => {
                         } catch (faceErr) {
                             console.error("Proctoring: AI detection error", faceErr);
                         }
+                    } else {
+                        // Diagnostic log to see why detection isn't running
+                        if (!isSubmittingRef.current && examRef.current) {
+                            console.log("Proctoring: Detection skipped - Models Loaded:", isModelsLoaded, "Video Ready:", videoRef.current?.readyState);
+                        }
                     }
-                }, 3000);
+                }, 2000); // Increased frequency to 2 seconds for faster response
 
                 return () => clearInterval(monitorInterval);
             } catch (err) {
@@ -571,7 +581,7 @@ const TestInterface = () => {
                             position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
                             background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            zIndex: 100, padding: '2rem'
+                            zIndex: 4000, padding: '2rem'
                         }}
                     >
                         <motion.div
