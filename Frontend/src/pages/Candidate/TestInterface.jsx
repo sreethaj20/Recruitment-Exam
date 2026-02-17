@@ -17,6 +17,7 @@ const TestInterface = () => {
     const [answers, setAnswers] = useState({});
     const [timeLeft, setTimeLeft] = useState(0);
     const [showWarning, setShowWarning] = useState(false);
+    const [showMultiFaceWarning, setShowMultiFaceWarning] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [attemptId, setAttemptId] = useState(null);
     const videoRef = useRef(null);
@@ -25,7 +26,7 @@ const TestInterface = () => {
     const [isFullscreen, setIsFullscreen] = useState(false);
     const containerRef = useRef(null);
     const [isModelsLoaded, setIsModelsLoaded] = useState(false);
-    const violationCheckRef = useRef({ face: 0 });
+    const violationCheckRef = useRef({ face: 0, multiFace: 0 });
     const handleSubmitRef = useRef(null);
     const isSubmittingRef = useRef(false);
     const examRef = useRef(null);
@@ -261,9 +262,14 @@ const TestInterface = () => {
                                     }
                                 }
                             } else if (detections.length > 1) {
-                                console.log(`Proctoring: Multiple faces detected! (${detections.length} faces)`);
-                                if (handleSubmitRef.current) {
-                                    handleSubmitRef.current('Auto-submitted: Multiple faces detected in the camera frame');
+                                violationCheckRef.current.multiFace++;
+                                console.log(`Proctoring: Multiple faces detected! (${detections.length} faces, Violation: ${violationCheckRef.current.multiFace}/2)`);
+                                if (violationCheckRef.current.multiFace === 1) {
+                                    setShowMultiFaceWarning(true);
+                                } else if (violationCheckRef.current.multiFace >= 2) {
+                                    if (handleSubmitRef.current) {
+                                        handleSubmitRef.current('Auto-submitted: Multiple faces detected multiple times');
+                                    }
                                 }
                             } else {
                                 if (violationCheckRef.current.face > 0) {
@@ -547,6 +553,41 @@ const TestInterface = () => {
                                 Re-enable Access
                             </button>
                         </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Multiple Faces Warning Overlay */}
+            <AnimatePresence>
+                {showMultiFaceWarning && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        style={{
+                            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                            background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            zIndex: 100, padding: '2rem'
+                        }}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            className="glass card"
+                            style={{ maxWidth: '450px', textAlign: 'center', border: '1px solid var(--danger)' }}
+                        >
+                            <Users size={64} color="var(--danger)" style={{ marginBottom: '1.5rem' }} />
+                            <h2 style={{ color: 'var(--danger)', marginBottom: '1rem' }}>Unauthorized Person Detected!</h2>
+                            <p style={{ marginBottom: '2rem', lineHeight: '1.6' }}>
+                                Multiple faces have been detected in the camera frame. This is strictly prohibited.
+                                <br /><br />
+                                <strong>Warning:</strong> Ensure only one person is visible. A second violation will result in an <strong>immediate automatic submission</strong>.
+                            </p>
+                            <button className="primary" style={{ background: 'var(--danger)', width: '100%' }} onClick={() => setShowMultiFaceWarning(false)}>
+                                I Understand, Continue
+                            </button>
+                        </motion.div>
                     </motion.div>
                 )}
             </AnimatePresence>
