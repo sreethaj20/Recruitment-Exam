@@ -40,7 +40,10 @@ const CandidateResultView = () => {
 
     const { Candidate: candidate, Exam: exam } = attempt;
     const responses = attempt.responses || {};
-    const questions = exam?.Questions || [];
+    // Filter questions to only show those the candidate actually received (present in responses)
+    const questions = (exam?.Questions || []).filter(q =>
+        Object.prototype.hasOwnProperty.call(responses, q.id)
+    );
 
     const getStatusColor = (percentage) => {
         if (percentage >= 95) return 'var(--accent)';
