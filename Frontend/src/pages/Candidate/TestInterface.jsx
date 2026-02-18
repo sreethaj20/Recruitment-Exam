@@ -231,6 +231,7 @@ const TestInterface = () => {
             try {
                 // Determine if camera is optional (internal test)
                 const isInternal = exam?.test_type === 'internal';
+                let stream;
 
                 try {
                     stream = await navigator.mediaDevices.getUserMedia({
