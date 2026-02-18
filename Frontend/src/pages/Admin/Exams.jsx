@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FileText, Plus, Edit, Trash2, Clock, Users, ArrowRight } from 'lucide-react';
@@ -167,7 +168,7 @@ const Exams = () => {
                 })}
             </div>
 
-            {showModal && (
+            {showModal && createPortal(
                 <div className="modal-overlay">
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
@@ -254,7 +255,8 @@ const Exams = () => {
                             </div>
                         </form>
                     </motion.div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );

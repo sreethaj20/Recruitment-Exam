@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { HelpCircle, Plus, Edit2, Trash2, CheckCircle, ChevronDown, ChevronUp } from 'lucide-react';
@@ -212,7 +213,7 @@ const Questions = () => {
                     </div>
                 ))}
             </div>
-            {showModal && (
+            {showModal && createPortal(
                 <div className="modal-overlay">
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
@@ -302,7 +303,8 @@ const Questions = () => {
                             </div>
                         </form>
                     </motion.div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );
