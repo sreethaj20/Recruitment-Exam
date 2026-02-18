@@ -229,10 +229,30 @@ const TestInterface = () => {
             }
 
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: hardwareRequirements.cam,
-                    audio: hardwareRequirements.mic
-                });
+                // Determine if camera is optional (internal test)
+                const isInternal = exam?.test_type === 'internal';
+
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({
+                        video: hardwareRequirements.cam,
+                        audio: hardwareRequirements.mic
+                    });
+                } catch (initialErr) {
+                    console.warn('Proctoring: Initial getUserMedia failed:', initialErr);
+                    // Fallback for internal tests if camera fails
+                    if (isInternal && hardwareRequirements.mic) {
+                        console.log('Proctoring: Internal test detected, falling back to microphone only...');
+                        stream = await navigator.mediaDevices.getUserMedia({
+                            video: false,
+                            audio: true
+                        });
+                        // Update hardware requirements in session storage just in case
+                        sessionStorage.setItem('hardware_requirements', JSON.stringify({ ...hardwareRequirements, cam: false }));
+                        hardwareRequirements.cam = false;
+                    } else {
+                        throw initialErr;
+                    }
+                }
                 streamRef.current = stream;
                 if (videoRef.current && hardwareRequirements.cam) {
                     videoRef.current.srcObject = stream;
@@ -315,7 +335,12 @@ const TestInterface = () => {
                 return () => clearInterval(monitorInterval);
             } catch (err) {
                 console.error("Proctoring: Setup error", err);
-                setProctoringError('Camera and microphone access is required throughout the exam.');
+                const isInternal = exam?.test_type === 'internal';
+                if (isInternal) {
+                    setProctoringError('Microphone access is required for this internal assessment.');
+                } else {
+                    setProctoringError('Camera and microphone access is required throughout the exam.');
+                }
             }
         };
 
