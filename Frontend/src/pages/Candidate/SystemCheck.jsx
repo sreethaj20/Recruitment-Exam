@@ -22,16 +22,36 @@ const SystemCheck = () => {
         setIsChecking(true);
         setStatus({ camera: 'pending', microphone: 'pending', error: '' });
 
+        const hardwareReq = JSON.parse(sessionStorage.getItem('hardware_requirements')) || { cam: true, mic: true };
+
         try {
             // Stop any existing stream
             if (streamRef.current) {
                 streamRef.current.getTracks().forEach(track => track.stop());
             }
 
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: true,
-                audio: true
-            });
+            let stream;
+            try {
+                // Try to get both first
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: hardwareReq.cam,
+                    audio: hardwareReq.mic
+                });
+            } catch (initialErr) {
+                console.warn('Initial getUserMedia failed, checking requirements:', initialErr);
+                // If it's an internal test and we failed, try to get at least the microphone
+                const invitationData = invitation || await invitationAPI.validate(token).then(res => res.data).catch(() => null);
+                if (invitationData?.test_type === 'internal') {
+                    console.log('Internal test detected, retrying with microphone only...');
+                    stream = await navigator.mediaDevices.getUserMedia({
+                        video: false,
+                        audio: true
+                    });
+                } else {
+                    // Re-throw if it's not internal or we can't fall back
+                    throw initialErr;
+                }
+            }
 
             streamRef.current = stream;
 
@@ -44,6 +64,7 @@ const SystemCheck = () => {
                 microphone: hasAudio ? 'success' : 'error',
                 error: ''
             });
+
         } catch (err) {
             console.error('System check error:', err);
             let errorMessage = 'Please enable camera and microphone to start the exam.';
@@ -54,11 +75,16 @@ const SystemCheck = () => {
                 errorMessage = 'Camera or Microphone not found. Please connect the devices and try again.';
             }
 
-            setStatus({
-                camera: 'error',
-                microphone: 'error',
+            // For internal tests, if we have microphone but failed camera, don't show error box
+            // Actually, the catch only happens if the SECOND getUserMedia (mic only) also fails
+            // or if the first one fails and it's not internal.
+
+            setStatus(prev => ({
+                ...prev,
+                camera: prev.camera === 'success' ? 'success' : 'error',
+                microphone: prev.microphone === 'success' ? 'success' : 'error',
                 error: errorMessage
-            });
+            }));
         } finally {
             setIsChecking(false);
         }
