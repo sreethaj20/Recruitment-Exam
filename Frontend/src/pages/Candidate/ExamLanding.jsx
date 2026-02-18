@@ -53,12 +53,13 @@ const ExamLanding = () => {
     };
 
     const handleHardwareSubmit = () => {
-        if (camChoice === null || micChoice === null) {
-            alert("Please select an option for both camera and microphone.");
+        const isInternal = invitation.test_type === 'internal';
+        if (micChoice === null || (!isInternal && camChoice === null)) {
+            alert("Please select an option for the required hardware.");
             return;
         }
         sessionStorage.setItem('hardware_requirements', JSON.stringify({
-            cam: camChoice === 'yes',
+            cam: isInternal ? false : (camChoice === 'yes'),
             mic: micChoice === 'yes'
         }));
         navigate(`/exam/${token}/form`);
@@ -92,21 +93,23 @@ const ExamLanding = () => {
                     <p style={{ color: 'var(--text-muted)', marginBottom: '2.5rem' }}>Please confirm your hardware availability for this internal assessment.</p>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', marginBottom: '3rem' }}>
-                        <div>
-                            <p style={{ fontWeight: '600', marginBottom: '1rem' }}>Are you having a camera?</p>
-                            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-                                <button
-                                    className={camChoice === 'yes' ? "primary" : "secondary"}
-                                    onClick={() => setCamChoice('yes')}
-                                    style={{ flex: 1 }}
-                                >Yes</button>
-                                <button
-                                    className={camChoice === 'no' ? "primary" : "secondary"}
-                                    onClick={() => setCamChoice('no')}
-                                    style={{ flex: 1 }}
-                                >No</button>
+                        {invitation.test_type !== 'internal' && (
+                            <div>
+                                <p style={{ fontWeight: '600', marginBottom: '1rem' }}>Are you having a camera?</p>
+                                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                                    <button
+                                        className={camChoice === 'yes' ? "primary" : "secondary"}
+                                        onClick={() => setCamChoice('yes')}
+                                        style={{ flex: 1 }}
+                                    >Yes</button>
+                                    <button
+                                        className={camChoice === 'no' ? "primary" : "secondary"}
+                                        onClick={() => setCamChoice('no')}
+                                        style={{ flex: 1 }}
+                                    >No</button>
+                                </div>
                             </div>
-                        </div>
+                        )}
 
                         <div>
                             <p style={{ fontWeight: '600', marginBottom: '1rem' }}>Are you having a microphone?</p>

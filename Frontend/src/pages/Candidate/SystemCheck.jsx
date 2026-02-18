@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Camera, Mic, CheckCircle, XCircle, RefreshCw, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Camera, Mic, CheckCircle, XCircle, RefreshCw, ArrowRight, ShieldCheck, Info } from 'lucide-react';
+import { invitationAPI } from '../../services/api';
 
 const SystemCheck = () => {
     const { token } = useParams();
@@ -15,6 +16,7 @@ const SystemCheck = () => {
         error: ''
     });
     const [isChecking, setIsChecking] = useState(false);
+    const [invitation, setInvitation] = useState(null);
 
     const checkSystems = async () => {
         setIsChecking(true);
@@ -71,6 +73,15 @@ const SystemCheck = () => {
     }, [status.camera, isChecking]);
 
     useEffect(() => {
+        const fetchInvitation = async () => {
+            try {
+                const response = await invitationAPI.validate(token);
+                setInvitation(response.data);
+            } catch (err) {
+                console.error("Error fetching invitation:", err);
+            }
+        };
+        fetchInvitation();
         checkSystems();
 
         return () => {
@@ -78,15 +89,18 @@ const SystemCheck = () => {
                 streamRef.current.getTracks().forEach(track => track.stop());
             }
         };
-    }, []);
+    }, [token]);
+
+    const isInternal = invitation?.test_type === 'internal';
 
     const handleStartExam = () => {
-        if (status.camera === 'success' && status.microphone === 'success') {
+        const canProceed = isInternal ? status.microphone === 'success' : (status.camera === 'success' && status.microphone === 'success');
+        if (canProceed) {
             navigate(`/exam/${token}/test`, { replace: true });
         }
     };
 
-    const isSystemReady = status.camera === 'success' && status.microphone === 'success';
+    const isSystemReady = isInternal ? status.microphone === 'success' : (status.camera === 'success' && status.microphone === 'success');
 
     return (
         <div style={{ padding: '4rem 1rem' }}>
@@ -179,26 +193,30 @@ const SystemCheck = () => {
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '1rem',
-                                border: `1px solid ${status.camera === 'success' ? 'rgba(16, 185, 129, 0.2)' : 'var(--glass-border)'}`
+                                border: `1px solid ${status.camera === 'success' ? 'rgba(16, 185, 129, 0.2)' : (isInternal ? 'rgba(59, 130, 246, 0.2)' : 'var(--glass-border)')}`
                             }}>
                                 <div style={{
                                     padding: '0.75rem',
-                                    background: status.camera === 'success' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(255,255,255,0.05)',
+                                    background: status.camera === 'success' ? 'rgba(16, 185, 129, 0.1)' : (isInternal ? 'rgba(59, 130, 246, 0.1)' : 'rgba(255,255,255,0.05)'),
                                     borderRadius: '0.75rem',
-                                    color: status.camera === 'success' ? '#10b981' : 'var(--text-muted)'
+                                    color: status.camera === 'success' ? '#10b981' : (isInternal ? 'var(--primary)' : 'var(--text-muted)')
                                 }}>
                                     <Camera size={24} />
                                 </div>
                                 <div style={{ flex: 1 }}>
-                                    <h4 style={{ margin: 0, fontSize: '1rem' }}>Camera</h4>
+                                    <h4 style={{ margin: 0, fontSize: '1rem' }}>Camera {isInternal && <span style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 'normal' }}>(Optional)</span>}</h4>
                                     <p style={{ margin: 0, fontSize: '0.875rem', color: status.camera === 'success' ? '#10b981' : 'var(--text-muted)' }}>
-                                        {status.camera === 'success' ? 'Enabled' : 'Not enabled'}
+                                        {status.camera === 'success' ? 'Enabled' : (isInternal ? 'Skipped for internal test' : 'Not enabled')}
                                     </p>
                                 </div>
                                 {status.camera === 'success' ? (
                                     <CheckCircle size={24} style={{ color: '#10b981' }} />
                                 ) : (
-                                    <XCircle size={24} style={{ color: '#ef4444' }} />
+                                    isInternal ? (
+                                        <Info size={24} style={{ color: 'var(--primary)' }} />
+                                    ) : (
+                                        <XCircle size={24} style={{ color: '#ef4444' }} />
+                                    )
                                 )}
                             </div>
 
