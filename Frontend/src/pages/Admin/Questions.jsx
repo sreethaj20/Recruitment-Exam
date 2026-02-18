@@ -180,8 +180,8 @@ const Questions = () => {
                                                     style={{
                                                         padding: '1rem',
                                                         borderRadius: '0.75rem',
-                                                        background: optIdx === q.correct_answer ? 'rgba(16, 185, 129, 0.1)' : 'rgba(255,255,255,0.03)',
-                                                        border: optIdx === q.correct_answer ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid var(--border)',
+                                                        background: optIdx == q.correct_answer ? 'rgba(16, 185, 129, 0.1)' : 'rgba(255,255,255,0.03)',
+                                                        border: optIdx == q.correct_answer ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid var(--border)',
                                                         display: 'flex',
                                                         alignItems: 'center',
                                                         gap: '1rem'
@@ -192,15 +192,15 @@ const Questions = () => {
                                                         height: '18px',
                                                         borderRadius: '50%',
                                                         border: '2px solid',
-                                                        borderColor: optIdx === q.correct_answer ? 'var(--accent)' : 'var(--text-muted)',
-                                                        background: optIdx === q.correct_answer ? 'var(--accent)' : 'transparent',
+                                                        borderColor: optIdx == q.correct_answer ? 'var(--accent)' : 'var(--text-muted)',
+                                                        background: optIdx == q.correct_answer ? 'var(--accent)' : 'transparent',
                                                         display: 'flex',
                                                         alignItems: 'center',
                                                         justifyContent: 'center'
                                                     }}>
-                                                        {optIdx === q.correct_answer && <CheckCircle size={12} color="white" />}
+                                                        {optIdx == q.correct_answer && <CheckCircle size={12} color="white" />}
                                                     </div>
-                                                    <span style={{ fontSize: '0.9rem', color: optIdx === q.correct_answer ? 'var(--text-main)' : 'var(--text-muted)' }}>
+                                                    <span style={{ fontSize: '0.9rem', color: optIdx == q.correct_answer ? 'var(--text-main)' : 'var(--text-muted)' }}>
                                                         {option}
                                                     </span>
                                                 </div>
