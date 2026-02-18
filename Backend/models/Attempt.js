@@ -33,6 +33,10 @@ const Attempt = sequelize.define('Attempt', {
     },
     completed_at: {
         type: DataTypes.DATE
+    },
+    responses: {
+        type: DataTypes.JSON,
+        allowNull: true
     }
 }, {
     timestamps: false

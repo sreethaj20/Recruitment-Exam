@@ -120,6 +120,7 @@ const AdminDashboard = () => {
                         <Route path="/invites" element={<Invitations />} />
                         <Route path="/register" element={<Registrations />} />
                         <Route path="/review" element={<ReviewPanel />} />
+                        <Route path="/results/:attemptId" element={<CandidateResultView />} />
                     </Routes>
                 </div>
             </main>

@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Search, Filter, ExternalLink, CheckCircle, XCircle, Clock, MoreVertical, MessageSquare, Download } from 'lucide-react';
 import { useStore } from '../../store';
 import * as XLSX from 'xlsx';
 
 const ReviewPanel = () => {
+    const navigate = useNavigate();
     const { db, refreshData } = useStore();
     const [selectedDept, setSelectedDept] = useState('all');
     const [remarkModal, setRemarkModal] = useState({ isOpen: false, candidateId: null, text: '' });
@@ -150,13 +152,22 @@ const ReviewPanel = () => {
                                             <div style={{ fontWeight: '600' }}>{item.name}</div>
                                             <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{item.email}</div>
                                         </div>
-                                        <button
-                                            onClick={() => setRemarkModal({ isOpen: true, candidateId: item.candidate_id, text: item.remarks })}
-                                            title="Add/Edit Remarks"
-                                            style={{ padding: '0.4rem', borderRadius: '0.4rem', background: item.remarks ? 'rgba(99, 102, 241, 0.1)' : 'rgba(255,255,255,0.05)', color: item.remarks ? 'var(--primary)' : 'var(--text-muted)', border: '1px solid var(--border)', cursor: 'pointer' }}
-                                        >
-                                            <MessageSquare size={16} />
-                                        </button>
+                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                            <button
+                                                onClick={() => navigate(`/admin/dashboard/results/${item.id}`)}
+                                                title="View Detailed Results"
+                                                style={{ padding: '0.4rem', borderRadius: '0.4rem', background: 'rgba(59, 130, 246, 0.1)', color: 'var(--primary)', border: '1px solid var(--border)', cursor: 'pointer' }}
+                                            >
+                                                <ExternalLink size={16} />
+                                            </button>
+                                            <button
+                                                onClick={() => setRemarkModal({ isOpen: true, candidateId: item.candidate_id, text: item.remarks })}
+                                                title="Add/Edit Remarks"
+                                                style={{ padding: '0.4rem', borderRadius: '0.4rem', background: item.remarks ? 'rgba(16, 185, 129, 0.1)' : 'rgba(255,255,255,0.05)', color: item.remarks ? 'var(--primary)' : 'var(--text-muted)', border: '1px solid var(--border)', cursor: 'pointer' }}
+                                            >
+                                                <MessageSquare size={16} />
+                                            </button>
+                                        </div>
                                     </div>
                                 </td>
                                 <td style={{ padding: '1.25rem 1.5rem' }}>

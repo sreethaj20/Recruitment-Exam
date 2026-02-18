@@ -52,6 +52,7 @@ export const candidateAPI = {
 
 export const attemptAPI = {
     getAll: () => api.get('/attempts'),
+    getById: (id) => api.get(`/attempts/${id}`),
     start: (data) => api.post('/attempts/start', data),
     submit: (id, data) => api.put(`/attempts/submit/${id}`, data)
 };

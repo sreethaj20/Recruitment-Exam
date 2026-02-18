@@ -8,6 +8,7 @@ import ApplicationForm from './pages/Candidate/ApplicationForm';
 import SystemCheck from './pages/Candidate/SystemCheck';
 import TestInterface from './pages/Candidate/TestInterface';
 import SuccessPage from './pages/Candidate/SuccessPage';
+import CandidateResultView from './pages/Admin/CandidateResultView';
 
 const ProtectedRoute = ({ children }) => {
   const isAdmin = localStorage.getItem('admin_auth') === 'true';

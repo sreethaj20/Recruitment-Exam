@@ -48,12 +48,13 @@ const startAttempt = async (req, res) => {
 const submitAttempt = async (req, res) => {
     try {
         const { id } = req.params;
-        const { score, total_questions, percentage } = req.body;
+        const { score, total_questions, percentage, responses } = req.body;
 
         const attempt = await Attempt.update({
             score,
             total_questions,
             percentage,
+            responses,
             status: 'completed',
             completed_at: new Date()
         }, {
@@ -77,8 +78,30 @@ const getAttempts = async (req, res) => {
     }
 };
 
+const getAttemptById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const attempt = await Attempt.findByPk(id, {
+            include: [
+                { model: Exam, include: ['Questions'] },
+                'Candidate'
+            ]
+        });
+
+        if (!attempt) {
+            return res.status(404).json({ message: 'Attempt not found' });
+        }
+
+        res.json(attempt);
+    } catch (error) {
+        console.error("Error fetching attempt details:", error);
+        res.status(500).json({ message: 'Error fetching attempt details' });
+    }
+};
+
 module.exports = {
     startAttempt,
     submitAttempt,
-    getAttempts
+    getAttempts,
+    getAttemptById
 };

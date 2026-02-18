@@ -88,7 +88,7 @@ const TestInterface = () => {
 
         try {
             // Submit attempt to backend
-            await attemptAPI.submit(attemptId, results);
+            await attemptAPI.submit(attemptId, { ...results, responses: answers });
 
             sessionStorage.setItem('last_result', JSON.stringify({
                 ...results,

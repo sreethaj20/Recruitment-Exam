@@ -17,7 +17,8 @@ const {
 const {
     startAttempt,
     submitAttempt,
-    getAttempts
+    getAttempts,
+    getAttemptById
 } = require('../controllers/attemptController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -39,5 +40,6 @@ router.patch('/candidates/:id/status', protect, updateCandidateStatus);
 router.get('/attempts', protect, getAttempts);
 router.post('/attempts/start', startAttempt);
 router.put('/attempts/submit/:id', submitAttempt);
+router.get('/attempts/:id', protect, getAttemptById);
 
 module.exports = router;
