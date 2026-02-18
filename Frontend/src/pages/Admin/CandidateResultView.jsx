@@ -38,7 +38,8 @@ const CandidateResultView = () => {
         </div>
     );
 
-    const { Candidate: candidate, Exam: exam, responses = {} } = attempt;
+    const { Candidate: candidate, Exam: exam } = attempt;
+    const responses = attempt.responses || {};
     const questions = exam?.Questions || [];
 
     const getStatusColor = (percentage) => {
