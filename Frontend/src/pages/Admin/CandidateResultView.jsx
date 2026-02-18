@@ -117,7 +117,10 @@ const CandidateResultView = () => {
                                         <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '0.75rem' }}>
                                             <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Candidate's Response:</p>
                                             <p style={{ fontWeight: '600', color: (isMCQ || q.type === 'fill_in_the_blank') ? (isCorrect ? 'var(--accent)' : 'var(--danger)') : 'white' }}>
-                                                {isMCQ ? (candidateAnswer !== undefined ? q.options[candidateAnswer] : 'No response') : (candidateAnswer || 'No response')}
+                                                {isMCQ
+                                                    ? (candidateAnswer !== undefined && candidateAnswer !== null ? q.options[candidateAnswer] : 'No response')
+                                                    : (candidateAnswer || 'No response')
+                                                }
                                             </p>
                                         </div>
                                         <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '0.75rem' }}>

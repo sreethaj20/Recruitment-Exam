@@ -88,8 +88,16 @@ const TestInterface = () => {
         };
 
         try {
+            // Ensure all assigned questions are represented in the responses object (even if skipped)
+            const submissionResponses = {};
+            questions.forEach(q => {
+                submissionResponses[q.id] = Object.prototype.hasOwnProperty.call(answers, q.id)
+                    ? answers[q.id]
+                    : null;
+            });
+
             // Submit attempt to backend
-            await attemptAPI.submit(attemptId, { ...results, responses: answers });
+            await attemptAPI.submit(attemptId, { ...results, responses: submissionResponses });
 
             sessionStorage.setItem('last_result', JSON.stringify({
                 ...results,
