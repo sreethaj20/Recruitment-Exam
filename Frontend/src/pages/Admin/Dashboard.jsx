@@ -17,6 +17,7 @@ import Invitations from './Invitations';
 import Questions from './Questions';
 import Exams from './Exams';
 import Registrations from './Registrations';
+import CandidateResultView from './CandidateResultView';
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
