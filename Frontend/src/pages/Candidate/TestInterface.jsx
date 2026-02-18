@@ -31,6 +31,7 @@ const TestInterface = () => {
     const isSubmittingRef = useRef(false);
     const examRef = useRef(null);
     const showMultiFaceWarningRef = useRef(false);
+    const proctoringIntervalRef = useRef(null);
 
     const enterFullscreen = () => {
         if (containerRef.current) {
@@ -88,7 +89,7 @@ const TestInterface = () => {
 
         try {
             // Submit attempt to backend
-            await attemptAPI.submit(attemptId, { ...results, responses: answers });
+            await attemptAPI.submit(attemptId, results);
 
             sessionStorage.setItem('last_result', JSON.stringify({
                 ...results,
@@ -222,52 +223,42 @@ const TestInterface = () => {
     useEffect(() => {
         const startProctoring = async () => {
             const hardwareRequirements = JSON.parse(sessionStorage.getItem('hardware_requirements')) || { cam: true, mic: true };
+            const isInternal = exam?.test_type === 'internal';
 
-            if (!hardwareRequirements.cam && !hardwareRequirements.mic) {
+            // For internal tests, force cam to false just in case
+            const actualCamReq = isInternal ? false : hardwareRequirements.cam;
+            const actualMicReq = hardwareRequirements.mic;
+
+            if (!actualCamReq && !actualMicReq) {
                 console.log("Proctoring: No hardware monitoring required.");
                 return;
             }
 
             try {
-                // Determine if camera is optional (internal test)
-                const isInternal = exam?.test_type === 'internal';
-                let stream;
-
-                try {
-                    stream = await navigator.mediaDevices.getUserMedia({
-                        video: hardwareRequirements.cam,
-                        audio: hardwareRequirements.mic
-                    });
-                } catch (initialErr) {
-                    console.warn('Proctoring: Initial getUserMedia failed:', initialErr);
-                    // Fallback for internal tests if camera fails
-                    if (isInternal && hardwareRequirements.mic) {
-                        console.log('Proctoring: Internal test detected, falling back to microphone only...');
-                        stream = await navigator.mediaDevices.getUserMedia({
-                            video: false,
-                            audio: true
-                        });
-                        // Update hardware requirements in session storage just in case
-                        sessionStorage.setItem('hardware_requirements', JSON.stringify({ ...hardwareRequirements, cam: false }));
-                        hardwareRequirements.cam = false;
-                    } else {
-                        throw initialErr;
-                    }
-                }
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: actualCamReq,
+                    audio: actualMicReq
+                });
                 streamRef.current = stream;
-                if (videoRef.current && hardwareRequirements.cam) {
+                if (videoRef.current && actualCamReq) {
                     videoRef.current.srcObject = stream;
                 }
 
+                if (proctoringIntervalRef.current) {
+                    clearInterval(proctoringIntervalRef.current);
+                }
+
                 // Monitor stream health and AI conditions
-                const monitorInterval = setInterval(async () => {
-                    const hardwareRequirements = JSON.parse(sessionStorage.getItem('hardware_requirements')) || { cam: true, mic: true };
-                    const videoTrack = hardwareRequirements.cam ? stream.getVideoTracks()[0] : null;
-                    const audioTrack = hardwareRequirements.mic ? stream.getAudioTracks()[0] : null;
+                proctoringIntervalRef.current = setInterval(async () => {
+                    const currentStream = streamRef.current;
+                    if (!currentStream) return;
+
+                    const videoTrack = actualCamReq ? currentStream.getVideoTracks()[0] : null;
+                    const audioTrack = actualMicReq ? currentStream.getAudioTracks()[0] : null;
 
                     // 1. Check for physical disconnection
-                    if ((hardwareRequirements.cam && (!videoTrack || videoTrack.readyState === 'ended')) ||
-                        (hardwareRequirements.mic && (!audioTrack || audioTrack.readyState === 'ended'))) {
+                    if ((actualCamReq && (!videoTrack || videoTrack.readyState === 'ended')) ||
+                        (actualMicReq && (!audioTrack || audioTrack.readyState === 'ended'))) {
                         console.warn("Proctoring: Required device disconnected!");
                         setProctoringError('Required hardware disconnected. Please check your connection.');
                         return;
@@ -276,7 +267,7 @@ const TestInterface = () => {
                     setProctoringError(null);
 
                     // 2. Check for Mic Mute (only if required)
-                    if (hardwareRequirements.mic && (!audioTrack.enabled || audioTrack.muted)) {
+                    if (actualMicReq && audioTrack && (!audioTrack.enabled || audioTrack.muted)) {
                         console.log("Proctoring: Mic muted detected.");
                         if (handleSubmitRef.current && !isSubmittingRef.current) {
                             handleSubmitRef.current('Auto-submitted: Microphone was muted during the exam');
@@ -284,31 +275,22 @@ const TestInterface = () => {
                         return;
                     }
 
-                    // 3. Face Detection (only if camera is required)
-                    if (hardwareRequirements.cam && isModelsLoaded && videoRef.current && videoRef.current.readyState >= 2 && !isSubmittingRef.current && examRef.current) {
+                    // 3. Face Detection (only if camera is required AND NOT INTERNAL)
+                    if (!isInternal && actualCamReq && isModelsLoaded && videoRef.current && videoRef.current.readyState >= 2 && !isSubmittingRef.current && examRef.current) {
                         try {
                             const options = new window.faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.3, inputSize: 224 });
                             const detections = await window.faceapi.detectAllFaces(videoRef.current, options);
 
-                            // Log detection results for debugging
-                            if (detections.length > 0) {
-                                console.log(`Proctoring: Detected ${detections.length} face(s) with confidence scores:`,
-                                    detections.map(d => d.score.toFixed(2)).join(', ')
-                                );
-                            }
-
                             if (detections.length === 0) {
                                 violationCheckRef.current.face++;
-                                console.log(`Proctoring: Face not detected. (Violation count: ${violationCheckRef.current.face}/5)`);
                                 if (violationCheckRef.current.face >= 5) {
                                     if (handleSubmitRef.current) {
                                         handleSubmitRef.current('Auto-submitted: No face detected (15-second violation)');
                                     }
                                 }
                             } else if (detections.length > 1) {
-                                if (showMultiFaceWarningRef.current) return; // Ignore additional detections while warning is active
+                                if (showMultiFaceWarningRef.current) return;
                                 violationCheckRef.current.multiFace++;
-                                console.log(`Proctoring: Multiple faces identified! Violation: ${violationCheckRef.current.multiFace}/2`);
                                 if (violationCheckRef.current.multiFace === 1) {
                                     setShowMultiFaceWarning(true);
                                 } else if (violationCheckRef.current.multiFace >= 2) {
@@ -317,26 +299,15 @@ const TestInterface = () => {
                                     }
                                 }
                             } else {
-                                if (violationCheckRef.current.face > 0) {
-                                    console.log("Proctoring: Face recovered.");
-                                }
                                 violationCheckRef.current.face = 0;
                             }
                         } catch (faceErr) {
                             console.error("Proctoring: AI detection error", faceErr);
                         }
-                    } else {
-                        // Diagnostic log to see why detection isn't running
-                        if (!isSubmittingRef.current && examRef.current) {
-                            console.log("Proctoring: Detection skipped - Models Loaded:", isModelsLoaded, "Video Ready:", videoRef.current?.readyState);
-                        }
                     }
-                }, 2000); // Increased frequency to 2 seconds for faster response
-
-                return () => clearInterval(monitorInterval);
+                }, 2000);
             } catch (err) {
                 console.error("Proctoring: Setup error", err);
-                const isInternal = exam?.test_type === 'internal';
                 if (isInternal) {
                     setProctoringError('Microphone access is required for this internal assessment.');
                 } else {
@@ -346,17 +317,20 @@ const TestInterface = () => {
         };
 
         if (exam) {
-            console.log("Proctoring: Starting monitoring session...");
             startProctoring();
         }
 
         return () => {
+            if (proctoringIntervalRef.current) {
+                clearInterval(proctoringIntervalRef.current);
+                proctoringIntervalRef.current = null;
+            }
             if (streamRef.current) {
-                console.log("Proctoring: Ending monitoring session...");
                 streamRef.current.getTracks().forEach(track => track.stop());
+                streamRef.current = null;
             }
         };
-    }, [isModelsLoaded, exam]); // Stable dependency array
+    }, [isModelsLoaded, exam]);
 
     if (!exam || questions.length === 0) return null;
 
@@ -602,8 +576,9 @@ const TestInterface = () => {
 
             {/* Continuous Proctoring Preview (Floating Circle) */}
             {(() => {
+                const isInternal = exam?.test_type === 'internal';
                 const hardwareRequirements = JSON.parse(sessionStorage.getItem('hardware_requirements')) || { cam: true, mic: true };
-                if (!hardwareRequirements.cam) return null;
+                if (isInternal || !hardwareRequirements.cam) return null;
                 return (
                     <div style={{
                         position: 'fixed',

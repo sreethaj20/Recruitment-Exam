@@ -32,25 +32,25 @@ const SystemCheck = () => {
 
             let stream;
             try {
-                // Try to get both first
-                stream = await navigator.mediaDevices.getUserMedia({
-                    video: hardwareReq.cam,
-                    audio: hardwareReq.mic
-                });
-            } catch (initialErr) {
-                console.warn('Initial getUserMedia failed, checking requirements:', initialErr);
-                // If it's an internal test and we failed, try to get at least the microphone
-                const invitationData = invitation || await invitationAPI.validate(token).then(res => res.data).catch(() => null);
-                if (invitationData?.test_type === 'internal') {
-                    console.log('Internal test detected, retrying with microphone only...');
+                // If it's an internal test, don't even try the camera
+                const isInternalTest = (invitation?.test_type === 'internal') || (await invitationAPI.validate(token).then(res => res.data.test_type === 'internal').catch(() => false));
+
+                if (isInternalTest) {
+                    console.log('Internal test: requesting microphone only.');
                     stream = await navigator.mediaDevices.getUserMedia({
                         video: false,
                         audio: true
                     });
                 } else {
-                    // Re-throw if it's not internal or we can't fall back
-                    throw initialErr;
+                    // Try to get both for external/default
+                    stream = await navigator.mediaDevices.getUserMedia({
+                        video: hardwareReq.cam,
+                        audio: hardwareReq.mic
+                    });
                 }
+            } catch (initialErr) {
+                console.warn('getUserMedia failed:', initialErr);
+                throw initialErr;
             }
 
             streamRef.current = stream;
@@ -157,94 +157,94 @@ const SystemCheck = () => {
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2.5rem' }}>
-                    {/* Camera Preview */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        <div style={{
-                            aspectRatio: '16/9',
-                            background: '#0a0a0a',
-                            borderRadius: '1rem',
-                            overflow: 'hidden',
-                            position: 'relative',
-                            border: '1px solid var(--glass-border)',
-                            boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
-                        }}>
-                            {status.camera === 'success' ? (
-                                <video
-                                    ref={videoRef}
-                                    autoPlay
-                                    playsInline
-                                    muted
-                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                />
-                            ) : (
-                                <div style={{
-                                    width: '100%',
-                                    height: '100%',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    color: 'rgba(255,255,255,0.3)',
-                                    gap: '1rem'
-                                }}>
-                                    <Camera size={48} />
-                                    <span>Camera preview unavailable</span>
+                    {/* Camera Preview (Only shown for non-internal) */}
+                    {!isInternal && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <div style={{
+                                aspectRatio: '16/9',
+                                background: '#0a0a0a',
+                                borderRadius: '1rem',
+                                overflow: 'hidden',
+                                position: 'relative',
+                                border: '1px solid var(--glass-border)',
+                                boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
+                            }}>
+                                {status.camera === 'success' ? (
+                                    <video
+                                        ref={videoRef}
+                                        autoPlay
+                                        playsInline
+                                        muted
+                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                    />
+                                ) : (
+                                    <div style={{
+                                        width: '100%',
+                                        height: '100%',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        color: 'rgba(255,255,255,0.3)',
+                                        gap: '1rem'
+                                    }}>
+                                        <Camera size={48} />
+                                        <span>Camera preview unavailable</span>
+                                    </div>
+                                )}
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 0.5rem' }}>
+                                <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>Live Feed</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <div style={{
+                                        width: '8px',
+                                        height: '8px',
+                                        borderRadius: '50%',
+                                        background: status.camera === 'success' ? '#10b981' : '#ef4444',
+                                        boxShadow: status.camera === 'success' ? '0 0 8px #10b981' : 'none'
+                                    }} />
+                                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                        {status.camera === 'success' ? 'Active' : 'Inactive'}
+                                    </span>
                                 </div>
-                            )}
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 0.5rem' }}>
-                            <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>Live Feed</span>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <div style={{
-                                    width: '8px',
-                                    height: '8px',
-                                    borderRadius: '50%',
-                                    background: status.camera === 'success' ? '#10b981' : '#ef4444',
-                                    boxShadow: status.camera === 'success' ? '0 0 8px #10b981' : 'none'
-                                }} />
-                                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                                    {status.camera === 'success' ? 'Active' : 'Inactive'}
-                                </span>
                             </div>
                         </div>
-                    </div>
+                    )}
 
                     {/* Status Indicators */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            {/* Camera Status */}
-                            <div className="glass" style={{
-                                padding: '1.25rem',
-                                borderRadius: '1rem',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '1rem',
-                                border: `1px solid ${status.camera === 'success' ? 'rgba(16, 185, 129, 0.2)' : (isInternal ? 'rgba(59, 130, 246, 0.2)' : 'var(--glass-border)')}`
-                            }}>
-                                <div style={{
-                                    padding: '0.75rem',
-                                    background: status.camera === 'success' ? 'rgba(16, 185, 129, 0.1)' : (isInternal ? 'rgba(59, 130, 246, 0.1)' : 'rgba(255,255,255,0.05)'),
-                                    borderRadius: '0.75rem',
-                                    color: status.camera === 'success' ? '#10b981' : (isInternal ? 'var(--primary)' : 'var(--text-muted)')
+                            {/* Camera Status (Only shown for non-internal) */}
+                            {!isInternal && (
+                                <div className="glass" style={{
+                                    padding: '1.25rem',
+                                    borderRadius: '1rem',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '1rem',
+                                    border: `1px solid ${status.camera === 'success' ? 'rgba(16, 185, 129, 0.2)' : 'var(--glass-border)'}`
                                 }}>
-                                    <Camera size={24} />
-                                </div>
-                                <div style={{ flex: 1 }}>
-                                    <h4 style={{ margin: 0, fontSize: '1rem' }}>Camera {isInternal && <span style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 'normal' }}>(Optional)</span>}</h4>
-                                    <p style={{ margin: 0, fontSize: '0.875rem', color: status.camera === 'success' ? '#10b981' : 'var(--text-muted)' }}>
-                                        {status.camera === 'success' ? 'Enabled' : (isInternal ? 'Skipped for internal test' : 'Not enabled')}
-                                    </p>
-                                </div>
-                                {status.camera === 'success' ? (
-                                    <CheckCircle size={24} style={{ color: '#10b981' }} />
-                                ) : (
-                                    isInternal ? (
-                                        <Info size={24} style={{ color: 'var(--primary)' }} />
+                                    <div style={{
+                                        padding: '0.75rem',
+                                        background: status.camera === 'success' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(255,255,255,0.05)',
+                                        borderRadius: '0.75rem',
+                                        color: status.camera === 'success' ? '#10b981' : 'var(--text-muted)'
+                                    }}>
+                                        <Camera size={24} />
+                                    </div>
+                                    <div style={{ flex: 1 }}>
+                                        <h4 style={{ margin: 0, fontSize: '1rem' }}>Camera</h4>
+                                        <p style={{ margin: 0, fontSize: '0.875rem', color: status.camera === 'success' ? '#10b981' : 'var(--text-muted)' }}>
+                                            {status.camera === 'success' ? 'Enabled' : 'Not enabled'}
+                                        </p>
+                                    </div>
+                                    {status.camera === 'success' ? (
+                                        <CheckCircle size={24} style={{ color: '#10b981' }} />
                                     ) : (
                                         <XCircle size={24} style={{ color: '#ef4444' }} />
-                                    )
-                                )}
-                            </div>
+                                    )}
+                                </div>
+                            )}
 
                             {/* Microphone Status */}
                             <div className="glass" style={{
