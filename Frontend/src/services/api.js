@@ -12,12 +12,31 @@ const api = axios.create({
 api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('admin_token');
-        if (token) {
+        if (token && token !== 'undefined' && token !== 'null') {
             config.headers.Authorization = `Bearer ${token}`;
         }
         return config;
     },
     (error) => Promise.reject(error)
+);
+
+// Response interceptor for handling 401s
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response && error.response.status === 401) {
+            console.warn('Unauthorized request detected. Clearing session.');
+            localStorage.removeItem('admin_token');
+            localStorage.removeItem('admin_auth');
+            localStorage.removeItem('admin_user');
+
+            // Redirect to login if not already there
+            if (!window.location.pathname.includes('/admin/login')) {
+                window.location.href = '/admin/login';
+            }
+        }
+        return Promise.reject(error);
+    }
 );
 
 export const authAPI = {

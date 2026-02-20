@@ -10,12 +10,13 @@ const protect = async (req, res, next) => {
             req.user = decoded;
             next();
         } catch (error) {
-            console.error(error);
+            console.error('Auth Middleware Error:', error.message);
             res.status(401).json({ message: 'Not authorized, token failed' });
         }
     }
 
     if (!token) {
+        console.warn('No token provided in headers for protected route:', req.originalUrl);
         res.status(401).json({ message: 'Not authorized, no token' });
     }
 };
