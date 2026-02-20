@@ -1,20 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { CheckCircle, ShieldCheck, Mail, ArrowRight, XCircle } from 'lucide-react';
+import { ShieldCheck, ArrowRight } from 'lucide-react';
 
 const SuccessPage = () => {
     const navigate = useNavigate();
-    const [result, setResult] = useState(null);
 
     useEffect(() => {
-        const lastResult = JSON.parse(sessionStorage.getItem('last_result'));
-        setResult(lastResult);
-        // Clear session but keep result for this view
+        // Clear session but keep context for this view
         sessionStorage.removeItem('current_candidate');
+        sessionStorage.removeItem('last_result');
     }, []);
-
-    const isQualified = result && result.percentage >= 95;
 
     return (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '2rem' }}>
@@ -32,33 +28,26 @@ const SuccessPage = () => {
                     alignItems: 'center',
                     justifyContent: 'center',
                     marginBottom: '2rem',
-                    background: isQualified ? 'var(--accent)' : 'var(--danger)'
+                    background: 'var(--accent)'
                 }}>
-                    {isQualified ? <CheckCircle size={40} color="white" /> : <XCircle size={40} color="white" />}
+                    <ShieldCheck size={40} color="white" />
                 </div>
 
-                <h1 style={{ marginBottom: '1rem', color: isQualified ? 'var(--accent)' : 'var(--danger)' }}>
-                    {isQualified ? 'Congratulations, you have qualified!' : 'Oops, you haven’t cleared the test'}
+                <h1 style={{ marginBottom: '1.5rem', color: 'var(--accent)' }}>
+                    Assessment Submitted
                 </h1>
 
-                <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', marginBottom: '1.5rem', lineHeight: '1.6' }}>
-                    {isQualified
-                        ? 'Great job! Your performance has met our qualification criteria. Our HR team will reach out to you shortly for the next steps.'
-                        : 'Unfortunately, your score did not meet the minimum requirement to clear this assessment. We appreciate your interest and effort.'
-                    }
+                <p style={{ color: 'var(--text-main)', fontSize: '1.25rem', fontWeight: '500', marginBottom: '1.5rem' }}>
+                    Your assessment has been successfully submitted.
                 </p>
 
-                <div style={{ marginBottom: '3rem' }}>
-                    <div className="glass" style={{ padding: '1.5rem', borderRadius: '1rem', border: `1px solid ${isQualified ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}` }}>
-                        <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Your Score</div>
-                        <div style={{ fontSize: '2.5rem', fontWeight: '800', color: isQualified ? 'var(--accent)' : 'var(--danger)' }}>
-                            {result ? Math.round(result.percentage) : 0}%
-                        </div>
-                        <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
-                            ({result?.score || 0} correct out of {result?.total_questions || 0})
-                        </div>
-                    </div>
-                </div>
+                <p style={{ color: 'var(--text-muted)', fontSize: '1.05rem', marginBottom: '1rem', lineHeight: '1.6' }}>
+                    Our recruitment team will carefully review your responses. If your profile matches our current requirements, we will reach out to you regarding the next steps in the hiring process.
+                </p>
+
+                <p style={{ color: 'var(--text-muted)', fontSize: '1.05rem', marginBottom: '3rem', lineHeight: '1.6' }}>
+                    Thank you for your interest in joining us and for taking the time to complete this assessment.
+                </p>
 
                 <button
                     className="secondary"
