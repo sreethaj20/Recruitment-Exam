@@ -15,16 +15,34 @@ const Attempt = require('./models/Attempt');
 const app = express();
 
 // Middleware
+const allowedOrigins = [
+    process.env.FRONTEND_URL,
+    'http://localhost:5173',
+    'https://localhost:5173',
+    'https://assessmentcenter.mercuresolution.com'
+].filter(Boolean);
+
 app.use(cors({
-    origin: [
-        process.env.FRONTEND_URL,
-        'http://localhost:5173',
-        'https://localhost:5173',
-        'https://assessmentcenter.mercuresolution.com'
-    ].filter(Boolean),
+    origin: (origin, callback) => {
+        console.log('Incoming Request Origin:', origin);
+
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+
+        const normalizedOrigin = origin.trim().replace(/\/$/, "");
+        const isAllowed = allowedOrigins.some(o => o.trim().replace(/\/$/, "") === normalizedOrigin);
+
+        if (isAllowed) {
+            return callback(null, true);
+        } else {
+            console.error('Origin blocked by CORS:', origin);
+            return callback(new Error('Not allowed by CORS'), false);
+        }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+    optionsSuccessStatus: 200
 }));
 
 // Helmet after CORS to ensure CORS headers aren't stripped
