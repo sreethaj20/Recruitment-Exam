@@ -46,7 +46,7 @@ const CandidateResultView = () => {
     );
 
     const getStatusColor = (percentage) => {
-        if (percentage >= 95) return 'var(--accent)';
+        if (percentage >= 90) return 'var(--accent)';
         if (percentage >= 40) return 'var(--warning)';
         return 'var(--danger)';
     };
@@ -191,9 +191,9 @@ const CandidateResultView = () => {
                             </div>
                         </div>
 
-                        <div style={{ marginTop: '2.5rem', padding: '1.25rem', background: attempt.percentage >= 95 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)', borderRadius: '1rem', textAlign: 'center', border: `1px solid ${attempt.percentage >= 95 ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}` }}>
-                            <p style={{ fontWeight: '700', color: attempt.percentage >= 95 ? 'var(--accent)' : 'var(--danger)', fontSize: '0.85rem', letterSpacing: '1px' }}>
-                                {attempt.percentage >= 95 ? 'RECOMMENDED FOR PROCEEDING' : 'DID NOT MEET THE THRESHOLD'}
+                        <div style={{ marginTop: '2.5rem', padding: '1.25rem', background: attempt.percentage >= 90 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)', borderRadius: '1rem', textAlign: 'center', border: `1px solid ${attempt.percentage >= 90 ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}` }}>
+                            <p style={{ fontWeight: '700', color: attempt.percentage >= 90 ? 'var(--accent)' : 'var(--danger)', fontSize: '0.85rem', letterSpacing: '1px' }}>
+                                {attempt.percentage >= 90 ? 'RECOMMENDED FOR PROCEEDING' : 'DID NOT MEET THE THRESHOLD'}
                             </p>
                         </div>
                     </div>

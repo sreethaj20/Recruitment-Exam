@@ -67,7 +67,7 @@ const ReviewPanel = () => {
             'Score': item.attempt?.score || 0,
             'Total Questions': item.attempt?.total_questions || 0,
             'Percentage': `${Math.round(item.attempt?.percentage || 0)}%`,
-            'Status': (item.attempt?.percentage >= 95) ? 'CLEARED' : 'NOT CLEARED',
+            'Status': (item.attempt?.percentage >= 90) ? 'CLEARED' : 'NOT CLEARED',
             'Remarks': item.remarks || ''
         }));
 
@@ -195,7 +195,7 @@ const ReviewPanel = () => {
                                 </td>
                                 <td style={{ padding: '1.25rem 1.5rem' }}>
                                     {(() => {
-                                        const isCleared = item.attempt?.percentage >= 95;
+                                        const isCleared = item.attempt?.percentage >= 90;
                                         return (
                                             <div style={{
                                                 display: 'inline-flex',
