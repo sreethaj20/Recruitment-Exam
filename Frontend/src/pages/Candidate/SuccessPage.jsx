@@ -38,15 +38,15 @@ const SuccessPage = () => {
                 </h1>
 
                 <p style={{ color: 'var(--text-main)', fontSize: '1.25rem', fontWeight: '500', marginBottom: '1.5rem' }}>
-                    Your assessment has been successfully submitted.
+                    Thank You for Your Participation
                 </p>
 
                 <p style={{ color: 'var(--text-muted)', fontSize: '1.05rem', marginBottom: '1rem', lineHeight: '1.6' }}>
-                    Our recruitment team will carefully review your responses. If your profile matches our current requirements, we will reach out to you regarding the next steps in the hiring process.
+                    Your assessment has been successfully submitted.
                 </p>
 
                 <p style={{ color: 'var(--text-muted)', fontSize: '1.05rem', marginBottom: '3rem', lineHeight: '1.6' }}>
-                    Thank you for your interest in joining us and for taking the time to complete this assessment.
+                    The results have been forwarded to the HR Department, they will reach out to you with the official status soon.
                 </p>
 
                 <button
