@@ -78,7 +78,6 @@ const startServer = async () => {
 
         app.listen(PORT, () => {
             console.log(`🚀 Server running on port ${PORT}`);
-            console.log(`🌍 Allowed Origins: ${allowedOrigins.join(', ')}`);
         });
 
     } catch (error) {
