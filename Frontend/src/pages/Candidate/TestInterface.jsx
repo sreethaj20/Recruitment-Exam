@@ -27,7 +27,7 @@ const TestInterface = () => {
     const [isFullscreen, setIsFullscreen] = useState(false);
     const containerRef = useRef(null);
     const [isModelsLoaded, setIsModelsLoaded] = useState(false);
-    const violationCheckRef = useRef({ face: 0, faceStrikes: 0, multiFace: 0 });
+    const violationCheckRef = useRef({ face: 0, faceStrikes: 0, multiFace: 0, fullscreenStrikes: 0 });
     const handleSubmitRef = useRef(null);
     const isSubmittingRef = useRef(false);
     const examRef = useRef(null);
@@ -145,8 +145,13 @@ const TestInterface = () => {
             const isFull = !!document.fullscreenElement;
             setIsFullscreen(isFull);
             if (!isFull && !isSubmittingRef.current && examRef.current) {
-                console.log("Proctoring: Fullscreen exit detected. Auto-submitting...");
-                handleSubmitRef.current('Auto-submitted: Exited fullscreen mode');
+                violationCheckRef.current.fullscreenStrikes++;
+                console.log(`Proctoring: Fullscreen exit detected. Strike ${violationCheckRef.current.fullscreenStrikes}`);
+
+                if (violationCheckRef.current.fullscreenStrikes >= 2) {
+                    console.log("Proctoring: Second fullscreen violation. Auto-submitting...");
+                    handleSubmitRef.current('Auto-submitted: Multiple fullscreen violations');
+                }
             }
         };
 
@@ -750,17 +755,36 @@ const TestInterface = () => {
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             className="glass card"
-                            style={{ maxWidth: '500px', textAlign: 'center', border: '1px solid var(--primary)' }}
+                            style={{ maxWidth: '500px', textAlign: 'center', border: violationCheckRef.current.fullscreenStrikes > 0 ? '1px solid var(--warning)' : '1px solid var(--primary)' }}
                         >
-                            <AlertCircle size={64} color="var(--primary)" style={{ marginBottom: '1.5rem' }} />
-                            <h2 style={{ marginBottom: '1rem' }}>Fullscreen Mode Required</h2>
+                            {violationCheckRef.current.fullscreenStrikes > 0 ? (
+                                <AlertTriangle size={64} color="var(--warning)" style={{ marginBottom: '1.5rem' }} />
+                            ) : (
+                                <AlertCircle size={64} color="var(--primary)" style={{ marginBottom: '1.5rem' }} />
+                            )}
+
+                            <h2 style={{ marginBottom: '1rem', color: violationCheckRef.current.fullscreenStrikes > 0 ? 'var(--warning)' : 'inherit' }}>
+                                {violationCheckRef.current.fullscreenStrikes > 0 ? 'Fullscreen Violation!' : 'Fullscreen Mode Required'}
+                            </h2>
+
                             <p style={{ marginBottom: '2rem', lineHeight: '1.6', color: 'var(--text-muted)' }}>
-                                To maintain examination integrity, you must be in fullscreen mode.
-                                <br />
-                                <strong>Exiting fullscreen will result in immediate automatic submission.</strong>
+                                {violationCheckRef.current.fullscreenStrikes > 0 ? (
+                                    <>
+                                        You have exited fullscreen mode. This is prohibited.
+                                        <br /><br />
+                                        <strong style={{ color: 'var(--warning)' }}>Warning 1 of 1:</strong> A second violation will result in <strong>immediate automatic submission</strong>.
+                                    </>
+                                ) : (
+                                    <>
+                                        To maintain examination integrity, you must be in fullscreen mode.
+                                        <br />
+                                        <strong>Exiting fullscreen will result in automatic submission after one warning.</strong>
+                                    </>
+                                )}
                             </p>
-                            <button className="primary" style={{ width: '100%' }} onClick={enterFullscreen}>
-                                Enter Fullscreen & Start Exam
+
+                            <button className="primary" style={{ width: '100%', background: violationCheckRef.current.fullscreenStrikes > 0 ? 'var(--warning)' : 'var(--primary)' }} onClick={enterFullscreen}>
+                                {violationCheckRef.current.fullscreenStrikes > 0 ? 'Re-enter Fullscreen & Continue' : 'Enter Fullscreen & Start Exam'}
                             </button>
                         </motion.div>
                     </motion.div>
