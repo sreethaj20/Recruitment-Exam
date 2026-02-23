@@ -149,13 +149,13 @@ const ReviewPanel = () => {
             `}</style>
 
             <div className="glass custom-scrollbar" style={{ width: '100%', overflowX: 'auto', borderRadius: '1rem', border: '1px solid var(--border)', display: 'block' }}>
-                <table style={{ width: '100%', minWidth: '1100px', borderCollapse: 'collapse', textAlign: 'left', tableLayout: 'fixed' }}>
+                <table style={{ width: '100%', minWidth: '1200px', borderCollapse: 'collapse', textAlign: 'left', tableLayout: 'fixed' }}>
                     <thead>
                         <tr style={{ background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid var(--border)' }}>
-                            <th style={{ padding: '1.25rem 1.5rem', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', width: '300px' }}>Candidate</th>
-                            <th style={{ padding: '1.25rem 1.5rem', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', width: '220px' }}>Dept / Type</th>
+                            <th style={{ padding: '1.25rem 1.5rem', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', width: '320px' }}>Candidate</th>
+                            <th style={{ padding: '1.25rem 1.5rem', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', width: '250px' }}>Dept / Type</th>
                             <th style={{ padding: '1.25rem 1.5rem', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', width: '180px' }}>Score</th>
-                            <th style={{ padding: '1.25rem 1.5rem', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', width: '250px' }}>Submitted</th>
+                            <th style={{ padding: '1.25rem 1.5rem', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', width: '300px' }}>Submitted</th>
                             <th style={{ padding: '1.25rem 1.5rem', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', width: '150px' }}>Status</th>
                         </tr>
                     </thead>
