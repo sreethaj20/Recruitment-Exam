@@ -98,7 +98,11 @@ const TestInterface = () => {
             });
 
             // Submit attempt to backend
-            await attemptAPI.submit(attemptId, { ...results, responses: submissionResponses });
+            await attemptAPI.submit(attemptId, {
+                ...results,
+                responses: submissionResponses,
+                submission_type: reason === 'Normal submission' ? 'Submitted by candidate' : reason
+            });
 
             sessionStorage.setItem('last_result', JSON.stringify({
                 ...results,

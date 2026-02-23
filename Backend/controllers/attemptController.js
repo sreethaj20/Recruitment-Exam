@@ -48,13 +48,14 @@ const startAttempt = async (req, res) => {
 const submitAttempt = async (req, res) => {
     try {
         const { id } = req.params;
-        const { score, total_questions, percentage, responses } = req.body;
+        const { score, total_questions, percentage, responses, submission_type } = req.body;
 
         const attempt = await Attempt.update({
             score,
             total_questions,
             percentage,
             responses,
+            submission_type: submission_type || 'Submitted by candidate',
             status: 'completed',
             completed_at: new Date()
         }, {

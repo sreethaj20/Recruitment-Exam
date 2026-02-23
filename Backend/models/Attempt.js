@@ -37,6 +37,11 @@ const Attempt = sequelize.define('Attempt', {
     responses: {
         type: DataTypes.JSON,
         allowNull: true
+    },
+    submission_type: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        defaultValue: 'Submitted by candidate'
     }
 }, {
     timestamps: false

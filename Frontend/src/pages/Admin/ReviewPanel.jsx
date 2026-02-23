@@ -68,6 +68,7 @@ const ReviewPanel = () => {
             'Total Questions': item.attempt?.total_questions || 0,
             'Percentage': `${Math.round(item.attempt?.percentage || 0)}%`,
             'Status': (item.attempt?.percentage >= 90) ? 'CLEARED' : 'NOT CLEARED',
+            'Submitted': item.attempt?.submission_type || 'Submitted by candidate',
             'Remarks': item.remarks || ''
         }));
 
@@ -85,6 +86,7 @@ const ReviewPanel = () => {
             { wch: 15 }, // Total
             { wch: 12 }, // Percentage
             { wch: 15 }, // Status
+            { wch: 25 }, // Submitted
             { wch: 40 }  // Remarks
         ];
         worksheet['!cols'] = wscols;
@@ -134,6 +136,7 @@ const ReviewPanel = () => {
                             <th style={{ padding: '1.25rem 1.5rem', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase' }}>Candidate</th>
                             <th style={{ padding: '1.25rem 1.5rem', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase' }}>Dept / Type</th>
                             <th style={{ padding: '1.25rem 1.5rem', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase' }}>Score</th>
+                            <th style={{ padding: '1.25rem 1.5rem', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase' }}>Submitted</th>
                             <th style={{ padding: '1.25rem 1.5rem', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase' }}>Status</th>
                         </tr>
                     </thead>
@@ -192,6 +195,11 @@ const ReviewPanel = () => {
                                     ) : (
                                         <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>No attempt</span>
                                     )}
+                                </td>
+                                <td style={{ padding: '1.25rem 1.5rem' }}>
+                                    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: '500' }}>
+                                        {item.attempt?.submission_type || 'Submitted by candidate'}
+                                    </div>
                                 </td>
                                 <td style={{ padding: '1.25rem 1.5rem' }}>
                                     {(() => {
