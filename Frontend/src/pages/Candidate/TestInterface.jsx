@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, AlertTriangle, ChevronLeft, ChevronRight, Send, AlertCircle, Users } from 'lucide-react';
+import { Clock, AlertTriangle, ChevronLeft, ChevronRight, Send, AlertCircle, Users, Camera } from 'lucide-react';
 import { useStore } from '../../store';
 import useTabVisibility from '../../hooks/useTabVisibility';
 import { examAPI, attemptAPI } from '../../services/api';
@@ -17,6 +17,7 @@ const TestInterface = () => {
     const [answers, setAnswers] = useState({});
     const [timeLeft, setTimeLeft] = useState(0);
     const [showWarning, setShowWarning] = useState(false);
+    const [showFaceWarning, setShowFaceWarning] = useState(false);
     const [showMultiFaceWarning, setShowMultiFaceWarning] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [attemptId, setAttemptId] = useState(null);
@@ -26,7 +27,7 @@ const TestInterface = () => {
     const [isFullscreen, setIsFullscreen] = useState(false);
     const containerRef = useRef(null);
     const [isModelsLoaded, setIsModelsLoaded] = useState(false);
-    const violationCheckRef = useRef({ face: 0, multiFace: 0 });
+    const violationCheckRef = useRef({ face: 0, faceStrikes: 0, multiFace: 0 });
     const handleSubmitRef = useRef(null);
     const isSubmittingRef = useRef(false);
     const examRef = useRef(null);
@@ -292,8 +293,15 @@ const TestInterface = () => {
                             if (detections.length === 0) {
                                 violationCheckRef.current.face++;
                                 if (violationCheckRef.current.face >= 5) {
-                                    if (handleSubmitRef.current) {
-                                        handleSubmitRef.current('Auto-submitted: No face detected (15-second violation)');
+                                    violationCheckRef.current.face = 0; // Reset minor counter
+                                    violationCheckRef.current.faceStrikes++;
+
+                                    if (violationCheckRef.current.faceStrikes < 3) {
+                                        setShowFaceWarning(true);
+                                    } else {
+                                        if (handleSubmitRef.current) {
+                                            handleSubmitRef.current('Auto-submitted: No face detected (3 violations)');
+                                        }
                                     }
                                 }
                             } else if (detections.length > 1) {
@@ -552,6 +560,41 @@ const TestInterface = () => {
                             </p>
                             <button className="primary" style={{ background: 'var(--warning)', width: '100%' }} onClick={() => setShowWarning(false)}>
                                 I Understand, Continue
+                            </button>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Face Detection Warning Overlay */}
+            <AnimatePresence>
+                {showFaceWarning && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        style={{
+                            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                            background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            zIndex: 4500, padding: '2rem'
+                        }}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            className="glass card"
+                            style={{ maxWidth: '450px', textAlign: 'center', border: '1px solid var(--warning)' }}
+                        >
+                            <Camera size={64} color="var(--warning)" style={{ marginBottom: '1.5rem' }} />
+                            <h2 style={{ color: 'var(--warning)', marginBottom: '1rem' }}>Face Detection Warning!</h2>
+                            <p style={{ marginBottom: '2rem', lineHeight: '1.6' }}>
+                                The system cannot detect your face. Please ensure you are properly positioned in front of the camera and there is sufficient lighting.
+                                <br /><br />
+                                <strong>Warning {violationCheckRef.current.faceStrikes} of 2:</strong> A third violation will result in an <strong>immediate automatic submission</strong> of your test.
+                            </p>
+                            <button className="primary" style={{ background: 'var(--warning)', width: '100%' }} onClick={() => setShowFaceWarning(false)}>
+                                I Am Back, Continue
                             </button>
                         </motion.div>
                     </motion.div>
