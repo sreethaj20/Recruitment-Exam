@@ -7,7 +7,8 @@ const {
     deleteExam,
     getQuestions,
     addQuestion,
-    deleteQuestion
+    deleteQuestion,
+    updateQuestion
 } = require('../controllers/examController');
 const { protect } = require('../middleware/authMiddleware');
 
