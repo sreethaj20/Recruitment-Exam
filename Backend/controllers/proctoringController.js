@@ -23,6 +23,7 @@ const uploadChunk = async (req, res) => {
             candidate_email: candidateEmail,
             candidate_name: candidateName,
             s3_video_url: s3Url,
+            s3_key: s3Key,
             timestamp: parseInt(timestamp),
             created_at: new Date()
         });
@@ -58,7 +59,8 @@ const finalizeRecording = async (req, res) => {
 
         // 2. Download chunks locally
         await Promise.all(chunks.map(async (chunk, index) => {
-            const s3Key = chunk.s3_video_url.split('.com/')[1];
+            const s3Key = chunk.s3_key;
+            if (!s3Key) return;
             const localPath = path.join(tempDir, `chunk-${index}.webm`);
             const bodyStream = await getS3Object(s3Key);
             await pipeline(bodyStream, fs.createWriteStream(localPath));

@@ -22,6 +22,10 @@ const ExamRecording = sequelize.define('ExamRecording', {
         type: DataTypes.TEXT,
         allowNull: true
     },
+    s3_key: {
+        type: DataTypes.TEXT,
+        allowNull: true
+    },
     timestamp: {
         type: DataTypes.BIGINT,
         allowNull: true

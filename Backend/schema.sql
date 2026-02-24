@@ -76,6 +76,7 @@ CREATE TABLE IF NOT EXISTS "ExamRecordings" (
     "candidate_email" VARCHAR(255),
     "candidate_name" VARCHAR(255),
     "s3_video_url" TEXT,
+    "s3_key" TEXT,
     "timestamp" BIGINT,
     "created_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

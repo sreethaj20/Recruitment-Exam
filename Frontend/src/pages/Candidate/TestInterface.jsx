@@ -43,6 +43,7 @@ const TestInterface = () => {
     const proctoringIntervalRef = useRef(null);
     const mediaRecorderRef = useRef(null);
     const recordingIntervalRef = useRef(null);
+    const attemptIdRef = useRef(null);
 
     const enterFullscreen = () => {
         if (containerRef.current) {
@@ -148,7 +149,8 @@ const TestInterface = () => {
         isSubmittingRef.current = isSubmitting;
         examRef.current = exam;
         showMultiFaceWarningRef.current = showMultiFaceWarning;
-    }, [handleSubmit, isSubmitting, exam, showMultiFaceWarning]);
+        attemptIdRef.current = attemptId;
+    }, [handleSubmit, isSubmitting, exam, showMultiFaceWarning, attemptId]);
 
     // Anti-Cheating Handler
     const onViolation = useCallback((count) => {
@@ -391,10 +393,10 @@ const TestInterface = () => {
                     mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp8' });
 
                     mediaRecorderRef.current.ondataavailable = async (event) => {
-                        if (event.data.size > 0) {
+                        if (event.data.size > 0 && attemptIdRef.current) {
                             const formData = new FormData();
                             formData.append('video', event.data);
-                            formData.append('attemptId', attemptId);
+                            formData.append('attemptId', attemptIdRef.current);
                             formData.append('candidateEmail', candidate.email);
                             formData.append('candidateName', candidate.name);
                             formData.append('timestamp', Date.now());
