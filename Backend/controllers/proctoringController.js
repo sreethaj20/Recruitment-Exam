@@ -58,61 +58,43 @@ const finalizeRecording = async (req, res) => {
             fs.mkdirSync(tempDir, { recursive: true });
         }
 
-        const fileListPath = path.join(tempDir, 'files.txt');
-        const fileListContent = [];
-
-        // 2. Download chunks locally
-        await Promise.all(chunks.map(async (chunk, index) => {
-            const s3Key = chunk.s3_key || (chunk.s3_video_url ? chunk.s3_video_url.split('.com/')[1] : null);
-            if (!s3Key) {
-                console.warn(`[Proctoring] Chunk ${index} has no S3 key, skipping...`);
-                return;
-            }
-
-            const localPath = path.resolve(tempDir, `chunk-${index}.webm`);
-            console.log(`[Proctoring] Downloading chunk ${index} from S3: ${s3Key}`);
-
-            try {
-                const bodyStream = await getS3Object(s3Key);
-                await pipeline(bodyStream, fs.createWriteStream(localPath));
-                fileListContent.push(`file '${localPath.replace(/\\/g, '/')}'`); // Normalize paths for ffmpeg
-            } catch (dlErr) {
-                console.error(`[Proctoring] Failed to download chunk ${index}:`, dlErr.message);
-                // We keep going if some chunks fail, but this might result in a skip in the video
-            }
-        }));
-
-        // Filter out any failed downloads
-        const validFiles = chunks
-            .map((_, index) => path.resolve(tempDir, `chunk-${index}.webm`))
-            .filter(fp => fs.existsSync(fp));
-
-        if (validFiles.length === 0) {
-            return res.status(500).json({ message: 'Failed to download any recording chunks' });
-        }
-
-        const normalizedFileList = validFiles.map(fp => `file '${fp.replace(/\\/g, '/')}'`).join('\n');
-        fs.writeFileSync(fileListPath, normalizedFileList);
-
-        // 3. Merge using FFMPEG with Re-encoding
-        // Re-encoding is necessary for WebM segments to fix timestamps and duration
+        const rawMergedPath = path.resolve(tempDir, 'raw_merged.webm');
         const finalVideoPath = path.resolve(tempDir, 'final.webm');
         const candidateEmail = chunks[0].candidate_email;
         const finalS3Key = `recordings/${candidateEmail}/attempt-${attemptId}/final.webm`;
 
-        console.log(`[Proctoring] Merging ${validFiles.length} files into ${finalVideoPath} (Re-encoding...)`);
+        // 2. Download and Binary Concatenate
+        console.log(`[Proctoring] Downloading and concatenating ${chunks.length} chunks...`);
+        const writeStream = fs.createWriteStream(rawMergedPath);
+
+        for (let i = 0; i < chunks.length; i++) {
+            const chunk = chunks[i];
+            const s3Key = chunk.s3_key || (chunk.s3_video_url ? chunk.s3_video_url.split('.com/')[1] : null);
+            if (!s3Key) continue;
+
+            console.log(`[Proctoring] Appending chunk ${i}: ${s3Key}`);
+            const bodyStream = await getS3Object(s3Key);
+            await pipeline(bodyStream, writeStream, { end: false });
+        }
+        writeStream.end();
+
+        // Wait for writeStream to finish
+        await new Promise((resolve) => writeStream.on('finish', resolve));
+        console.log(`[Proctoring] Binary concatenation complete: ${rawMergedPath}`);
+
+        // 3. Process with FFMPEG to fix headers and duration
+        console.log(`[Proctoring] Processing with FFMPEG (Re-encoding to fix metadata)...`);
 
         await new Promise((resolve, reject) => {
             ffmpeg()
-                .input(fileListPath)
-                .inputOptions(['-f concat', '-safe 0'])
-                // We re-encode to ensure the segments are correctly stitched with proper timestamps
+                .input(rawMergedPath)
+                // Re-encoding is necessary for WebM segments to fix timestamps and duration
                 .videoCodec('libvpx')
                 .audioCodec('libvorbis')
                 .outputOptions([
                     '-fflags +genpts',
-                    '-crf 30', // Reasonable quality for proctoring
-                    '-b:v 1M'   // Target bitrate
+                    '-crf 32', // Slightly lower quality for faster re-encoding
+                    '-b:v 800k'   // Target bitrate
                 ])
                 .on('start', (cmd) => console.log('[Proctoring] FFMPEG command:', cmd))
                 .on('progress', (progress) => {
