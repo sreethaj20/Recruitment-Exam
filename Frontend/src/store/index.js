@@ -67,8 +67,12 @@ export const useStore = () => {
     refreshData();
   };
 
+  const updateQuestion = async (id, questionData) => {
+    await examAPI.updateQuestion(id, questionData);
+    refreshData();
+  };
+
   const updateExam = async (id, examData) => {
-    // Assuming backend supports PUT/PATCH on /exams/:id. Let's check api.js or add it.
     await examAPI.update(id, examData);
     refreshData();
   };
@@ -119,7 +123,9 @@ export const useStore = () => {
     loading,
     refreshData,
     addExam,
+    updateExam,
     addQuestion,
+    updateQuestion,
     addInvitation,
     addCandidate,
     addAttempt,

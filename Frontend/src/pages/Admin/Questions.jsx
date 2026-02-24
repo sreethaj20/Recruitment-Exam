@@ -7,7 +7,7 @@ import { useStore } from '../../store';
 
 const Questions = () => {
     const location = useLocation();
-    const { db, addQuestion, refreshData } = useStore();
+    const { db, addQuestion, updateQuestion, refreshData } = useStore();
     const [selectedExam, setSelectedExam] = useState(location.state?.selectedExamId || db.exams[0]?.id || '');
     const [expandedId, setExpandedId] = useState(null);
     const [showModal, setShowModal] = useState(false);
@@ -85,9 +85,8 @@ const Questions = () => {
         }
 
         try {
-            const { examAPI } = await import('../../services/api');
             if (editingQuestion) {
-                await examAPI.updateQuestion(editingQuestion.id, formData);
+                await updateQuestion(editingQuestion.id, formData);
             } else {
                 await addQuestion(formData);
             }
