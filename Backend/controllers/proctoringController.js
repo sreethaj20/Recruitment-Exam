@@ -40,11 +40,15 @@ const finalizeRecording = async (req, res) => {
     const tempDir = path.join(__dirname, '../temp', `attempt-${attemptId}`);
 
     try {
+        console.log(`[Proctoring] Starting finalization for attempt: ${attemptId}`);
+
         // 1. Fetch chunks sorted by timestamp
         const chunks = await ExamRecording.findAll({
             where: { attempt_id: attemptId },
             order: [['timestamp', 'ASC']]
         });
+
+        console.log(`[Proctoring] Found ${chunks.length} chunks for attempt ${attemptId}`);
 
         if (chunks.length === 0) {
             return res.status(404).json({ message: 'No recordings found for this attempt' });
@@ -59,12 +63,23 @@ const finalizeRecording = async (req, res) => {
 
         // 2. Download chunks locally
         await Promise.all(chunks.map(async (chunk, index) => {
-            const s3Key = chunk.s3_key;
-            if (!s3Key) return;
-            const localPath = path.join(tempDir, `chunk-${index}.webm`);
-            const bodyStream = await getS3Object(s3Key);
-            await pipeline(bodyStream, fs.createWriteStream(localPath));
-            fileListContent.push(`file '${localPath}'`);
+            const s3Key = chunk.s3_key || (chunk.s3_video_url ? chunk.s3_video_url.split('.com/')[1] : null);
+            if (!s3Key) {
+                console.warn(`[Proctoring] Chunk ${index} has no S3 key, skipping...`);
+                return;
+            }
+
+            const localPath = path.resolve(tempDir, `chunk-${index}.webm`);
+            console.log(`[Proctoring] Downloading chunk ${index} from S3: ${s3Key}`);
+
+            try {
+                const bodyStream = await getS3Object(s3Key);
+                await pipeline(bodyStream, fs.createWriteStream(localPath));
+                fileListContent.push(`file '${localPath.replace(/\\/g, '/')}'`); // Normalize paths for ffmpeg
+            } catch (dlErr) {
+                console.error(`[Proctoring] Failed to download chunk ${index}:`, dlErr.message);
+                // We keep going if some chunks fail, but this might result in a skip in the video
+            }
         }));
 
         // Sort file list content just in case Promise.all order differs
@@ -73,17 +88,26 @@ const finalizeRecording = async (req, res) => {
         fs.writeFileSync(fileListPath, orderedFileList);
 
         // 3. Merge using FFMPEG
-        const finalVideoPath = path.join(tempDir, 'final.webm');
+        const finalVideoPath = path.resolve(tempDir, 'final.webm');
         const candidateEmail = chunks[0].candidate_email;
         const finalS3Key = `recordings/${candidateEmail}/attempt-${attemptId}/final.webm`;
 
+        console.log(`[Proctoring] Merging ${fileListContent.length} files into ${finalVideoPath}`);
+
         await new Promise((resolve, reject) => {
-            ffmpeg()
+            const process = ffmpeg()
                 .input(fileListPath)
                 .inputOptions(['-f concat', '-safe 0'])
                 .outputOptions('-c copy')
-                .on('end', resolve)
-                .on('error', reject)
+                .on('start', (cmd) => console.log('[Proctoring] FFMPEG command:', cmd))
+                .on('end', () => {
+                    console.log('[Proctoring] FFMPEG merge completed.');
+                    resolve();
+                })
+                .on('error', (err) => {
+                    console.error('[Proctoring] FFMPEG error:', err.message);
+                    reject(err);
+                })
                 .save(finalVideoPath);
         });
 
