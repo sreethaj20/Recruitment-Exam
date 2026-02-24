@@ -18,6 +18,7 @@ router.delete('/:id', protect, deleteExam);
 
 router.get('/questions/:examId', protect, getQuestions);
 router.post('/questions', protect, addQuestion);
+router.put('/questions/:id', protect, updateQuestion);
 router.delete('/questions/:id', protect, deleteQuestion);
 
 module.exports = router;

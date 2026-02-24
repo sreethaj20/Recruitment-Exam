@@ -61,7 +61,12 @@ CREATE TABLE IF NOT EXISTS "Attempts" (
     "total_questions" INTEGER DEFAULT 0,
     "percentage" DECIMAL(5, 2) DEFAULT 0.00,
     "status" VARCHAR(50) DEFAULT 'ongoing',
-    "completed_at" TIMESTAMP WITH TIME ZONE
+    "completed_at" TIMESTAMP WITH TIME ZONE,
+    "tab_switch_count" INTEGER DEFAULT 0,
+    "fullscreen_exit_count" INTEGER DEFAULT 0,
+    "face_detection_violations" INTEGER DEFAULT 0,
+    "multi_face_violations" INTEGER DEFAULT 0,
+    "mic_violations" INTEGER DEFAULT 0
 );
 
 -- Seed Initial Admin User (Password: admin)

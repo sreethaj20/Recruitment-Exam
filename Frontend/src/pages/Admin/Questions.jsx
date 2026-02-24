@@ -11,6 +11,7 @@ const Questions = () => {
     const [selectedExam, setSelectedExam] = useState(location.state?.selectedExamId || db.exams[0]?.id || '');
     const [expandedId, setExpandedId] = useState(null);
     const [showModal, setShowModal] = useState(false);
+    const [editingQuestion, setEditingQuestion] = useState(null);
     const [filteredQuestions, setFilteredQuestions] = useState([]);
     const [loading, setLoading] = useState(false);
 
@@ -50,7 +51,33 @@ const Questions = () => {
         fetchQuestions(selectedExam);
     }, [selectedExam]);
 
-    const handleAdd = async (e) => {
+    const openCreateModal = () => {
+        setEditingQuestion(null);
+        setFormData({
+            text: '',
+            type: 'mcq',
+            options: ['', '', '', ''],
+            correct_answer: 0,
+            keywords: '',
+            exam_id: selectedExam
+        });
+        setShowModal(true);
+    };
+
+    const openEditModal = (q) => {
+        setEditingQuestion(q);
+        setFormData({
+            text: q.text,
+            type: q.type || 'mcq',
+            options: q.options || ['', '', '', ''],
+            correct_answer: q.correct_answer,
+            keywords: Array.isArray(q.keywords) ? q.keywords.join(', ') : (q.keywords || ''),
+            exam_id: selectedExam
+        });
+        setShowModal(true);
+    };
+
+    const handleSave = async (e) => {
         e.preventDefault();
         if (!formData.text.trim() || !formData.exam_id) {
             alert("Please ensure a question text is entered and an exam is selected.");
@@ -58,8 +85,14 @@ const Questions = () => {
         }
 
         try {
-            await addQuestion(formData);
+            const { examAPI } = await import('../../services/api');
+            if (editingQuestion) {
+                await examAPI.updateQuestion(editingQuestion.id, formData);
+            } else {
+                await addQuestion(formData);
+            }
             setShowModal(false);
+            setEditingQuestion(null);
             setFormData({
                 text: '',
                 type: 'mcq',
@@ -71,7 +104,7 @@ const Questions = () => {
             fetchQuestions(selectedExam);
             refreshData(); // To update the question count in exams list
         } catch (err) {
-            console.error("Error adding question:", err);
+            console.error("Error saving question:", err);
         }
     };
 
@@ -111,7 +144,7 @@ const Questions = () => {
                             <option key={exam.id} value={exam.id}>{exam.title}</option>
                         ))}
                     </select>
-                    <button className="primary" onClick={() => setShowModal(true)}>
+                    <button className="primary" onClick={openCreateModal}>
                         <Plus size={20} /> Add Question
                     </button>
                 </div>
@@ -142,6 +175,7 @@ const Questions = () => {
                                 </div>
                             </div>
                             <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                <button className="secondary" style={{ padding: '0.5rem', color: 'var(--primary)' }} onClick={(e) => { e.stopPropagation(); openEditModal(q); }}><Edit2 size={16} /></button>
                                 <button className="secondary" style={{ padding: '0.5rem', color: 'var(--danger)' }} onClick={(e) => { e.stopPropagation(); handleDeleteQuestion(q.id); }}><Trash2 size={16} /></button>
                                 <div style={{ padding: '0.5rem', color: 'var(--text-muted)' }}>
                                     {expandedId === q.id ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
@@ -221,10 +255,10 @@ const Questions = () => {
                         className="glass card"
                         style={{ maxWidth: '600px', width: '90%', padding: '2rem', maxHeight: '90vh', overflowY: 'auto' }}
                     >
-                        <h3>Add New Question</h3>
-                        <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>Create a multiple-choice question for the selected exam.</p>
+                        <h3>{editingQuestion ? 'Edit Question' : 'Add New Question'}</h3>
+                        <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>{editingQuestion ? 'Modify the question details below.' : 'Create a multiple-choice question for the selected exam.'}</p>
 
-                        <form onSubmit={handleAdd} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                        <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                             <div>
                                 <label>Question Type</label>
                                 <select
@@ -299,7 +333,7 @@ const Questions = () => {
 
                             <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
                                 <button type="button" className="secondary" style={{ flex: 1 }} onClick={() => setShowModal(false)}>Cancel</button>
-                                <button type="submit" className="primary" style={{ flex: 1 }}>Add to Bank</button>
+                                <button type="submit" className="primary" style={{ flex: 1 }}>{editingQuestion ? 'Update Question' : 'Add to Bank'}</button>
                             </div>
                         </form>
                     </motion.div>

@@ -63,7 +63,18 @@ const startAttempt = async (req, res) => {
 const submitAttempt = async (req, res) => {
     try {
         const { id } = req.params;
-        const { score, total_questions, percentage, responses, submission_type } = req.body;
+        const {
+            score,
+            total_questions,
+            percentage,
+            responses,
+            submission_type,
+            tab_switch_count,
+            fullscreen_exit_count,
+            face_detection_violations,
+            multi_face_violations,
+            mic_violations
+        } = req.body;
 
         const attempt = await Attempt.update({
             score,
@@ -71,6 +82,11 @@ const submitAttempt = async (req, res) => {
             percentage,
             responses,
             submission_type: submission_type || 'Submitted by candidate',
+            tab_switch_count: tab_switch_count || 0,
+            fullscreen_exit_count: fullscreen_exit_count || 0,
+            face_detection_violations: face_detection_violations || 0,
+            multi_face_violations: multi_face_violations || 0,
+            mic_violations: mic_violations || 0,
             status: 'completed',
             completed_at: new Date()
         }, {

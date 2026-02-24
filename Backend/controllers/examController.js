@@ -83,6 +83,20 @@ const deleteQuestion = async (req, res) => {
     }
 };
 
+const updateQuestion = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const questionData = { ...req.body };
+        if (questionData.type === 'text' && typeof questionData.keywords === 'string') {
+            questionData.keywords = questionData.keywords.split(',').map(k => k.trim().toLowerCase()).filter(k => k !== '');
+        }
+        await Question.update(questionData, { where: { id } });
+        res.json({ message: 'Question updated' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error updating question' });
+    }
+};
+
 module.exports = {
     getExams,
     createExam,
@@ -90,5 +104,6 @@ module.exports = {
     updateExam,
     getQuestions,
     addQuestion,
-    deleteQuestion
+    deleteQuestion,
+    updateQuestion
 };

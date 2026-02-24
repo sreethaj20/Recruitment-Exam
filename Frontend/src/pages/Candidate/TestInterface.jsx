@@ -21,13 +21,21 @@ const TestInterface = () => {
     const [showMultiFaceWarning, setShowMultiFaceWarning] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [attemptId, setAttemptId] = useState(null);
+    const [tabSwitchCount, setTabSwitchCount] = useState(0);
     const videoRef = useRef(null);
     const streamRef = useRef(null);
     const [proctoringError, setProctoringError] = useState(null);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const containerRef = useRef(null);
     const [isModelsLoaded, setIsModelsLoaded] = useState(false);
-    const violationCheckRef = useRef({ face: 0, faceStrikes: 0, multiFace: 0, fullscreenStrikes: 0 });
+    const violationCheckRef = useRef({
+        face: 0,
+        faceStrikes: 0,
+        multiFace: 0,
+        fullscreenStrikes: 0,
+        mic: 0,
+        micStrikes: 0
+    });
     const handleSubmitRef = useRef(null);
     const isSubmittingRef = useRef(false);
     const examRef = useRef(null);
@@ -101,7 +109,12 @@ const TestInterface = () => {
             await attemptAPI.submit(attemptId, {
                 ...results,
                 responses: submissionResponses,
-                submission_type: reason === 'Normal submission' ? 'Submitted by candidate' : reason
+                submission_type: reason === 'Normal submission' ? 'Submitted by candidate' : reason,
+                tab_switch_count: tabSwitchCount,
+                fullscreen_exit_count: violationCheckRef.current.fullscreenStrikes,
+                face_detection_violations: violationCheckRef.current.faceStrikes,
+                multi_face_violations: violationCheckRef.current.multiFace,
+                mic_violations: violationCheckRef.current.micStrikes
             });
 
             sessionStorage.setItem('last_result', JSON.stringify({
@@ -127,6 +140,7 @@ const TestInterface = () => {
     // Anti-Cheating Handler
     const onViolation = useCallback((count) => {
         if (isSubmitting) return;
+        setTabSwitchCount(count);
 
         if (count >= 1) {
             handleSubmit('Auto-submitted due to security violation (Tab Switch)');
@@ -285,12 +299,38 @@ const TestInterface = () => {
                     setProctoringError(null);
 
                     // 2. Check for Mic Mute (only if required)
-                    if (actualMicReq && audioTrack && (!audioTrack.enabled || audioTrack.muted)) {
-                        console.log("Proctoring: Mic muted detected.");
-                        if (handleSubmitRef.current && !isSubmittingRef.current) {
-                            handleSubmitRef.current('Auto-submitted: Microphone was muted during the exam');
+                    if (actualMicReq && audioTrack) {
+                        // VERY IMPORTANT: Check if track ended
+                        if (audioTrack.readyState === "ended") {
+                            console.error("Proctoring: Microphone track ended!");
+                            if (handleSubmitRef.current && !isSubmittingRef.current) {
+                                handleSubmitRef.current('Auto-submitted: Microphone disconnected');
+                            }
+                            return;
                         }
-                        return;
+
+                        // MIC MONITOR WITH STRIKES (SAFE)
+                        if (!audioTrack.enabled || audioTrack.muted) {
+                            violationCheckRef.current.mic++;
+                            console.log("Mic issue detected count:", violationCheckRef.current.mic);
+
+                            // wait 3 intervals (~6 sec)
+                            if (violationCheckRef.current.mic >= 3) {
+                                violationCheckRef.current.mic = 0;
+                                violationCheckRef.current.micStrikes++;
+                                console.log("Mic strike:", violationCheckRef.current.micStrikes);
+
+                                if (violationCheckRef.current.micStrikes < 2) {
+                                    setProctoringError("Microphone issue detected. Please ensure mic is ON.");
+                                } else {
+                                    if (handleSubmitRef.current && !isSubmittingRef.current) {
+                                        handleSubmitRef.current('Auto-submitted: Microphone disabled multiple times');
+                                    }
+                                }
+                            }
+                        } else {
+                            violationCheckRef.current.mic = 0; // reset if normal
+                        }
                     }
 
                     // 3. Face Detection (only if camera is required AND NOT INTERNAL)

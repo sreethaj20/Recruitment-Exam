@@ -50,6 +50,7 @@ export const examAPI = {
     delete: (id) => api.delete(`/exams/${id}`),
     getQuestions: (examId) => api.get(`/exams/questions/${examId}`),
     addQuestion: (data) => api.post('/exams/questions', data),
+    updateQuestion: (id, data) => api.put(`/exams/questions/${id}`, data),
     deleteQuestion: (id) => api.delete(`/exams/questions/${id}`)
 };
 

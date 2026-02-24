@@ -50,6 +50,26 @@ const Attempt = sequelize.define('Attempt', {
         type: DataTypes.STRING,
         allowNull: true,
         defaultValue: 'Submitted by candidate'
+    },
+    tab_switch_count: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0
+    },
+    fullscreen_exit_count: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0
+    },
+    face_detection_violations: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0
+    },
+    multi_face_violations: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0
+    },
+    mic_violations: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0
     }
 }, {
     timestamps: false

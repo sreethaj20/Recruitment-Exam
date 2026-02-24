@@ -127,6 +127,13 @@ const Exams = () => {
                                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                                     <button
                                         className="secondary"
+                                        style={{ padding: '0.5rem', color: 'var(--primary)' }}
+                                        onClick={() => openEditModal(exam)}
+                                    >
+                                        <Edit size={16} />
+                                    </button>
+                                    <button
+                                        className="secondary"
                                         style={{ padding: '0.5rem', color: 'var(--danger)' }}
                                         onClick={() => handleDeleteExam(exam.id)}
                                     >
