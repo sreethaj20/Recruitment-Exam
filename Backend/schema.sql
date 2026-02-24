@@ -55,6 +55,8 @@ CREATE TABLE IF NOT EXISTS "Attempts" (
     "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     "candidate_id" UUID REFERENCES "Candidates"("id") ON DELETE CASCADE,
     "exam_id" UUID REFERENCES "Exams"("id") ON DELETE CASCADE,
+    "candidate_email" VARCHAR(255) NOT NULL,
+    "candidate_mobile" VARCHAR(20) NOT NULL,
     "score" INTEGER DEFAULT 0,
     "total_questions" INTEGER DEFAULT 0,
     "percentage" DECIMAL(5, 2) DEFAULT 0.00,

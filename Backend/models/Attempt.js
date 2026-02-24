@@ -15,6 +15,14 @@ const Attempt = sequelize.define('Attempt', {
         type: DataTypes.UUID,
         allowNull: false
     },
+    candidate_email: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    candidate_mobile: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
     score: {
         type: DataTypes.INTEGER,
         defaultValue: 0

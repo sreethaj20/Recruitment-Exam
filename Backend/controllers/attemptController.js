@@ -1,20 +1,33 @@
-const { Attempt, Exam, Invitation } = require('../models');
+const { Attempt, Exam, Invitation, Candidate } = require('../models');
+const { Op } = require('sequelize');
 
 const startAttempt = async (req, res) => {
     try {
         const { candidate_id, exam_id, token } = req.body;
 
-        // Check if candidate already has a completed attempt for this exam
+        // Fetch candidate details
+        const candidate = await Candidate.findByPk(candidate_id);
+        if (!candidate) {
+            return res.status(404).json({ message: 'Candidate not found' });
+        }
+
+        const candidateEmail = candidate.email.toLowerCase();
+        const candidateMobile = candidate.mobile;
+
+        // Check if candidate already has an attempt (any exam) by email or phone
         const existingAttempt = await Attempt.findOne({
             where: {
-                candidate_id,
-                exam_id,
-                status: 'completed'
+                [Op.or]: [
+                    { candidate_email: candidateEmail },
+                    { candidate_mobile: candidateMobile }
+                ]
             }
         });
 
         if (existingAttempt) {
-            return res.status(403).json({ message: 'You have already completed this assessment. Re-taking is not allowed.' });
+            return res.status(403).json({
+                message: 'You have already attempted an assessment. Multiple attempts are not allowed.'
+            });
         }
 
         // Check invitation expiration (8 hours)
@@ -31,6 +44,8 @@ const startAttempt = async (req, res) => {
         const attempt = await Attempt.create({
             candidate_id,
             exam_id,
+            candidate_email: candidateEmail,
+            candidate_mobile: candidateMobile,
             status: 'ongoing'
         });
 
