@@ -17,11 +17,11 @@ const Attempt = sequelize.define('Attempt', {
     },
     candidate_email: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: true
     },
     candidate_mobile: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: true
     },
     score: {
         type: DataTypes.INTEGER,
