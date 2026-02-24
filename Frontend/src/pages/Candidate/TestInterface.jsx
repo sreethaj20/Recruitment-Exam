@@ -19,6 +19,7 @@ const TestInterface = () => {
     const [showWarning, setShowWarning] = useState(false);
     const [showFaceWarning, setShowFaceWarning] = useState(false);
     const [showMultiFaceWarning, setShowMultiFaceWarning] = useState(false);
+    const [showNoiseWarning, setShowNoiseWarning] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [attemptId, setAttemptId] = useState(null);
     const [tabSwitchCount, setTabSwitchCount] = useState(0);
@@ -34,7 +35,8 @@ const TestInterface = () => {
         multiFace: 0,
         fullscreenStrikes: 0,
         mic: 0,
-        micStrikes: 0
+        micStrikes: 0,
+        noiseStrikes: 0
     });
     const handleSubmitRef = useRef(null);
     const isSubmittingRef = useRef(false);
@@ -43,6 +45,8 @@ const TestInterface = () => {
     const proctoringIntervalRef = useRef(null);
     const mediaRecorderRef = useRef(null);
     const recordingIntervalRef = useRef(null);
+    const noiseIntervalRef = useRef(null);
+    const audioContextRef = useRef(null);
     const attemptIdRef = useRef(null);
 
     const enterFullscreen = () => {
@@ -125,7 +129,8 @@ const TestInterface = () => {
                 fullscreen_exit_count: violationCheckRef.current.fullscreenStrikes,
                 face_detection_violations: violationCheckRef.current.faceStrikes,
                 multi_face_violations: violationCheckRef.current.multiFace,
-                mic_violations: violationCheckRef.current.micStrikes
+                mic_violations: violationCheckRef.current.micStrikes,
+                noise_violations: violationCheckRef.current.noiseStrikes
             });
 
             // Trigger Finalization (Asynchronous)
@@ -385,6 +390,45 @@ const TestInterface = () => {
                             console.error("Proctoring: AI detection error", faceErr);
                         }
                     }
+
+                    // 4. Noise Detection (Safe Monitoring)
+                    if (actualMicReq && !isSubmittingRef.current) {
+                        try {
+                            if (!audioContextRef.current) {
+                                audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+                                const analyser = audioContextRef.current.createAnalyser();
+                                const source = audioContextRef.current.createMediaStreamSource(stream);
+                                source.connect(analyser);
+                                analyser.fftSize = 256;
+                                const bufferLength = analyser.frequencyBinCount;
+                                const dataArray = new Uint8Array(bufferLength);
+
+                                // Monitor every 1 second
+                                noiseIntervalRef.current = setInterval(() => {
+                                    if (isSubmittingRef.current) return;
+                                    analyser.getByteFrequencyData(dataArray);
+                                    let sum = 0;
+                                    for (let i = 0; i < bufferLength; i++) sum += dataArray[i];
+                                    const average = sum / bufferLength;
+
+                                    if (average > 65) { // Threshold for loud talking
+                                        console.warn("Loud noise detected:", average);
+                                        violationCheckRef.current.noiseStrikes++;
+
+                                        if (violationCheckRef.current.noiseStrikes === 1) {
+                                            setShowNoiseWarning(true);
+                                        } else if (violationCheckRef.current.noiseStrikes >= 2) {
+                                            if (handleSubmitRef.current) {
+                                                handleSubmitRef.current('Auto-submitted: Excessive noise detected multiple times');
+                                            }
+                                        }
+                                    }
+                                }, 1000);
+                            }
+                        } catch (audioErr) {
+                            console.error("Noise detection setup failed:", audioErr);
+                        }
+                    }
                 }, 2000);
 
                 // 4. Initialize MediaRecorder for Proctoring (Recording Camera & Mic)
@@ -446,6 +490,18 @@ const TestInterface = () => {
             if (proctoringIntervalRef.current) {
                 clearInterval(proctoringIntervalRef.current);
                 proctoringIntervalRef.current = null;
+            }
+            if (recordingIntervalRef.current) {
+                clearInterval(recordingIntervalRef.current);
+                recordingIntervalRef.current = null;
+            }
+            if (noiseIntervalRef.current) {
+                clearInterval(noiseIntervalRef.current);
+                noiseIntervalRef.current = null;
+            }
+            if (audioContextRef.current) {
+                audioContextRef.current.close();
+                audioContextRef.current = null;
             }
             if (streamRef.current) {
                 streamRef.current.getTracks().forEach(track => track.stop());
@@ -827,6 +883,41 @@ const TestInterface = () => {
                                 <strong>Warning:</strong> Ensure only one person is visible. A second violation will result in an <strong>immediate automatic submission</strong>.
                             </p>
                             <button className="primary" style={{ background: 'var(--danger)', width: '100%' }} onClick={() => setShowMultiFaceWarning(false)}>
+                                I Understand, Continue
+                            </button>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Noise Warning Overlay */}
+            <AnimatePresence>
+                {showNoiseWarning && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        style={{
+                            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                            background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            zIndex: 4000, padding: '2rem'
+                        }}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            className="glass card"
+                            style={{ maxWidth: '450px', textAlign: 'center', border: '1px solid var(--danger)' }}
+                        >
+                            <AlertTriangle size={64} color="var(--danger)" style={{ marginBottom: '1.5rem' }} />
+                            <h2 style={{ color: 'var(--danger)', marginBottom: '1rem' }}>Excessive Noise Detected!</h2>
+                            <p style={{ marginBottom: '2rem', lineHeight: '1.6' }}>
+                                Loud noise or talking has been detected. This is strictly prohibited during the assessment.
+                                <br /><br />
+                                <strong>Warning:</strong> Please ensure you are in a quiet environment. A second violation will result in an <strong>immediate automatic submission</strong>.
+                            </p>
+                            <button className="primary" style={{ background: 'var(--danger)', width: '100%' }} onClick={() => setShowNoiseWarning(false)}>
                                 I Understand, Continue
                             </button>
                         </motion.div>

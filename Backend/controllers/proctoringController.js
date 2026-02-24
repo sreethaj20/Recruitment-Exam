@@ -66,6 +66,7 @@ const finalizeRecording = async (req, res) => {
         // 2. Download and Binary Concatenate
         console.log(`[Proctoring] Downloading and concatenating ${chunks.length} chunks...`);
         const writeStream = fs.createWriteStream(rawMergedPath);
+        writeStream.setMaxListeners(0);
 
         for (let i = 0; i < chunks.length; i++) {
             const chunk = chunks[i];
