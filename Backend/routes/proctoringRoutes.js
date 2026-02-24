@@ -5,7 +5,10 @@ const { uploadChunk, finalizeRecording, getRecordingUrl } = require('../controll
 const { protect } = require('../middleware/authMiddleware');
 
 const storage = multer.memoryStorage();
-const upload = multer({ storage });
+const upload = multer({
+    storage,
+    limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
+});
 
 router.post('/upload-chunk', upload.single('video'), uploadChunk);
 router.post('/finalize', finalizeRecording);
