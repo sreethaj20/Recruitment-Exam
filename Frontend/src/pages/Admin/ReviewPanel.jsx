@@ -150,6 +150,7 @@ const ReviewPanel = () => {
                             <th style={{ padding: '1.25rem 1.5rem', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase' }}>Score</th>
                             <th style={{ padding: '1.25rem 1.5rem', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase' }}>Submitted</th>
                             <th style={{ padding: '1.25rem 1.5rem', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase' }}>Status</th>
+                            <th style={{ padding: '1.25rem 1.5rem', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase' }}>Recording</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -175,22 +176,6 @@ const ReviewPanel = () => {
                                             >
                                                 <ExternalLink size={16} />
                                             </button>
-                                            <button
-                                                onClick={() => setRemarkModal({ isOpen: true, candidateId: item.candidate_id, text: item.remarks })}
-                                                title="Add/Edit Remarks"
-                                                style={{ padding: '0.4rem', borderRadius: '0.4rem', background: item.remarks ? 'rgba(16, 185, 129, 0.1)' : 'rgba(255,255,255,0.05)', color: item.remarks ? 'var(--primary)' : 'var(--text-muted)', border: '1px solid var(--border)', cursor: 'pointer' }}
-                                            >
-                                                <MessageSquare size={16} />
-                                            </button>
-                                            {item.attempt?.final_video_key && (
-                                                <button
-                                                    onClick={() => handleDownloadVideo(item.id)}
-                                                    title="Download Proctoring Video"
-                                                    style={{ padding: '0.4rem', borderRadius: '0.4rem', background: 'rgba(99, 102, 241, 0.1)', color: 'var(--primary)', border: '1px solid var(--border)', cursor: 'pointer' }}
-                                                >
-                                                    <Video size={16} />
-                                                </button>
-                                            )}
                                         </div>
                                     </div>
                                 </td>
@@ -243,6 +228,27 @@ const ReviewPanel = () => {
                                             </div>
                                         );
                                     })()}
+                                </td>
+                                <td style={{ padding: '1.25rem 1.5rem' }}>
+                                    {item.attempt?.final_video_key ? (
+                                        <button
+                                            onClick={() => handleDownloadVideo(item.id)}
+                                            className="primary"
+                                            style={{
+                                                padding: '0.5rem 1rem',
+                                                borderRadius: '0.5rem',
+                                                fontSize: '0.8rem',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '0.5rem',
+                                                background: 'linear-gradient(135deg, var(--primary), var(--accent))'
+                                            }}
+                                        >
+                                            <Video size={16} /> Download
+                                        </button>
+                                    ) : (
+                                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>No Record</span>
+                                    )}
                                 </td>
                             </tr>
                         ))}
