@@ -66,7 +66,18 @@ CREATE TABLE IF NOT EXISTS "Attempts" (
     "fullscreen_exit_count" INTEGER DEFAULT 0,
     "face_detection_violations" INTEGER DEFAULT 0,
     "multi_face_violations" INTEGER DEFAULT 0,
-    "mic_violations" INTEGER DEFAULT 0
+    "mic_violations" INTEGER DEFAULT 0,
+    "final_video_key" TEXT
+);
+
+CREATE TABLE IF NOT EXISTS "ExamRecordings" (
+    "id" SERIAL PRIMARY KEY,
+    "attempt_id" UUID REFERENCES "Attempts"("id") ON DELETE CASCADE,
+    "candidate_email" VARCHAR(255),
+    "candidate_name" VARCHAR(255),
+    "s3_video_url" TEXT,
+    "timestamp" BIGINT,
+    "created_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Seed Initial Admin User (Password: admin)

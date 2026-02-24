@@ -77,4 +77,12 @@ export const attemptAPI = {
     submit: (id, data) => api.put(`/attempts/submit/${id}`, data)
 };
 
+export const proctoringAPI = {
+    uploadChunk: (formData) => api.post('/proctoring/upload-chunk', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    }),
+    finalize: (attemptId) => api.post('/proctoring/finalize', { attemptId }),
+    getDownloadUrl: (attemptId) => api.get(`/proctoring/download/${attemptId}`)
+};
+
 export default api;

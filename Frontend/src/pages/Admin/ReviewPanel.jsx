@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Search, Filter, ExternalLink, CheckCircle, XCircle, Clock, MoreVertical, MessageSquare, Download } from 'lucide-react';
+import { Search, Filter, ExternalLink, CheckCircle, XCircle, Clock, MoreVertical, MessageSquare, Download, Video } from 'lucide-react';
 import { useStore } from '../../store';
 import * as XLSX from 'xlsx';
 
@@ -95,6 +95,18 @@ const ReviewPanel = () => {
         XLSX.writeFile(workbook, fileName);
     };
 
+    const handleDownloadVideo = async (attemptId) => {
+        try {
+            const { proctoringAPI } = await import('../../services/api');
+            const response = await proctoringAPI.getDownloadUrl(attemptId);
+            const { signedUrl } = response.data;
+            window.open(signedUrl, '_blank');
+        } catch (err) {
+            console.error("Error downloading video:", err);
+            alert("No proctoring recording found or failed to generate link.");
+        }
+    };
+
     const reviewData = getReviewData();
 
     return (
@@ -170,6 +182,15 @@ const ReviewPanel = () => {
                                             >
                                                 <MessageSquare size={16} />
                                             </button>
+                                            {item.attempt?.final_video_key && (
+                                                <button
+                                                    onClick={() => handleDownloadVideo(item.id)}
+                                                    title="Download Proctoring Video"
+                                                    style={{ padding: '0.4rem', borderRadius: '0.4rem', background: 'rgba(99, 102, 241, 0.1)', color: 'var(--primary)', border: '1px solid var(--border)', cursor: 'pointer' }}
+                                                >
+                                                    <Video size={16} />
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
                                 </td>

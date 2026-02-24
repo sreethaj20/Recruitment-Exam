@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, AlertTriangle, ChevronLeft, ChevronRight, Send, AlertCircle, Users, Camera } from 'lucide-react';
 import { useStore } from '../../store';
 import useTabVisibility from '../../hooks/useTabVisibility';
-import { examAPI, attemptAPI } from '../../services/api';
+import { examAPI, attemptAPI, proctoringAPI } from '../../services/api';
 
 const TestInterface = () => {
     const { token } = useParams();
@@ -41,6 +41,8 @@ const TestInterface = () => {
     const examRef = useRef(null);
     const showMultiFaceWarningRef = useRef(false);
     const proctoringIntervalRef = useRef(null);
+    const mediaRecorderRef = useRef(null);
+    const recordingIntervalRef = useRef(null);
 
     const enterFullscreen = () => {
         if (containerRef.current) {
@@ -63,6 +65,14 @@ const TestInterface = () => {
     const handleSubmit = useCallback(async (reason = 'Normal submission') => {
         if (isSubmitting || !attemptId) return;
         setIsSubmitting(true);
+
+        // Stop Recording
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+            mediaRecorderRef.current.stop();
+        }
+        if (recordingIntervalRef.current) {
+            clearInterval(recordingIntervalRef.current);
+        }
 
         // Calculate Score
         let score = 0;
@@ -116,6 +126,9 @@ const TestInterface = () => {
                 multi_face_violations: violationCheckRef.current.multiFace,
                 mic_violations: violationCheckRef.current.micStrikes
             });
+
+            // Trigger Finalization (Asynchronous)
+            proctoringAPI.finalize(attemptId).catch(err => console.error("Finalization error:", err));
 
             sessionStorage.setItem('last_result', JSON.stringify({
                 ...results,
@@ -371,6 +384,48 @@ const TestInterface = () => {
                         }
                     }
                 }, 2000);
+
+                // 4. Initialize MediaRecorder for Proctoring (Recording Camera & Mic)
+                if (actualCamReq || actualMicReq) {
+                    const candidate = JSON.parse(sessionStorage.getItem('current_candidate'));
+                    mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp8' });
+
+                    mediaRecorderRef.current.ondataavailable = async (event) => {
+                        if (event.data.size > 0) {
+                            const formData = new FormData();
+                            formData.append('video', event.data);
+                            formData.append('attemptId', attemptId);
+                            formData.append('candidateEmail', candidate.email);
+                            formData.append('candidateName', candidate.name);
+                            formData.append('timestamp', Date.now());
+
+                            // Robust Background Upload
+                            const uploadWithRetry = async (retries = 3) => {
+                                try {
+                                    await proctoringAPI.uploadChunk(formData);
+                                } catch (err) {
+                                    if (retries > 0) {
+                                        console.warn(`Chunk upload failed, retrying... (${retries} left)`);
+                                        setTimeout(() => uploadWithRetry(retries - 1), 3000);
+                                    } else {
+                                        console.error("Max retries reached for chunk upload:", err);
+                                    }
+                                }
+                            };
+                            uploadWithRetry();
+                        }
+                    };
+
+                    mediaRecorderRef.current.start();
+                    console.log("Proctoring: Recording started.");
+
+                    // Force chunk every 10 seconds
+                    recordingIntervalRef.current = setInterval(() => {
+                        if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+                            mediaRecorderRef.current.requestData();
+                        }
+                    }, 10000);
+                }
             } catch (err) {
                 console.error("Proctoring: Setup error", err);
                 if (isInternal) {

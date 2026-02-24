@@ -50,6 +50,7 @@ app.use((req, res, next) => {
 // ===============================
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/exams', require('./routes/examRoutes'));
+app.use('/api/proctoring', require('./routes/proctoringRoutes'));
 app.use('/api', require('./routes/publicRoutes'));
 
 

@@ -70,6 +70,10 @@ const Attempt = sequelize.define('Attempt', {
     mic_violations: {
         type: DataTypes.INTEGER,
         defaultValue: 0
+    },
+    final_video_key: {
+        type: DataTypes.TEXT,
+        allowNull: true
     }
 }, {
     timestamps: false

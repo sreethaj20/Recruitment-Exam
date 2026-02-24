@@ -4,6 +4,7 @@ const Question = require('./Question');
 const Invitation = require('./Invitation');
 const Candidate = require('./Candidate');
 const Attempt = require('./Attempt');
+const ExamRecording = require('./ExamRecording');
 
 // Associations
 
@@ -27,11 +28,16 @@ Attempt.belongsTo(Candidate, { foreignKey: 'candidate_id' });
 Admin.hasMany(Candidate, { foreignKey: 'registered_by' });
 Candidate.belongsTo(Admin, { foreignKey: 'registered_by' });
 
+// Attempt - ExamRecording (One-to-Many)
+Attempt.hasMany(ExamRecording, { foreignKey: 'attempt_id', onDelete: 'CASCADE' });
+ExamRecording.belongsTo(Attempt, { foreignKey: 'attempt_id' });
+
 module.exports = {
     Admin,
     Exam,
     Question,
     Invitation,
     Candidate,
-    Attempt
+    Attempt,
+    ExamRecording
 };
