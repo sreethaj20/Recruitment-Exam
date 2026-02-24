@@ -82,24 +82,42 @@ const finalizeRecording = async (req, res) => {
             }
         }));
 
-        // Sort file list content just in case Promise.all order differs
-        // though we used index, it's safer to build it in order
-        const orderedFileList = chunks.map((_, index) => `file '${path.join(tempDir, `chunk-${index}.webm`)}'`).join('\n');
-        fs.writeFileSync(fileListPath, orderedFileList);
+        // Filter out any failed downloads
+        const validFiles = chunks
+            .map((_, index) => path.resolve(tempDir, `chunk-${index}.webm`))
+            .filter(fp => fs.existsSync(fp));
 
-        // 3. Merge using FFMPEG
+        if (validFiles.length === 0) {
+            return res.status(500).json({ message: 'Failed to download any recording chunks' });
+        }
+
+        const normalizedFileList = validFiles.map(fp => `file '${fp.replace(/\\/g, '/')}'`).join('\n');
+        fs.writeFileSync(fileListPath, normalizedFileList);
+
+        // 3. Merge using FFMPEG with Re-encoding
+        // Re-encoding is necessary for WebM segments to fix timestamps and duration
         const finalVideoPath = path.resolve(tempDir, 'final.webm');
         const candidateEmail = chunks[0].candidate_email;
         const finalS3Key = `recordings/${candidateEmail}/attempt-${attemptId}/final.webm`;
 
-        console.log(`[Proctoring] Merging ${fileListContent.length} files into ${finalVideoPath}`);
+        console.log(`[Proctoring] Merging ${validFiles.length} files into ${finalVideoPath} (Re-encoding...)`);
 
         await new Promise((resolve, reject) => {
-            const process = ffmpeg()
+            ffmpeg()
                 .input(fileListPath)
                 .inputOptions(['-f concat', '-safe 0'])
-                .outputOptions('-c copy')
+                // We re-encode to ensure the segments are correctly stitched with proper timestamps
+                .videoCodec('libvpx')
+                .audioCodec('libvorbis')
+                .outputOptions([
+                    '-fflags +genpts',
+                    '-crf 30', // Reasonable quality for proctoring
+                    '-b:v 1M'   // Target bitrate
+                ])
                 .on('start', (cmd) => console.log('[Proctoring] FFMPEG command:', cmd))
+                .on('progress', (progress) => {
+                    if (progress.percent) console.log(`[Proctoring] Merging progress: ${Math.round(progress.percent)}%`);
+                })
                 .on('end', () => {
                     console.log('[Proctoring] FFMPEG merge completed.');
                     resolve();
@@ -112,6 +130,7 @@ const finalizeRecording = async (req, res) => {
         });
 
         // 4. Upload merged video to S3
+        console.log(`[Proctoring] Uploading final merged video to S3: ${finalS3Key}`);
         const finalBuffer = fs.readFileSync(finalVideoPath);
         await uploadToS3(finalS3Key, finalBuffer, 'video/webm');
 
