@@ -515,6 +515,14 @@ const TestInterface = () => {
     const currentQuestion = questions[currentQuestionIndex];
     const isLastQuestion = currentQuestionIndex === questions.length - 1;
 
+    const isAllAnswered = questions.every(q => {
+        const answer = answers[q.id];
+        if (q.type === 'text' || q.type === 'fill_in_the_blank') {
+            return answer && typeof answer === 'string' && answer.trim().length > 0;
+        }
+        return answer !== undefined && answer !== null;
+    });
+
     return (
         <div ref={containerRef} style={{ height: '100vh', overflowY: 'auto', background: 'var(--bg)', color: 'var(--text)' }}>
             <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '2rem', filter: !isFullscreen ? 'blur(10px)' : 'none', pointerEvents: !isFullscreen ? 'none' : 'auto' }}>
@@ -532,7 +540,28 @@ const TestInterface = () => {
                                 {formatTime(timeLeft)}
                             </span>
                         </div>
-                        <button className="primary" onClick={() => handleSubmit()}>Submit Test</button>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                            <div style={{ fontSize: '0.875rem', color: isAllAnswered ? 'var(--accent)' : 'var(--warning)', fontWeight: '600' }}>
+                                {Object.keys(answers).filter(id => {
+                                    const q = questions.find(question => question.id === id);
+                                    if (!q) return false;
+                                    if (q.type === 'text' || q.type === 'fill_in_the_blank') return answers[id]?.trim().length > 0;
+                                    return answers[id] !== undefined && answers[id] !== null;
+                                }).length} / {questions.length} Answered
+                            </div>
+                            <button
+                                className="primary"
+                                onClick={isAllAnswered ? () => handleSubmit() : undefined}
+                                style={{
+                                    opacity: isAllAnswered ? 1 : 0.5,
+                                    cursor: isAllAnswered ? 'pointer' : 'not-allowed',
+                                    filter: isAllAnswered ? 'none' : 'grayscale(0.5)'
+                                }}
+                                title={isAllAnswered ? "Submit Test" : "Please answer all questions before submitting"}
+                            >
+                                Submit Test
+                            </button>
+                        </div>
                     </div>
                 </header>
 
@@ -667,21 +696,37 @@ const TestInterface = () => {
                             </button>
 
                             <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                {questions.map((_, idx) => (
-                                    <div
-                                        key={idx}
-                                        style={{
-                                            width: '8px',
-                                            height: '8px',
-                                            borderRadius: '50%',
-                                            background: currentQuestionIndex === idx ? 'var(--primary)' : 'var(--glass-border)'
-                                        }}
-                                    />
-                                ))}
+                                {questions.map((q, idx) => {
+                                    const isAnswered = q.type === 'text' || q.type === 'fill_in_the_blank'
+                                        ? answers[q.id]?.trim().length > 0
+                                        : answers[q.id] !== undefined && answers[q.id] !== null;
+                                    return (
+                                        <div
+                                            key={idx}
+                                            style={{
+                                                width: '8px',
+                                                height: '8px',
+                                                borderRadius: '50%',
+                                                background: currentQuestionIndex === idx ? 'var(--primary)' : (isAnswered ? 'var(--accent)' : 'var(--glass-border)'),
+                                                border: isAnswered ? 'none' : '1px solid var(--glass-border)',
+                                                transition: 'all 0.3s ease'
+                                            }}
+                                        />
+                                    );
+                                })}
                             </div>
 
                             {isLastQuestion ? (
-                                <button className="primary" onClick={() => handleSubmit()} style={{ background: 'var(--accent)' }}>
+                                <button
+                                    className="primary"
+                                    onClick={isAllAnswered ? () => handleSubmit() : undefined}
+                                    style={{
+                                        background: isAllAnswered ? 'var(--accent)' : 'var(--text-muted)',
+                                        opacity: isAllAnswered ? 1 : 0.6,
+                                        cursor: isAllAnswered ? 'pointer' : 'not-allowed'
+                                    }}
+                                    title={isAllAnswered ? "Final Submission" : "Please answer all questions before submitting"}
+                                >
                                     Final Submission <Send size={18} style={{ marginLeft: '0.5rem' }} />
                                 </button>
                             ) : (
