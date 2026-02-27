@@ -165,20 +165,14 @@ const Invitations = () => {
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
                                     <div>
                                         <div style={{ fontSize: '0.9rem', fontWeight: '600' }}>{exam?.title}</div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.2rem' }}>
-                                            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>ID: {invite.token}</div>
-                                            <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>•</span>
-                                            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                                                <span title="Created At">
-                                                    {new Date(invite.createdAt).toLocaleString('en-US', {
-                                                        month: 'short',
-                                                        day: 'numeric',
-                                                        hour: 'numeric',
-                                                        minute: '2-digit',
-                                                        hour12: true
-                                                    })}
-                                                </span>
-                                            </div>
+                                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
+                                            {new Date(invite.createdAt).toLocaleString('en-US', {
+                                                month: 'short',
+                                                day: 'numeric',
+                                                hour: 'numeric',
+                                                minute: '2-digit',
+                                                hour12: true
+                                            })}
                                         </div>
                                         <div style={{ fontSize: '0.65rem', color: 'var(--primary)', fontWeight: '600', marginTop: '0.4rem', display: 'flex', gap: '0.5rem' }}>
                                             <span>{invite.is_multi_use ? 'Multiple Use' : 'Single Use'}</span>
