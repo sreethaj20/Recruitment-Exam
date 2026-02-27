@@ -149,6 +149,7 @@ const Invitations = () => {
                             No invitations generated yet.
                         </div>
                     ) : db.invitations.slice().reverse().map((invite) => {
+                        const exam = db.exams.find(e => e.id === invite.exam_id);
                         const isExpired = invite.status === 'pending' && (new Date() - new Date(invite.createdAt)) / (1000 * 60 * 60) > 8;
                         const displayStatus = isExpired ? 'EXPIRED' : invite.status.toUpperCase();
                         const statusColor = isExpired ? 'var(--danger)' : (invite.status === 'used' ? 'var(--accent)' : 'var(--warning)');
