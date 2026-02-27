@@ -30,6 +30,10 @@ const Question = sequelize.define('Question', {
     keywords: {
         type: DataTypes.JSONB,
         allowNull: true
+    },
+    difficulty: {
+        type: DataTypes.ENUM('easy', 'moderate', 'hard'),
+        defaultValue: 'easy'
     }
 }, {
     timestamps: false

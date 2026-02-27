@@ -21,7 +21,8 @@ const Questions = () => {
         options: ['', '', '', ''],
         correct_answer: 0,
         keywords: '',
-        exam_id: selectedExam
+        exam_id: selectedExam,
+        difficulty: 'easy'
     });
 
     const fetchQuestions = async (examId) => {
@@ -59,7 +60,8 @@ const Questions = () => {
             options: ['', '', '', ''],
             correct_answer: 0,
             keywords: '',
-            exam_id: selectedExam
+            exam_id: selectedExam,
+            difficulty: 'easy'
         });
         setShowModal(true);
     };
@@ -72,7 +74,8 @@ const Questions = () => {
             options: q.options || ['', '', '', ''],
             correct_answer: q.correct_answer,
             keywords: Array.isArray(q.keywords) ? q.keywords.join(', ') : (q.keywords || ''),
-            exam_id: selectedExam
+            exam_id: selectedExam,
+            difficulty: q.difficulty || 'easy'
         });
         setShowModal(true);
     };
@@ -98,7 +101,8 @@ const Questions = () => {
                 options: ['', '', '', ''],
                 correct_answer: 0,
                 keywords: '',
-                exam_id: selectedExam
+                exam_id: selectedExam,
+                difficulty: 'easy'
             });
             fetchQuestions(selectedExam);
             refreshData(); // To update the question count in exams list
@@ -170,6 +174,17 @@ const Questions = () => {
                                 <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.4rem' }}>
                                     <span style={{ fontSize: '0.65rem', padding: '0.2rem 0.5rem', borderRadius: '4px', background: 'rgba(255,255,255,0.05)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}>
                                         {q.type?.toUpperCase() || 'MCQ'}
+                                    </span>
+                                    <span style={{
+                                        fontSize: '0.65rem',
+                                        padding: '0.2rem 0.5rem',
+                                        borderRadius: '4px',
+                                        background: q.difficulty === 'hard' ? 'rgba(239, 68, 68, 0.1)' : q.difficulty === 'moderate' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(16, 185, 129, 0.1)',
+                                        color: q.difficulty === 'hard' ? '#ef4444' : q.difficulty === 'moderate' ? '#f59e0b' : '#10b981',
+                                        border: '1px solid currentColor',
+                                        textTransform: 'uppercase'
+                                    }}>
+                                        {q.difficulty || 'easy'}
                                     </span>
                                 </div>
                             </div>
@@ -258,16 +273,29 @@ const Questions = () => {
                         <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>{editingQuestion ? 'Modify the question details below.' : 'Create a multiple-choice question for the selected exam.'}</p>
 
                         <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                            <div>
-                                <label>Question Type</label>
-                                <select
-                                    value={formData.type}
-                                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                                >
-                                    <option value="mcq">Multiple Choice (MCQ)</option>
-                                    <option value="text">Text Response (Keyword Graded)</option>
-                                    <option value="fill_in_the_blank">Fill in the Blank</option>
-                                </select>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <div>
+                                    <label>Question Type</label>
+                                    <select
+                                        value={formData.type}
+                                        onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                                    >
+                                        <option value="mcq">Multiple Choice (MCQ)</option>
+                                        <option value="text">Text Response</option>
+                                        <option value="fill_in_the_blank">Fill in the Blank</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label>Difficulty Level</label>
+                                    <select
+                                        value={formData.difficulty}
+                                        onChange={(e) => setFormData({ ...formData, difficulty: e.target.value })}
+                                    >
+                                        <option value="easy">Easy</option>
+                                        <option value="moderate">Moderate</option>
+                                        <option value="hard">Hard</option>
+                                    </select>
+                                </div>
                             </div>
 
                             <div>
