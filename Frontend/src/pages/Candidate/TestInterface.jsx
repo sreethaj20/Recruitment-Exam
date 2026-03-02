@@ -36,7 +36,10 @@ const TestInterface = () => {
         fullscreenStrikes: 0,
         mic: 0,
         micStrikes: 0,
-        noiseStrikes: 0
+        noiseStrikes: 0,
+        tabStrikes: 0,
+        lastTabViolation: 0,
+        lastFullscreenViolation: 0
     });
     const handleSubmitRef = useRef(null);
     const isSubmittingRef = useRef(false);
@@ -159,13 +162,23 @@ const TestInterface = () => {
 
     // Anti-Cheating Handler
     const onViolation = useCallback((count) => {
-        if (isSubmitting) return;
-        setTabSwitchCount(count);
+        if (isSubmittingRef.current) return;
 
-        if (count >= 1) {
-            handleSubmit('Auto-submitted due to security violation (Tab Switch)');
+        const now = Date.now();
+        if (now - violationCheckRef.current.lastTabViolation < 1500) return;
+        violationCheckRef.current.lastTabViolation = now;
+
+        setTabSwitchCount(count);
+        violationCheckRef.current.tabStrikes++;
+        console.log(`Proctoring: Tab switch detected. Strike ${violationCheckRef.current.tabStrikes}`);
+
+        if (violationCheckRef.current.tabStrikes === 1) {
+            setShowWarning(true);
+        } else if (violationCheckRef.current.tabStrikes >= 2) {
+            console.log("Proctoring: Second tab switch violation. Auto-submitting...");
+            handleSubmitRef.current('Auto-submitted due to security violation (Multiple Tab Switches)');
         }
-    }, [isSubmitting, handleSubmit]);
+    }, []);
 
     // Prevent back button
     useEffect(() => {
@@ -179,10 +192,16 @@ const TestInterface = () => {
             const isFull = !!document.fullscreenElement;
             setIsFullscreen(isFull);
             if (!isFull && !isSubmittingRef.current && examRef.current) {
+                const now = Date.now();
+                if (now - violationCheckRef.current.lastFullscreenViolation < 1500) return;
+                violationCheckRef.current.lastFullscreenViolation = now;
+
                 violationCheckRef.current.fullscreenStrikes++;
                 console.log(`Proctoring: Fullscreen exit detected. Strike ${violationCheckRef.current.fullscreenStrikes}`);
 
-                if (violationCheckRef.current.fullscreenStrikes >= 2) {
+                if (violationCheckRef.current.fullscreenStrikes === 1) {
+                    setShowWarning(true);
+                } else if (violationCheckRef.current.fullscreenStrikes >= 2) {
                     console.log("Proctoring: Second fullscreen violation. Auto-submitting...");
                     handleSubmitRef.current('Auto-submitted: Multiple fullscreen violations');
                 }
@@ -749,7 +768,7 @@ const TestInterface = () => {
                             position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
                             background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            zIndex: 100, padding: '2rem'
+                            zIndex: 5000, padding: '2rem'
                         }}
                     >
                         <motion.div
