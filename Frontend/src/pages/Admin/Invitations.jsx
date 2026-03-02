@@ -11,6 +11,8 @@ const Invitations = () => {
     const [testType, setTestType] = useState('internal');
     const [requireCamera, setRequireCamera] = useState(true);
     const [requireMicrophone, setRequireMicrophone] = useState(true);
+    const [selectedCandidate, setSelectedCandidate] = useState('');
+    const [usageType, setUsageType] = useState('single'); // 'single', 'multiple', 'candidate'
     const [loading, setLoading] = useState(false);
 
     // Auto-select first exam when exams are loaded
@@ -29,11 +31,13 @@ const Invitations = () => {
             setLoading(true);
             await addInvitation({
                 exam_id: selectedExam,
-                is_multi_use: isMultiUse,
+                candidate_id: usageType === 'candidate' ? selectedCandidate : null,
+                is_multi_use: usageType === 'multiple',
                 test_type: testType,
                 require_camera: requireCamera,
                 require_microphone: requireMicrophone
             });
+            setSelectedCandidate('');
             refreshData();
         } catch (err) {
             console.error("Error generating invite:", err);
@@ -82,11 +86,26 @@ const Invitations = () => {
 
                     <div style={{ marginBottom: '1.5rem' }}>
                         <label>Link Usage Type</label>
-                        <select value={isMultiUse ? 'multiple' : 'single'} onChange={(e) => setIsMultiUse(e.target.value === 'multiple')}>
+                        <select value={usageType} onChange={(e) => setUsageType(e.target.value)}>
                             <option value="single">Single Use (Expires after one entry)</option>
                             <option value="multiple">Multiple Use (Shared link)</option>
+                            <option value="candidate">Select Candidate (Assigned to specific user)</option>
                         </select>
                     </div>
+
+                    {usageType === 'candidate' && (
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <label>Select Candidate</label>
+                            <select value={selectedCandidate} onChange={(e) => setSelectedCandidate(e.target.value)}>
+                                <option value="">Choose a candidate...</option>
+                                {db.candidates
+                                    .filter(c => !db.invitations.some(i => i.candidate_id === c.id))
+                                    .map(candidate => (
+                                        <option key={candidate.id} value={candidate.id}>{candidate.name} ({candidate.email})</option>
+                                    ))}
+                            </select>
+                        </div>
+                    )}
 
                     <div style={{ marginBottom: '1.5rem' }}>
                         <label>Exam Type</label>
@@ -175,12 +194,18 @@ const Invitations = () => {
                                                 hour12: true
                                             })}
                                         </div>
-                                        <div style={{ fontSize: '0.65rem', color: 'var(--primary)', fontWeight: '600', marginTop: '0.4rem', display: 'flex', gap: '0.5rem' }}>
-                                            <span>{invite.is_multi_use ? 'Multiple Use' : 'Single Use'}</span>
+                                        <div style={{ fontSize: '0.65rem', color: 'var(--primary)', fontWeight: '600', marginTop: '0.4rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                            <span>{invite.is_multi_use ? 'Multiple Use' : (invite.candidate_id ? 'Candidate Assigned' : 'Single Use')}</span>
                                             <span>•</span>
                                             <span style={{ color: invite.test_type === 'external' ? 'var(--accent)' : 'var(--warning)' }}>
                                                 {invite.test_type?.toUpperCase()}
                                             </span>
+                                            {invite.Candidate && (
+                                                <>
+                                                    <span>•</span>
+                                                    <span style={{ color: 'var(--accent)' }}>{invite.Candidate.name}</span>
+                                                </>
+                                            )}
                                         </div>
                                     </div>
                                     <div style={{

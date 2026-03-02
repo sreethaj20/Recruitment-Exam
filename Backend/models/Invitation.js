@@ -11,6 +11,10 @@ const Invitation = sequelize.define('Invitation', {
         type: DataTypes.UUID,
         allowNull: false
     },
+    candidate_id: {
+        type: DataTypes.UUID,
+        allowNull: true
+    },
     token: {
         type: DataTypes.STRING,
         allowNull: false,

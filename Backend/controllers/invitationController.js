@@ -4,7 +4,10 @@ const { v4: uuidv4 } = require('uuid');
 const getInvitations = async (req, res) => {
     try {
         const invitations = await Invitation.findAll({
-            include: [{ model: Exam, attributes: ['title'] }]
+            include: [
+                { model: Exam, attributes: ['title'] },
+                { model: Candidate, attributes: ['name', 'email'] }
+            ]
         });
         res.json(invitations);
     } catch (error) {
@@ -14,10 +17,11 @@ const getInvitations = async (req, res) => {
 
 const createInvitation = async (req, res) => {
     try {
-        const { exam_id, is_multi_use, test_type, require_camera, require_microphone } = req.body;
+        const { exam_id, candidate_id, is_multi_use, test_type, require_camera, require_microphone } = req.body;
         const token = Math.random().toString(36).substr(2, 12); // Simple token for now
         const invitation = await Invitation.create({
             exam_id,
+            candidate_id: candidate_id || null,
             token,
             is_multi_use: !!is_multi_use,
             test_type: test_type || 'internal',

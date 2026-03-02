@@ -16,6 +16,10 @@ Question.belongsTo(Exam, { foreignKey: 'exam_id' });
 Exam.hasMany(Invitation, { foreignKey: 'exam_id', onDelete: 'CASCADE' });
 Invitation.belongsTo(Exam, { foreignKey: 'exam_id' });
 
+// Invitation - Candidate (One-to-One / Many-to-One)
+Candidate.hasMany(Invitation, { foreignKey: 'candidate_id' });
+Invitation.belongsTo(Candidate, { foreignKey: 'candidate_id' });
+
 // Exam - Attempt (One-to-Many)
 Exam.hasMany(Attempt, { foreignKey: 'exam_id', onDelete: 'CASCADE' });
 Attempt.belongsTo(Exam, { foreignKey: 'exam_id' });
