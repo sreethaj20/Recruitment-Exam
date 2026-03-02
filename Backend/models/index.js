@@ -5,6 +5,7 @@ const Invitation = require('./Invitation');
 const Candidate = require('./Candidate');
 const Attempt = require('./Attempt');
 const ExamRecording = require('./ExamRecording');
+const InvitationCandidate = require('./InvitationCandidate');
 
 // Associations
 
@@ -16,7 +17,13 @@ Question.belongsTo(Exam, { foreignKey: 'exam_id' });
 Exam.hasMany(Invitation, { foreignKey: 'exam_id', onDelete: 'CASCADE' });
 Invitation.belongsTo(Exam, { foreignKey: 'exam_id' });
 
-// Invitation - Candidate (One-to-One / Many-to-One)
+// Invitation - Candidate (Many-to-Many)
+Invitation.belongsToMany(Candidate, { through: InvitationCandidate, foreignKey: 'invitation_id' });
+Candidate.belongsToMany(Invitation, { through: InvitationCandidate, foreignKey: 'candidate_id' });
+
+// Invitation - Candidate (One-to-One / Many-to-One - Legacy)
+// Keep the singular candidate_id legacy if needed, or remove it. 
+// I'll keep it for now but prioritize the many-to-many in implementation.
 Candidate.hasMany(Invitation, { foreignKey: 'candidate_id' });
 Invitation.belongsTo(Candidate, { foreignKey: 'candidate_id' });
 
@@ -43,5 +50,6 @@ module.exports = {
     Invitation,
     Candidate,
     Attempt,
-    ExamRecording
+    ExamRecording,
+    InvitationCandidate
 };

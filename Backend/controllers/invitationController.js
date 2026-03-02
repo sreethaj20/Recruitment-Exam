@@ -1,4 +1,4 @@
-const { Invitation, Exam, Question, Candidate } = require('../models');
+const { Invitation, Exam, Question, Candidate, InvitationCandidate } = require('../models');
 const { v4: uuidv4 } = require('uuid');
 
 const getInvitations = async (req, res) => {
@@ -6,7 +6,8 @@ const getInvitations = async (req, res) => {
         const invitations = await Invitation.findAll({
             include: [
                 { model: Exam, attributes: ['title'] },
-                { model: Candidate, attributes: ['name', 'email'] }
+                { model: Candidate, attributes: ['id', 'name', 'email'], through: { attributes: [] } },
+                { model: Candidate, as: 'Candidate', attributes: ['name', 'email'] } // Keep legacy support
             ]
         });
         res.json(invitations);
@@ -17,17 +18,28 @@ const getInvitations = async (req, res) => {
 
 const createInvitation = async (req, res) => {
     try {
-        const { exam_id, candidate_id, is_multi_use, test_type, require_camera, require_microphone } = req.body;
+        const { exam_id, candidate_id, candidate_ids, is_multi_use, test_type, require_camera, require_microphone } = req.body;
         const token = Math.random().toString(36).substr(2, 12); // Simple token for now
         const invitation = await Invitation.create({
             exam_id,
-            candidate_id: candidate_id || null,
+            candidate_id: Array.isArray(candidate_ids) ? null : (candidate_id || null),
             token,
             is_multi_use: !!is_multi_use,
             test_type: test_type || 'internal',
             require_camera: require_camera !== undefined ? !!require_camera : true,
             require_microphone: require_microphone !== undefined ? !!require_microphone : true
         });
+
+        // Handle many-to-many candidates
+        const ids = Array.isArray(candidate_ids) ? candidate_ids : (candidate_id ? [candidate_id] : []);
+        if (ids.length > 0) {
+            const associations = ids.map(id => ({
+                invitation_id: invitation.id,
+                candidate_id: id
+            }));
+            await InvitationCandidate.bulkCreate(associations);
+        }
+
         res.status(201).json(invitation);
     } catch (error) {
         console.error(error);

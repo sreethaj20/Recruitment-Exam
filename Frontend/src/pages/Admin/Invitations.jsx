@@ -11,8 +11,9 @@ const Invitations = () => {
     const [testType, setTestType] = useState('internal');
     const [requireCamera, setRequireCamera] = useState(true);
     const [requireMicrophone, setRequireMicrophone] = useState(true);
-    const [selectedCandidate, setSelectedCandidate] = useState('');
+    const [selectedCandidates, setSelectedCandidates] = useState([]); // Array for multi-select
     const [assignToCandidate, setAssignToCandidate] = useState(false);
+    const [showCandidatesId, setShowCandidatesId] = useState(null); // For "Show Candidates" toggle
     const [loading, setLoading] = useState(false);
 
     // Auto-select first exam when exams are loaded
@@ -31,13 +32,13 @@ const Invitations = () => {
             setLoading(true);
             await addInvitation({
                 exam_id: selectedExam,
-                candidate_id: assignToCandidate ? selectedCandidate : null,
+                candidate_ids: assignToCandidate ? selectedCandidates : [],
                 is_multi_use: isMultiUse,
                 test_type: testType,
                 require_camera: requireCamera,
                 require_microphone: requireMicrophone
             });
-            setSelectedCandidate('');
+            setSelectedCandidates([]);
             setAssignToCandidate(false);
             refreshData();
         } catch (err) {
@@ -94,25 +95,45 @@ const Invitations = () => {
                     </div>
 
                     <div style={{ marginBottom: '1.5rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem 0' }}>
                             <input
                                 type="checkbox"
                                 id="assignCandidate"
                                 checked={assignToCandidate}
                                 onChange={(e) => setAssignToCandidate(e.target.checked)}
+                                style={{ width: 'auto', margin: 0, cursor: 'pointer' }}
                             />
-                            <label htmlFor="assignCandidate" style={{ marginBottom: 0 }}>Assign to Registered Candidate</label>
+                            <label htmlFor="assignCandidate" style={{ marginBottom: 0, cursor: 'pointer', fontWeight: '500', fontSize: '0.9rem' }}>
+                                Assign to Registered Candidate(s)
+                            </label>
                         </div>
 
                         {assignToCandidate && (
-                            <select value={selectedCandidate} onChange={(e) => setSelectedCandidate(e.target.value)}>
-                                <option value="">Choose a candidate...</option>
-                                {db.candidates
-                                    .filter(c => !db.invitations.some(i => i.candidate_id === c.id))
-                                    .map(candidate => (
-                                        <option key={candidate.id} value={candidate.id}>{candidate.name} ({candidate.email})</option>
-                                    ))}
-                            </select>
+                            <div style={{ marginTop: '0.75rem' }}>
+                                <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                    {isMultiUse ? "Select Multiple Candidates (Hold Ctrl/Cmd to pick many)" : "Select One Candidate"}
+                                </label>
+                                <select
+                                    multiple={isMultiUse}
+                                    value={isMultiUse ? selectedCandidates : (selectedCandidates[0] || '')}
+                                    onChange={(e) => {
+                                        if (isMultiUse) {
+                                            const values = Array.from(e.target.selectedOptions, option => option.value);
+                                            setSelectedCandidates(values);
+                                        } else {
+                                            setSelectedCandidates([e.target.value]);
+                                        }
+                                    }}
+                                    style={{ height: isMultiUse ? '120px' : 'auto' }}
+                                >
+                                    {!isMultiUse && <option value="">Choose a candidate...</option>}
+                                    {db.candidates
+                                        .filter(c => !db.invitations.some(i => (i.candidate_id === c.id || (i.Candidates && i.Candidates.some(ic => ic.id === c.id)))))
+                                        .map(candidate => (
+                                            <option key={candidate.id} value={candidate.id}>{candidate.name} ({candidate.email})</option>
+                                        ))}
+                                </select>
+                            </div>
                         )}
                     </div>
 
@@ -203,19 +224,57 @@ const Invitations = () => {
                                                 hour12: true
                                             })}
                                         </div>
-                                        <div style={{ fontSize: '0.65rem', color: 'var(--primary)', fontWeight: '600', marginTop: '0.4rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                                            <span>{invite.is_multi_use ? 'Multiple Use' : (invite.candidate_id ? 'Candidate Assigned' : 'Single Use')}</span>
+                                        <div style={{ fontSize: '0.65rem', color: 'var(--primary)', fontWeight: '600', marginTop: '0.4rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                                            <span>{invite.is_multi_use ? 'Multiple Use' : (invite.candidate_id || (invite.Candidates && invite.Candidates.length > 0) ? 'Candidate Assigned' : 'Single Use')}</span>
                                             <span>•</span>
                                             <span style={{ color: invite.test_type === 'external' ? 'var(--accent)' : 'var(--warning)' }}>
                                                 {invite.test_type?.toUpperCase()}
                                             </span>
-                                            {invite.Candidate && (
+
+                                            {(invite.Candidate || (invite.Candidates && invite.Candidates.length > 0)) && (
                                                 <>
                                                     <span>•</span>
-                                                    <span style={{ color: 'var(--accent)' }}>{invite.Candidate.name}</span>
+                                                    <button
+                                                        onClick={() => setShowCandidatesId(showCandidatesId === invite.id ? null : invite.id)}
+                                                        style={{
+                                                            background: 'none',
+                                                            border: 'none',
+                                                            color: 'var(--accent)',
+                                                            padding: 0,
+                                                            fontSize: '0.65rem',
+                                                            fontWeight: '600',
+                                                            cursor: 'pointer',
+                                                            textDecoration: 'underline'
+                                                        }}
+                                                    >
+                                                        {showCandidatesId === invite.id ? 'Hide Candidates' : 'Show Candidates'}
+                                                    </button>
                                                 </>
                                             )}
                                         </div>
+
+                                        {showCandidatesId === invite.id && (
+                                            <div className="glass" style={{ marginTop: '0.75rem', padding: '0.75rem', fontSize: '0.7rem', borderRadius: '0.5rem', background: 'rgba(255,255,255,0.05)' }}>
+                                                <div style={{ fontWeight: '600', marginBottom: '0.4rem', color: 'var(--text-muted)' }}>Assigned Candidates:</div>
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                                                    {invite.Candidates && invite.Candidates.length > 0 ? (
+                                                        invite.Candidates.map(c => (
+                                                            <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                                <span>{c.name}</span>
+                                                                <span style={{ opacity: 0.6 }}>{c.email}</span>
+                                                            </div>
+                                                        ))
+                                                    ) : (
+                                                        invite.Candidate && (
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                                <span>{invite.Candidate.name}</span>
+                                                                <span style={{ opacity: 0.6 }}>{invite.Candidate.email}</span>
+                                                            </div>
+                                                        )
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                     <div style={{
                                         fontSize: '0.65rem',
