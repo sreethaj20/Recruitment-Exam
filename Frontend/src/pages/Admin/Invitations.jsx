@@ -12,7 +12,7 @@ const Invitations = () => {
     const [requireCamera, setRequireCamera] = useState(true);
     const [requireMicrophone, setRequireMicrophone] = useState(true);
     const [selectedCandidate, setSelectedCandidate] = useState('');
-    const [usageType, setUsageType] = useState('single'); // 'single', 'multiple', 'candidate'
+    const [assignToCandidate, setAssignToCandidate] = useState(false);
     const [loading, setLoading] = useState(false);
 
     // Auto-select first exam when exams are loaded
@@ -31,13 +31,14 @@ const Invitations = () => {
             setLoading(true);
             await addInvitation({
                 exam_id: selectedExam,
-                candidate_id: usageType === 'candidate' ? selectedCandidate : null,
-                is_multi_use: usageType === 'multiple',
+                candidate_id: assignToCandidate ? selectedCandidate : null,
+                is_multi_use: isMultiUse,
                 test_type: testType,
                 require_camera: requireCamera,
                 require_microphone: requireMicrophone
             });
             setSelectedCandidate('');
+            setAssignToCandidate(false);
             refreshData();
         } catch (err) {
             console.error("Error generating invite:", err);
@@ -86,16 +87,24 @@ const Invitations = () => {
 
                     <div style={{ marginBottom: '1.5rem' }}>
                         <label>Link Usage Type</label>
-                        <select value={usageType} onChange={(e) => setUsageType(e.target.value)}>
+                        <select value={isMultiUse ? 'multiple' : 'single'} onChange={(e) => setIsMultiUse(e.target.value === 'multiple')}>
                             <option value="single">Single Use (Expires after one entry)</option>
                             <option value="multiple">Multiple Use (Shared link)</option>
-                            <option value="candidate">Select Candidate (Assigned to specific user)</option>
                         </select>
                     </div>
 
-                    {usageType === 'candidate' && (
-                        <div style={{ marginBottom: '1.5rem' }}>
-                            <label>Select Candidate</label>
+                    <div style={{ marginBottom: '1.5rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                            <input
+                                type="checkbox"
+                                id="assignCandidate"
+                                checked={assignToCandidate}
+                                onChange={(e) => setAssignToCandidate(e.target.checked)}
+                            />
+                            <label htmlFor="assignCandidate" style={{ marginBottom: 0 }}>Assign to Registered Candidate</label>
+                        </div>
+
+                        {assignToCandidate && (
                             <select value={selectedCandidate} onChange={(e) => setSelectedCandidate(e.target.value)}>
                                 <option value="">Choose a candidate...</option>
                                 {db.candidates
@@ -104,8 +113,8 @@ const Invitations = () => {
                                         <option key={candidate.id} value={candidate.id}>{candidate.name} ({candidate.email})</option>
                                     ))}
                             </select>
-                        </div>
-                    )}
+                        )}
+                    </div>
 
                     <div style={{ marginBottom: '1.5rem' }}>
                         <label>Exam Type</label>
