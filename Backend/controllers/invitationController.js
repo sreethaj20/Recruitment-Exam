@@ -1,4 +1,4 @@
-const { Invitation, Exam, Question } = require('../models');
+const { Invitation, Exam, Question, Candidate } = require('../models');
 const { v4: uuidv4 } = require('uuid');
 
 const getInvitations = async (req, res) => {
