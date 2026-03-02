@@ -15,7 +15,7 @@ const TestInterface = () => {
     const [questions, setQuestions] = useState([]);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [answers, setAnswers] = useState({});
-    const [timeLeft, setTimeLeft] = useState(0);
+    const [timeLeft, setTimeLeft] = useState(null); // Initialize to null
     const [showWarning, setShowWarning] = useState(false);
     const [showFaceWarning, setShowFaceWarning] = useState(false);
     const [showMultiFaceWarning, setShowMultiFaceWarning] = useState(false);
@@ -35,11 +35,12 @@ const TestInterface = () => {
         multiFace: 0,
         fullscreenStrikes: 0,
         mic: 0,
-        micStrikes: 0,
         noiseStrikes: 0,
         tabStrikes: 0,
         lastTabViolation: 0,
-        lastFullscreenViolation: 0
+        lastFullscreenViolation: 0,
+        hasEnteredFullscreen: false, // Guard for first entry
+        startTime: Date.now() // For grace period
     });
     const handleSubmitRef = useRef(null);
     const isSubmittingRef = useRef(false);
@@ -54,7 +55,10 @@ const TestInterface = () => {
 
     const enterFullscreen = () => {
         if (containerRef.current) {
-            containerRef.current.requestFullscreen().catch(err => {
+            containerRef.current.requestFullscreen().then(() => {
+                violationCheckRef.current.hasEnteredFullscreen = true;
+                setIsFullscreen(true);
+            }).catch(err => {
                 console.error(`Error attempting to enable full-screen mode: ${err.message}`);
             });
         }
@@ -71,6 +75,13 @@ const TestInterface = () => {
     };
 
     const handleSubmit = useCallback(async (reason = 'Normal submission') => {
+        // Grace period check (10 seconds)
+        const elapsed = (Date.now() - violationCheckRef.current.startTime) / 1000;
+        if (reason !== 'Normal submission' && elapsed < 10) {
+            console.log(`Proctoring: Guarded from premature auto-submission ("${reason}") within grace period.`);
+            return;
+        }
+
         if (isSubmitting || !attemptId) return;
         setIsSubmitting(true);
 
@@ -191,7 +202,9 @@ const TestInterface = () => {
         const handleFullscreenChange = () => {
             const isFull = !!document.fullscreenElement;
             setIsFullscreen(isFull);
-            if (!isFull && !isSubmittingRef.current && examRef.current) {
+
+            // Only count exits if they have actually entered once
+            if (!isFull && !isSubmittingRef.current && examRef.current && violationCheckRef.current.hasEnteredFullscreen) {
                 const now = Date.now();
                 if (now - violationCheckRef.current.lastFullscreenViolation < 1500) return;
                 violationCheckRef.current.lastFullscreenViolation = now;
@@ -248,7 +261,7 @@ const TestInterface = () => {
 
     // Timer Logic
     useEffect(() => {
-        if (timeLeft <= 0 || isSubmitting) {
+        if (timeLeft === null || timeLeft <= 0 || isSubmitting) {
             if (timeLeft === 0 && examRef.current) {
                 console.log("Proctoring: Time limit reached. Submitting...");
                 handleSubmitRef.current();
@@ -342,9 +355,7 @@ const TestInterface = () => {
                         // VERY IMPORTANT: Check if track ended
                         if (audioTrack.readyState === "ended") {
                             console.error("Proctoring: Microphone track ended!");
-                            if (handleSubmitRef.current && !isSubmittingRef.current) {
-                                handleSubmitRef.current('Auto-submitted: Microphone disconnected');
-                            }
+                            setProctoringError("Microphone disconnected. Please ensure your mic is plugged in and refresh.");
                             return;
                         }
 
