@@ -1,4 +1,4 @@
-const { Candidate } = require('../models');
+const { Candidate, Invitation, InvitationCandidate } = require('../models');
 
 const registerCandidate = async (req, res) => {
     try {
@@ -15,7 +15,9 @@ const registerCandidate = async (req, res) => {
 
 const verifyCandidate = async (req, res) => {
     try {
-        const { email, mobile } = req.body;
+        const { email, mobile, token } = req.body;
+
+        // Basic candidate lookup
         const candidate = await Candidate.findOne({
             where: {
                 email: email.toLowerCase(),
@@ -25,6 +27,31 @@ const verifyCandidate = async (req, res) => {
 
         if (!candidate) {
             return res.status(404).json({ message: 'You are not registered, contact HR' });
+        }
+
+        // Check for link authorization if token is provided
+        if (token) {
+            const invitation = await Invitation.findOne({
+                where: { token },
+                include: [
+                    { model: Candidate, attributes: ['id', 'email', 'mobile'], through: { attributes: [] } },
+                    { model: Candidate, as: 'Candidate', attributes: ['id', 'email', 'mobile'] } // Singular for legacy support
+                ]
+            });
+
+            if (invitation) {
+                // Determine all authorized candidate IDs for this link
+                const authorizedIds = new Set();
+                if (invitation.candidate_id) authorizedIds.add(invitation.candidate_id);
+                if (invitation.Candidates) {
+                    invitation.Candidates.forEach(c => authorizedIds.add(c.id));
+                }
+
+                // If the link is restricted to specific candidates, verify this candidate is one of them
+                if (authorizedIds.size > 0 && !authorizedIds.has(candidate.id)) {
+                    return res.status(403).json({ message: 'You are not authorized to use this specific assessment link. Please check with HR.' });
+                }
+            }
         }
 
         res.json(candidate);

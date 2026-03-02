@@ -54,7 +54,8 @@ const ApplicationForm = () => {
             // Verify candidate against pre-registered list in backend
             const response = await candidateAPI.verify({
                 email: formData.email,
-                mobile: formData.mobile
+                mobile: formData.mobile,
+                token: token
             });
 
             const candidate = response.data;
