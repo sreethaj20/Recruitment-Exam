@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, AlertTriangle, ChevronLeft, ChevronRight, Send, AlertCircle, Users, Camera, BookOpen, X } from 'lucide-react';
+import { Clock, AlertTriangle, ChevronLeft, ChevronRight, Send, AlertCircle, Users, Camera, BookOpen, X, Plus } from 'lucide-react';
 import { useStore } from '../../store';
 import useTabVisibility from '../../hooks/useTabVisibility';
 import { examAPI, attemptAPI, proctoringAPI } from '../../services/api';
@@ -1182,37 +1182,47 @@ const TestInterface = () => {
                                 }}
                                 onContextMenu={(e) => e.preventDefault()} // Disable right-click
                             >
-                                <object
-                                    data={getPdfUrl(selectedResourceId)}
-                                    type="application/pdf"
+                                <iframe
+                                    src={getPdfUrl(selectedResourceId)}
+                                    title={selectedResourceId === 1 ? (exam?.resource_1_title || 'Reference Book 1') : (exam?.resource_2_title || 'Reference Book 2')}
                                     style={{
                                         width: '100%',
                                         height: 'calc(100% + 60px)', // Increase height to compensate for clip
                                         marginTop: '-60px', // Push toolbar out of view
-                                        border: 'none'
+                                        border: 'none',
+                                        background: 'white'
                                     }}
-                                >
-                                    <div style={{
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        height: '100%',
-                                        gap: '1rem',
-                                        color: '#666'
-                                    }}>
-                                        <p>Unable to display PDF inline.</p>
-                                        <a
-                                            href={getPdfUrl(selectedResourceId)}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="primary"
-                                            style={{ padding: '0.5rem 1rem', background: 'var(--primary)', color: 'white', borderRadius: '0.5rem', textDecoration: 'none' }}
-                                        >
-                                            Open PDF in New Tab
-                                        </a>
-                                    </div>
-                                </object>
+                                />
+                                {/* Fallback link if iframe fails or user needs full view */}
+                                <div style={{
+                                    position: 'absolute',
+                                    bottom: '2rem',
+                                    left: '50%',
+                                    transform: 'translateX(-50%)',
+                                    zIndex: 10,
+                                    pointerEvents: 'auto'
+                                }}>
+                                    <a
+                                        href={getPdfUrl(selectedResourceId)}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="secondary"
+                                        style={{
+                                            padding: '0.5rem 1rem',
+                                            background: 'rgba(255,255,255,0.9)',
+                                            color: 'var(--primary)',
+                                            borderRadius: '0.5rem',
+                                            textDecoration: 'none',
+                                            fontSize: '0.8rem',
+                                            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.5rem'
+                                        }}
+                                    >
+                                        <Plus size={14} /> Open in New Tab
+                                    </a>
+                                </div>
                             </div>
 
                             {/* Modal Footer */}
