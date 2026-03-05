@@ -25,6 +25,7 @@ const TestInterface = () => {
     const [tabSwitchCount, setTabSwitchCount] = useState(0);
     const [showCPTModal, setShowCPTModal] = useState(false);
     const [selectedResourceId, setSelectedResourceId] = useState(1); // 1 or 2
+    const [isPdfLoading, setIsPdfLoading] = useState(false);
     const videoRef = useRef(null);
     const streamRef = useRef(null);
     const [proctoringError, setProctoringError] = useState(null);
@@ -73,7 +74,14 @@ const TestInterface = () => {
         return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     };
 
-    const handleAnswerSelect = (questionId, optionIndex) => {
+    // Reset loading state when modal opens or resource changes
+    useEffect(() => {
+        if (showCPTModal) {
+            setIsPdfLoading(true);
+        }
+    }, [showCPTModal, selectedResourceId]);
+
+    const handleOptionSelect = (questionId, optionIndex) => {
         setAnswers({ ...answers, [questionId]: optionIndex });
     };
 
@@ -1185,14 +1193,46 @@ const TestInterface = () => {
                                 <iframe
                                     src={getPdfUrl(selectedResourceId)}
                                     title={selectedResourceId === 1 ? (exam?.resource_1_title || 'Reference Book 1') : (exam?.resource_2_title || 'Reference Book 2')}
+                                    onLoad={() => setIsPdfLoading(false)}
                                     style={{
                                         width: '100%',
                                         height: 'calc(100% + 60px)', // Increase height to compensate for clip
                                         marginTop: '-60px', // Push toolbar out of view
                                         border: 'none',
-                                        background: 'white'
+                                        background: 'white',
+                                        opacity: isPdfLoading ? 0 : 1,
+                                        transition: 'opacity 0.3s ease'
                                     }}
                                 />
+
+                                {isPdfLoading && (
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: 0, left: 0, right: 0, bottom: 0,
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        background: '#f8f9fa',
+                                        gap: '1rem',
+                                        zIndex: 5
+                                    }}>
+                                        <div className="spinner" style={{
+                                            width: '40px',
+                                            height: '40px',
+                                            border: '3px solid rgba(99, 102, 241, 0.1)',
+                                            borderTopColor: 'var(--primary)',
+                                            borderRadius: '50%',
+                                            animation: 'spin 1s linear infinite'
+                                        }} />
+                                        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Loading reference document...</p>
+                                        <style>{`
+                                            @keyframes spin {
+                                                to { transform: rotate(360deg); }
+                                            }
+                                        `}</style>
+                                    </div>
+                                )}
                                 {/* Fallback link if iframe fails or user needs full view */}
                                 <div style={{
                                     position: 'absolute',
