@@ -86,7 +86,7 @@ export const proctoringAPI = {
 };
 
 export const resourcesAPI = {
-    getCPTBookUrl: () => '/resources/CPT2026.pdf'
+    getCPTBookUrl: () => '/resources/CPT2026.pdf#toolbar=0&navpanes=0&scrollbar=0'
 };
 
 export default api;

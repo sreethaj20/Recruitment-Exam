@@ -1138,14 +1138,23 @@ const TestInterface = () => {
                                 </button>
                             </div>
 
-                            {/* Modal Body */}
-                            <div style={{ flex: 1, background: '#f5f5f5', position: 'relative' }}>
+                            {/* Modal Body - Clipped to hide native PDF toolbar */}
+                            <div
+                                style={{
+                                    flex: 1,
+                                    background: '#f5f5f5',
+                                    position: 'relative',
+                                    overflow: 'hidden' // Clip the negative margin content
+                                }}
+                                onContextMenu={(e) => e.preventDefault()} // Disable right-click
+                            >
                                 <object
                                     data={resourcesAPI.getCPTBookUrl()}
                                     type="application/pdf"
                                     style={{
                                         width: '100%',
-                                        height: '100%',
+                                        height: 'calc(100% + 60px)', // Increase height to compensate for clip
+                                        marginTop: '-60px', // Push toolbar out of view
                                         border: 'none'
                                     }}
                                 >
@@ -1159,9 +1168,9 @@ const TestInterface = () => {
                                         color: '#666'
                                     }}>
                                         <p>Unable to display PDF inline.</p>
-                                        <a 
-                                            href={resourcesAPI.getCPTBookUrl()} 
-                                            target="_blank" 
+                                        <a
+                                            href={resourcesAPI.getCPTBookUrl()}
+                                            target="_blank"
                                             rel="noreferrer"
                                             className="primary"
                                             style={{ padding: '0.5rem 1rem', background: 'var(--primary)', color: 'white', borderRadius: '0.5rem', textDecoration: 'none' }}
