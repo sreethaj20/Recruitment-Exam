@@ -53,6 +53,7 @@ const TestInterface = () => {
     const noiseIntervalRef = useRef(null);
     const audioContextRef = useRef(null);
     const attemptIdRef = useRef(null);
+    const showCPTModalRef = useRef(false);
 
     const enterFullscreen = () => {
         if (containerRef.current) {
@@ -170,11 +171,12 @@ const TestInterface = () => {
         examRef.current = exam;
         showMultiFaceWarningRef.current = showMultiFaceWarning;
         attemptIdRef.current = attemptId;
-    }, [handleSubmit, isSubmitting, exam, showMultiFaceWarning, attemptId]);
+        showCPTModalRef.current = showCPTModal;
+    }, [handleSubmit, isSubmitting, exam, showMultiFaceWarning, attemptId, showCPTModal]);
 
     // Anti-Cheating Handler
     const onViolation = useCallback((count) => {
-        if (isSubmittingRef.current) return;
+        if (isSubmittingRef.current || showCPTModalRef.current) return;
 
         const now = Date.now();
         if (now - violationCheckRef.current.lastTabViolation < 1500) return;
@@ -205,7 +207,7 @@ const TestInterface = () => {
             setIsFullscreen(isFull);
 
             // Only count exits if they have actually entered once
-            if (!isFull && !isSubmittingRef.current && examRef.current && violationCheckRef.current.hasEnteredFullscreen) {
+            if (!isFull && !isSubmittingRef.current && !showCPTModalRef.current && examRef.current && violationCheckRef.current.hasEnteredFullscreen) {
                 const now = Date.now();
                 if (now - violationCheckRef.current.lastFullscreenViolation < 1500) return;
                 violationCheckRef.current.lastFullscreenViolation = now;
