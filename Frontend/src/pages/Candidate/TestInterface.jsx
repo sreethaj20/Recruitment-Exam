@@ -824,7 +824,6 @@ const TestInterface = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
-
             {/* Face Detection Warning Overlay */}
             <AnimatePresence>
                 {showFaceWarning && (
@@ -885,48 +884,46 @@ const TestInterface = () => {
             </AnimatePresence>
 
             {/* Continuous Proctoring Preview (Floating Circle) */}
-            {
-                (() => {
-                    const isInternal = exam?.test_type === 'internal';
-                    const hardwareRequirements = JSON.parse(sessionStorage.getItem('hardware_requirements')) || { cam: true, mic: true };
-                    if (isInternal || !hardwareRequirements.cam) return null;
-                    return (
-                        <div style={{
-                            position: 'fixed',
-                            bottom: '2rem',
-                            right: '2rem',
-                            width: '150px',
-                            height: '150px',
-                            borderRadius: '50%',
-                            overflow: 'hidden',
-                            border: '3px solid var(--primary)',
-                            boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-                            zIndex: 1000,
-                            background: '#000',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                        }}>
-                            <video
-                                ref={videoRef}
-                                autoPlay
-                                playsInline
-                                muted
-                                style={{
-                                    width: '100%',
-                                    height: '100%',
-                                    objectFit: 'cover'
-                                }}
-                            />
-                            {!streamRef.current && (
-                                <div style={{ position: 'absolute', color: 'red', textAlign: 'center', padding: '10px' }}>
-                                    <AlertCircle size={32} style={{ margin: '0 auto' }} />
-                                </div>
-                            )}
-                        </div>
-                    );
-                })()
-            }
+            {(() => {
+                const isInternal = exam?.test_type === 'internal';
+                const hardwareRequirements = JSON.parse(sessionStorage.getItem('hardware_requirements')) || { cam: true, mic: true };
+                if (isInternal || !hardwareRequirements.cam) return null;
+                return (
+                    <div style={{
+                        position: 'fixed',
+                        bottom: '2rem',
+                        right: '2rem',
+                        width: '150px',
+                        height: '150px',
+                        borderRadius: '50%',
+                        overflow: 'hidden',
+                        border: '3px solid var(--primary)',
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+                        zIndex: 1000,
+                        background: '#000',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}>
+                        <video
+                            ref={videoRef}
+                            autoPlay
+                            playsInline
+                            muted
+                            style={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover'
+                            }}
+                        />
+                        {!streamRef.current && (
+                            <div style={{ position: 'absolute', color: 'red', textAlign: 'center', padding: '10px' }}>
+                                <AlertCircle size={32} style={{ margin: '0 auto' }} />
+                            </div>
+                        )}
+                    </div>
+                );
+            })()}
 
             {/* Proctoring Error Overlay */}
             <AnimatePresence>
@@ -1143,15 +1140,36 @@ const TestInterface = () => {
 
                             {/* Modal Body */}
                             <div style={{ flex: 1, background: '#f5f5f5', position: 'relative' }}>
-                                <iframe
-                                    src={`${resourcesAPI.getCPTBookUrl()}#toolbar=0&navpanes=0`}
-                                    title="CPT Book Reference"
+                                <object
+                                    data={resourcesAPI.getCPTBookUrl()}
+                                    type="application/pdf"
                                     style={{
                                         width: '100%',
                                         height: '100%',
                                         border: 'none'
                                     }}
-                                />
+                                >
+                                    <div style={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        height: '100%',
+                                        gap: '1rem',
+                                        color: '#666'
+                                    }}>
+                                        <p>Unable to display PDF inline.</p>
+                                        <a 
+                                            href={resourcesAPI.getCPTBookUrl()} 
+                                            target="_blank" 
+                                            rel="noreferrer"
+                                            className="primary"
+                                            style={{ padding: '0.5rem 1rem', background: 'var(--primary)', color: 'white', borderRadius: '0.5rem', textDecoration: 'none' }}
+                                        >
+                                            Open PDF in New Tab
+                                        </a>
+                                    </div>
+                                </object>
                             </div>
 
                             {/* Modal Footer */}

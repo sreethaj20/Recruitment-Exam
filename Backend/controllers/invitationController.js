@@ -173,28 +173,42 @@ const serveCPTBook = async (req, res) => {
         }
 
         const stats = fs.statSync(filePath);
+        console.log(`[Resources] Serving CPT Book: ${stats.size} bytes`);
 
-        // Set headers for large PDF serving
+        // Force CORS and security headers for this specific response to ensure iframe compatibility
+        res.setHeader('Access-Control-Allow-Origin', '*');
         res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Length', stats.size);
         res.setHeader('Content-Disposition', 'inline; filename="CPT2026.pdf"');
+        res.setHeader('Cache-Control', 'public, max-age=31536000');
         res.setHeader('Accept-Ranges', 'bytes');
+        res.setHeader('X-Content-Type-Options', 'nosniff');
 
-        // Serve the file
-        res.sendFile(filePath, (err) => {
+        // Explicitly override any global frame restrictions for this large resource
+        res.setHeader('Content-Security-Policy', "frame-ancestors 'self' https://assessmentcenter.mercuresolution.com http://localhost:5173");
+        res.setHeader('X-Frame-Options', 'ALLOWALL');
+
+        const options = {
+            root: path.join(__dirname, '../'),
+            headers: {
+                'x-timestamp': Date.now(),
+                'x-sent': true
+            }
+        };
+
+        res.sendFile('pdfs/CPT2026.pdf', options, (err) => {
             if (err) {
                 if (!res.headersSent) {
                     console.error('Error sending file:', err);
-                    res.status(500).json({ message: 'Error streaming resource' });
+                    res.status(err.status || 500).end();
                 } else {
-                    console.error('Stream interrupted:', err);
+                    console.error('File transfer interrupted:', err.message);
                 }
             }
         });
     } catch (error) {
-        console.error('Error serving CPT Book:', error);
+        console.error('Error in serveCPTBook:', error);
         if (!res.headersSent) {
-            res.status(500).json({ message: 'Error accessing resource' });
+            res.status(500).json({ message: 'Internal server error accessing resource' });
         }
     }
 };
