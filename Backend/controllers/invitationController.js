@@ -175,23 +175,16 @@ const serveCPTBook = async (req, res) => {
         const stats = fs.statSync(filePath);
         console.log(`[Resources] Serving CPT Book: ${stats.size} bytes`);
 
-        // Force CORS and security headers for this specific response to ensure iframe compatibility
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', 'inline; filename="CPT2026.pdf"');
-        res.setHeader('Cache-Control', 'public, max-age=31536000');
-        res.setHeader('Accept-Ranges', 'bytes');
-        res.setHeader('X-Content-Type-Options', 'nosniff');
-
-        // Explicitly override any global frame restrictions for this large resource
-        res.setHeader('Content-Security-Policy', "frame-ancestors 'self' https://assessmentcenter.mercuresolution.com http://localhost:5173");
-        res.setHeader('X-Frame-Options', 'ALLOWALL');
-
         const options = {
             root: path.join(__dirname, '../'),
             headers: {
-                'x-timestamp': Date.now(),
-                'x-sent': true
+                'Content-Type': 'application/pdf',
+                'Content-Disposition': 'inline; filename="CPT2026.pdf"',
+                'Cache-Control': 'public, max-age=31536000',
+                'X-Content-Type-Options': 'nosniff',
+                'Access-Control-Allow-Origin': '*',
+                'Content-Security-Policy': "frame-ancestors 'self' https://assessmentcenter.mercuresolution.com http://localhost:5173 http://localhost:5000 http://127.0.0.1:5173",
+                'X-Frame-Options': 'ALLOWALL'
             }
         };
 
