@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, AlertTriangle, ChevronLeft, ChevronRight, Send, AlertCircle, Users, Camera, BookOpen, X } from 'lucide-react';
 import { useStore } from '../../store';
 import useTabVisibility from '../../hooks/useTabVisibility';
-import { examAPI, attemptAPI, proctoringAPI, resourcesAPI } from '../../services/api';
+import { examAPI, attemptAPI, proctoringAPI } from '../../services/api';
 
 const TestInterface = () => {
     const { token } = useParams();
@@ -75,6 +75,17 @@ const TestInterface = () => {
     const handleAnswerSelect = (questionId, optionIndex) => {
         setAnswers({ ...answers, [questionId]: optionIndex });
     };
+
+    const getPdfUrl = useCallback(() => {
+        const baseUrl = exam?.resource_url;
+        if (!baseUrl) return null;
+
+        // If it already has the toolbar params, return as is
+        if (baseUrl.includes('#toolbar=0')) return baseUrl;
+        // Otherwise, append them (handling potential existing hash/params)
+        const separator = baseUrl.includes('#') ? '&' : '#';
+        return `${baseUrl}${separator}toolbar=0&navpanes=0&scrollbar=0`;
+    }, [exam]);
 
     const handleSubmit = useCallback(async (reason = 'Normal submission') => {
         // Grace period check (10 seconds)
@@ -582,22 +593,19 @@ const TestInterface = () => {
                             }).length} / {questions.length} Answered
                         </div>
 
-                        {exam?.department_id === 'medical_coding' && (
+                        {exam?.resource_url && (
                             <button
                                 className="secondary"
                                 onClick={() => setShowCPTModal(true)}
                                 style={{
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: '0.5rem',
-                                    padding: '0.5rem 1rem',
-                                    background: 'rgba(99, 102, 241, 0.1)',
-                                    border: '1px solid var(--primary)',
-                                    color: 'var(--primary)',
-                                    borderRadius: '0.75rem'
+                                    gap: '0.75rem',
+                                    padding: '0.5rem 1.25rem',
+                                    borderRadius: '2rem'
                                 }}
                             >
-                                <BookOpen size={18} /> Reference: CPT Book
+                                <BookOpen size={20} /> Reference Book
                             </button>
                         )}
 
@@ -1119,8 +1127,8 @@ const TestInterface = () => {
                                         <BookOpen size={20} color="white" />
                                     </div>
                                     <div>
-                                        <h3 style={{ fontSize: '1.2rem', margin: 0 }}>CPT Reference 2026</h3>
-                                        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0 }}>Use this reference to help with your coding assessment.</p>
+                                        <h3 style={{ fontSize: '1.2rem', margin: 0 }}>Reference Book</h3>
+                                        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0 }}>Use this reference to help with your assessment.</p>
                                     </div>
                                 </div>
                                 <button
@@ -1149,7 +1157,7 @@ const TestInterface = () => {
                                 onContextMenu={(e) => e.preventDefault()} // Disable right-click
                             >
                                 <object
-                                    data={resourcesAPI.getCPTBookUrl()}
+                                    data={getPdfUrl()}
                                     type="application/pdf"
                                     style={{
                                         width: '100%',
@@ -1169,7 +1177,7 @@ const TestInterface = () => {
                                     }}>
                                         <p>Unable to display PDF inline.</p>
                                         <a
-                                            href={resourcesAPI.getCPTBookUrl()}
+                                            href={getPdfUrl()}
                                             target="_blank"
                                             rel="noreferrer"
                                             className="primary"

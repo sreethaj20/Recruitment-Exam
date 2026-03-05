@@ -16,7 +16,8 @@ const Exams = () => {
         department_id: db.departments[0]?.id || '',
         candidate_type_id: db.candidateTypes[0]?.id || '',
         duration_minutes: 30,
-        question_pool_size: ''
+        question_pool_size: '',
+        resource_url: ''
     });
 
     const handleDeleteExam = async (id) => {
@@ -38,7 +39,8 @@ const Exams = () => {
             department_id: db.departments[0]?.id || '',
             candidate_type_id: db.candidateTypes[0]?.id || '',
             duration_minutes: 30,
-            question_pool_size: ''
+            question_pool_size: '',
+            resource_url: ''
         });
         setShowModal(true);
     };
@@ -50,7 +52,8 @@ const Exams = () => {
             department_id: exam.department_id,
             candidate_type_id: exam.candidate_type_id,
             duration_minutes: exam.duration_minutes,
-            question_pool_size: exam.question_pool_size || ''
+            question_pool_size: exam.question_pool_size || '',
+            resource_url: exam.resource_url || ''
         });
         setShowModal(true);
     };
@@ -87,7 +90,8 @@ const Exams = () => {
                 department_id: db.departments[0]?.id || '',
                 candidate_type_id: db.candidateTypes[0]?.id || '',
                 duration_minutes: 30,
-                question_pool_size: ''
+                question_pool_size: '',
+                resource_url: ''
             });
         } catch (err) {
             console.error("Error saving exam:", err);
@@ -254,6 +258,16 @@ const Exams = () => {
                                         onChange={(e) => setFormData({ ...formData, question_pool_size: parseInt(e.target.value) || '' })}
                                     />
                                 </div>
+                            </div>
+
+                            <div>
+                                <label>Resource URL (e.g. S3 PDF Link)</label>
+                                <input
+                                    placeholder="https://your-bucket.s3.amazonaws.com/book.pdf"
+                                    value={formData.resource_url}
+                                    onChange={(e) => setFormData({ ...formData, resource_url: e.target.value })}
+                                />
+                                <small style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>If left blank, the default CPT Reference book will be used.</small>
                             </div>
 
                             <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>

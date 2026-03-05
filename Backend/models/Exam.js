@@ -29,6 +29,10 @@ const Exam = sequelize.define('Exam', {
     question_pool_size: {
         type: DataTypes.INTEGER,
         allowNull: true
+    },
+    resource_url: {
+        type: DataTypes.STRING,
+        allowNull: true
     }
 }, {
     timestamps: false
