@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, AlertTriangle, ChevronLeft, ChevronRight, Send, AlertCircle, Users, Camera } from 'lucide-react';
+import { Clock, AlertTriangle, ChevronLeft, ChevronRight, Send, AlertCircle, Users, Camera, BookOpen, X } from 'lucide-react';
 import { useStore } from '../../store';
 import useTabVisibility from '../../hooks/useTabVisibility';
-import { examAPI, attemptAPI, proctoringAPI } from '../../services/api';
+import { examAPI, attemptAPI, proctoringAPI, resourcesAPI } from '../../services/api';
 
 const TestInterface = () => {
     const { token } = useParams();
@@ -23,6 +23,7 @@ const TestInterface = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [attemptId, setAttemptId] = useState(null);
     const [tabSwitchCount, setTabSwitchCount] = useState(0);
+    const [showCPTModal, setShowCPTModal] = useState(false);
     const videoRef = useRef(null);
     const streamRef = useRef(null);
     const [proctoringError, setProctoringError] = useState(null);
@@ -571,488 +572,602 @@ const TestInterface = () => {
                             </span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                            <div style={{ fontSize: '0.875rem', color: isAllAnswered ? 'var(--accent)' : 'var(--warning)', fontWeight: '600' }}>
-                                {Object.keys(answers).filter(id => {
-                                    const q = questions.find(question => question.id === id);
-                                    if (!q) return false;
-                                    if (q.type === 'text' || q.type === 'fill_in_the_blank') return answers[id]?.trim().length > 0;
-                                    return answers[id] !== undefined && answers[id] !== null;
-                                }).length} / {questions.length} Answered
-                            </div>
-                            <button
-                                className="primary"
-                                onClick={isAllAnswered ? () => handleSubmit() : undefined}
-                                style={{
-                                    opacity: isAllAnswered ? 1 : 0.5,
-                                    cursor: isAllAnswered ? 'pointer' : 'not-allowed',
-                                    filter: isAllAnswered ? 'none' : 'grayscale(0.5)'
-                                }}
-                                title={isAllAnswered ? "Submit Test" : "Please answer all questions before submitting"}
-                            >
-                                Submit Test
-                            </button>
+                            {Object.keys(answers).filter(id => {
+                                const q = questions.find(question => question.id === id);
+                                if (!q) return false;
+                                if (q.type === 'text' || q.type === 'fill_in_the_blank') return answers[id]?.trim().length > 0;
+                                return answers[id] !== undefined && answers[id] !== null;
+                            }).length} / {questions.length} Answered
                         </div>
+
+                        {exam?.department_id === 'medical_coding' && (
+                            <button
+                                className="secondary"
+                                onClick={() => setShowCPTModal(true)}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                    padding: '0.5rem 1rem',
+                                    background: 'rgba(99, 102, 241, 0.1)',
+                                    border: '1px solid var(--primary)',
+                                    color: 'var(--primary)',
+                                    borderRadius: '0.75rem'
+                                }}
+                            >
+                                <BookOpen size={18} /> Reference: CPT Book
+                            </button>
+                        )}
+
+                        <button
+                            className="primary"
+                            onClick={isAllAnswered ? () => handleSubmit() : undefined}
+                            style={{
+                                opacity: isAllAnswered ? 1 : 0.5,
+                                cursor: isAllAnswered ? 'pointer' : 'not-allowed',
+                                filter: isAllAnswered ? 'none' : 'grayscale(0.5)'
+                            }}
+                            title={isAllAnswered ? "Submit Test" : "Please answer all questions before submitting"}
+                        >
+                            Submit Test
+                        </button>
                     </div>
                 </header>
 
-                {/* Main Content */}
-                <main className="container" style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
-                    <div style={{ width: '100%', maxWidth: '800px', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                {/* Main Content */ }
+    <main className="container" style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
+        <div style={{ width: '100%', maxWidth: '800px', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
 
-                        <div className="card glass fade-in" style={{ padding: '3rem' }}>
-                            <h2 style={{ marginBottom: '2.5rem', lineHeight: '1.4' }}>{currentQuestion.text}</h2>
+            <div className="card glass fade-in" style={{ padding: '3rem' }}>
+                <h2 style={{ marginBottom: '2.5rem', lineHeight: '1.4' }}>{currentQuestion.text}</h2>
 
-                            {currentQuestion.type === 'text' ? (
-                                <div className="fade-in">
-                                    <label style={{ marginBottom: '1rem', display: 'block', color: 'var(--text-muted)' }}>Enter your answer below:</label>
-                                    <textarea
-                                        rows={6}
-                                        placeholder="Type your response here..."
+                {currentQuestion.type === 'text' ? (
+                    <div className="fade-in">
+                        <label style={{ marginBottom: '1rem', display: 'block', color: 'var(--text-muted)' }}>Enter your answer below:</label>
+                        <textarea
+                            rows={6}
+                            placeholder="Type your response here..."
+                            value={answers[currentQuestion.id] || ''}
+                            onChange={(e) => handleAnswerSelect(currentQuestion.id, e.target.value)}
+                            style={{
+                                width: '100%',
+                                padding: '1.5rem',
+                                borderRadius: '1rem',
+                                background: 'var(--glass-bg)',
+                                border: '1px solid var(--glass-border)',
+                                fontSize: '1.1rem',
+                                lineHeight: '1.6',
+                                resize: 'none',
+                                transition: 'all 0.3s ease',
+                            }}
+                            onFocus={(e) => e.target.style.border = '2px solid var(--primary)'}
+                            onBlur={(e) => e.target.style.border = '1px solid var(--glass-border)'}
+                        />
+                        <p style={{ marginTop: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                            Tip: Ensure your answer includes key terminology related to the question.
+                        </p>
+                    </div>
+                ) : currentQuestion.type === 'fill_in_the_blank' ? (
+                    <div className="fade-in" style={{ fontSize: '1.25rem', lineHeight: '1.8' }}>
+                        {(() => {
+                            const parts = currentQuestion.text.split('________');
+                            if (parts.length > 1) {
+                                return (
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.5rem' }}>
+                                        {parts[0]}
+                                        <input
+                                            type="text"
+                                            value={answers[currentQuestion.id] || ''}
+                                            onChange={(e) => handleAnswerSelect(currentQuestion.id, e.target.value)}
+                                            style={{
+                                                padding: '0.2rem 1rem',
+                                                borderRadius: '0.5rem',
+                                                background: 'var(--glass-bg)',
+                                                border: '2px solid var(--primary)',
+                                                fontSize: '1.1rem',
+                                                width: '200px',
+                                                color: 'white'
+                                            }}
+                                            placeholder="answer..."
+                                        />
+                                        {parts[1]}
+                                    </div>
+                                );
+                            }
+                            return (
+                                <div>
+                                    <h2 style={{ marginBottom: '2rem' }}>{currentQuestion.text}</h2>
+                                    <input
+                                        type="text"
                                         value={answers[currentQuestion.id] || ''}
                                         onChange={(e) => handleAnswerSelect(currentQuestion.id, e.target.value)}
                                         style={{
                                             width: '100%',
-                                            padding: '1.5rem',
+                                            padding: '1rem 1.5rem',
                                             borderRadius: '1rem',
                                             background: 'var(--glass-bg)',
-                                            border: '1px solid var(--glass-border)',
+                                            border: '2px solid var(--primary)',
                                             fontSize: '1.1rem',
-                                            lineHeight: '1.6',
-                                            resize: 'none',
-                                            transition: 'all 0.3s ease',
+                                            color: 'white'
                                         }}
-                                        onFocus={(e) => e.target.style.border = '2px solid var(--primary)'}
-                                        onBlur={(e) => e.target.style.border = '1px solid var(--glass-border)'}
+                                        placeholder="Enter your answer here..."
                                     />
-                                    <p style={{ marginTop: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                                        Tip: Ensure your answer includes key terminology related to the question.
-                                    </p>
                                 </div>
-                            ) : currentQuestion.type === 'fill_in_the_blank' ? (
-                                <div className="fade-in" style={{ fontSize: '1.25rem', lineHeight: '1.8' }}>
-                                    {(() => {
-                                        const parts = currentQuestion.text.split('________');
-                                        if (parts.length > 1) {
-                                            return (
-                                                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.5rem' }}>
-                                                    {parts[0]}
-                                                    <input
-                                                        type="text"
-                                                        value={answers[currentQuestion.id] || ''}
-                                                        onChange={(e) => handleAnswerSelect(currentQuestion.id, e.target.value)}
-                                                        style={{
-                                                            padding: '0.2rem 1rem',
-                                                            borderRadius: '0.5rem',
-                                                            background: 'var(--glass-bg)',
-                                                            border: '2px solid var(--primary)',
-                                                            fontSize: '1.1rem',
-                                                            width: '200px',
-                                                            color: 'white'
-                                                        }}
-                                                        placeholder="answer..."
-                                                    />
-                                                    {parts[1]}
-                                                </div>
-                                            );
-                                        }
-                                        return (
-                                            <div>
-                                                <h2 style={{ marginBottom: '2rem' }}>{currentQuestion.text}</h2>
-                                                <input
-                                                    type="text"
-                                                    value={answers[currentQuestion.id] || ''}
-                                                    onChange={(e) => handleAnswerSelect(currentQuestion.id, e.target.value)}
-                                                    style={{
-                                                        width: '100%',
-                                                        padding: '1rem 1.5rem',
-                                                        borderRadius: '1rem',
-                                                        background: 'var(--glass-bg)',
-                                                        border: '2px solid var(--primary)',
-                                                        fontSize: '1.1rem',
-                                                        color: 'white'
-                                                    }}
-                                                    placeholder="Enter your answer here..."
-                                                />
-                                            </div>
-                                        );
-                                    })()}
-                                </div>
-                            ) : (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                    {currentQuestion.options.map((option, idx) => {
-                                        const isSelected = answers[currentQuestion.id] === idx;
-                                        return (
-                                            <motion.div
-                                                key={idx}
-                                                whileHover={{ x: 5 }}
-                                                whileTap={{ scale: 0.99 }}
-                                                onClick={() => handleAnswerSelect(currentQuestion.id, idx)}
-                                                className="glass"
-                                                style={{
-                                                    padding: '1.25rem 1.5rem',
-                                                    borderRadius: '1rem',
-                                                    cursor: 'pointer',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '1.25rem',
-                                                    border: isSelected ? '2px solid var(--primary)' : '1px solid var(--glass-border)',
-                                                    background: isSelected ? 'rgba(99, 102, 241, 0.1)' : 'var(--glass-bg)',
-                                                    transition: 'all 0.2s ease'
-                                                }}
-                                            >
-                                                <div style={{
-                                                    width: '24px',
-                                                    height: '24px',
-                                                    borderRadius: '50%',
-                                                    border: isSelected ? '6px solid var(--primary)' : '2px solid var(--glass-border)',
-                                                    background: 'transparent'
-                                                }}></div>
-                                                <span style={{ fontSize: '1.1rem', fontWeight: isSelected ? '600' : '400' }}>{option}</span>
-                                            </motion.div>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                        </div>
-
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <button
-                                className="secondary"
-                                disabled={currentQuestionIndex === 0}
-                                onClick={() => setCurrentQuestionIndex(prev => prev - 1)}
-                                style={{ opacity: currentQuestionIndex === 0 ? 0.5 : 1 }}
-                            >
-                                <ChevronLeft size={20} /> Previous
-                            </button>
-
-                            <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                {questions.map((q, idx) => {
-                                    const isAnswered = q.type === 'text' || q.type === 'fill_in_the_blank'
-                                        ? answers[q.id]?.trim().length > 0
-                                        : answers[q.id] !== undefined && answers[q.id] !== null;
-                                    return (
-                                        <div
-                                            key={idx}
-                                            style={{
-                                                width: '8px',
-                                                height: '8px',
-                                                borderRadius: '50%',
-                                                background: currentQuestionIndex === idx ? 'var(--primary)' : (isAnswered ? 'var(--accent)' : 'var(--glass-border)'),
-                                                border: isAnswered ? 'none' : '1px solid var(--glass-border)',
-                                                transition: 'all 0.3s ease'
-                                            }}
-                                        />
-                                    );
-                                })}
-                            </div>
-
-                            {isLastQuestion ? (
-                                <button
-                                    className="primary"
-                                    onClick={isAllAnswered ? () => handleSubmit() : undefined}
+                            );
+                        })()}
+                    </div>
+                ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        {currentQuestion.options.map((option, idx) => {
+                            const isSelected = answers[currentQuestion.id] === idx;
+                            return (
+                                <motion.div
+                                    key={idx}
+                                    whileHover={{ x: 5 }}
+                                    whileTap={{ scale: 0.99 }}
+                                    onClick={() => handleAnswerSelect(currentQuestion.id, idx)}
+                                    className="glass"
                                     style={{
-                                        background: isAllAnswered ? 'var(--accent)' : 'var(--text-muted)',
-                                        opacity: isAllAnswered ? 1 : 0.6,
-                                        cursor: isAllAnswered ? 'pointer' : 'not-allowed'
+                                        padding: '1.25rem 1.5rem',
+                                        borderRadius: '1rem',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '1.25rem',
+                                        border: isSelected ? '2px solid var(--primary)' : '1px solid var(--glass-border)',
+                                        background: isSelected ? 'rgba(99, 102, 241, 0.1)' : 'var(--glass-bg)',
+                                        transition: 'all 0.2s ease'
                                     }}
-                                    title={isAllAnswered ? "Final Submission" : "Please answer all questions before submitting"}
                                 >
-                                    Final Submission <Send size={18} style={{ marginLeft: '0.5rem' }} />
-                                </button>
-                            ) : (
-                                <button className="secondary" onClick={() => setCurrentQuestionIndex(prev => prev + 1)}>
-                                    Next Question <ChevronRight size={20} style={{ marginLeft: '0.5rem' }} />
-                                </button>
-                            )}
-                        </div>
+                                    <div style={{
+                                        width: '24px',
+                                        height: '24px',
+                                        borderRadius: '50%',
+                                        border: isSelected ? '6px solid var(--primary)' : '2px solid var(--glass-border)',
+                                        background: 'transparent'
+                                    }}></div>
+                                    <span style={{ fontSize: '1.1rem', fontWeight: isSelected ? '600' : '400' }}>{option}</span>
+                                </motion.div>
+                            );
+                        })}
                     </div>
-                </main>
+                )}
             </div>
-            {/* Warning Overlay */}
-            <AnimatePresence>
-                {showWarning && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <button
+                    className="secondary"
+                    disabled={currentQuestionIndex === 0}
+                    onClick={() => setCurrentQuestionIndex(prev => prev - 1)}
+                    style={{ opacity: currentQuestionIndex === 0 ? 0.5 : 1 }}
+                >
+                    <ChevronLeft size={20} /> Previous
+                </button>
+
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    {questions.map((q, idx) => {
+                        const isAnswered = q.type === 'text' || q.type === 'fill_in_the_blank'
+                            ? answers[q.id]?.trim().length > 0
+                            : answers[q.id] !== undefined && answers[q.id] !== null;
+                        return (
+                            <div
+                                key={idx}
+                                style={{
+                                    width: '8px',
+                                    height: '8px',
+                                    borderRadius: '50%',
+                                    background: currentQuestionIndex === idx ? 'var(--primary)' : (isAnswered ? 'var(--accent)' : 'var(--glass-border)'),
+                                    border: isAnswered ? 'none' : '1px solid var(--glass-border)',
+                                    transition: 'all 0.3s ease'
+                                }}
+                            />
+                        );
+                    })}
+                </div>
+
+                {isLastQuestion ? (
+                    <button
+                        className="primary"
+                        onClick={isAllAnswered ? () => handleSubmit() : undefined}
                         style={{
-                            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                            background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            zIndex: 5000, padding: '2rem'
+                            background: isAllAnswered ? 'var(--accent)' : 'var(--text-muted)',
+                            opacity: isAllAnswered ? 1 : 0.6,
+                            cursor: isAllAnswered ? 'pointer' : 'not-allowed'
                         }}
+                        title={isAllAnswered ? "Final Submission" : "Please answer all questions before submitting"}
                     >
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            className="glass card"
-                            style={{ maxWidth: '450px', textAlign: 'center', border: '1px solid var(--warning)' }}
-                        >
-                            <AlertTriangle size={64} color="var(--warning)" style={{ marginBottom: '1.5rem' }} />
-                            <h2 style={{ color: 'var(--warning)', marginBottom: '1rem' }}>Security Warning!</h2>
-                            <p style={{ marginBottom: '2rem', lineHeight: '1.6' }}>
-                                You have switched away from the examination window. This is strictly prohibited.
-                                <br /><br />
-                                <strong>Note:</strong> A second violation will result in an <strong>immediate automatic submission</strong> of your test.
-                            </p>
-                            <button className="primary" style={{ background: 'var(--warning)', width: '100%' }} onClick={() => setShowWarning(false)}>
-                                I Understand, Continue
-                            </button>
-                        </motion.div>
-                    </motion.div>
+                        Final Submission <Send size={18} style={{ marginLeft: '0.5rem' }} />
+                    </button>
+                ) : (
+                    <button className="secondary" onClick={() => setCurrentQuestionIndex(prev => prev + 1)}>
+                        Next Question <ChevronRight size={20} style={{ marginLeft: '0.5rem' }} />
+                    </button>
                 )}
+            </div>
+        </div>
+    </main>
+
+{/* Warning Overlay */ }
+    <AnimatePresence>
+    { showWarning && (
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                zIndex: 5000, padding: '2rem'
+            }}
+        >
+            <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="glass card"
+                style={{ maxWidth: '450px', textAlign: 'center', border: '1px solid var(--warning)' }}
+            >
+                <AlertTriangle size={64} color="var(--warning)" style={{ marginBottom: '1.5rem' }} />
+                <h2 style={{ color: 'var(--warning)', marginBottom: '1rem' }}>Security Warning!</h2>
+                <p style={{ marginBottom: '2rem', lineHeight: '1.6' }}>
+                    You have switched away from the examination window. This is strictly prohibited.
+                    <br /><br />
+                    <strong>Note:</strong> A second violation will result in an <strong>immediate automatic submission</strong> of your test.
+                </p>
+                <button className="primary" style={{ background: 'var(--warning)', width: '100%' }} onClick={() => setShowWarning(false)}>
+                    I Understand, Continue
+                </button>
+            </motion.div>
+        </motion.div>
+    )}
             </AnimatePresence>
 
-            {/* Face Detection Warning Overlay */}
-            <AnimatePresence>
-                {showFaceWarning && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        style={{
-                            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                            background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            zIndex: 4500, padding: '2rem'
-                        }}
-                    >
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            className="glass card"
-                            style={{ maxWidth: '450px', textAlign: 'center', border: '1px solid var(--warning)' }}
-                        >
-                            <Camera size={64} color="var(--warning)" style={{ marginBottom: '1.5rem' }} />
-                            <h2 style={{ color: 'var(--warning)', marginBottom: '1rem' }}>Face Detection Warning!</h2>
-                            <p style={{ marginBottom: '2rem', lineHeight: '1.6' }}>
-                                The system cannot detect your face. Please ensure you are properly positioned in front of the camera and there is sufficient lighting.
-                                <br /><br />
-                                <strong>Warning {violationCheckRef.current.faceStrikes} of 2:</strong> A third violation will result in an <strong>immediate automatic submission</strong> of your test.
-                            </p>
-                            <button className="primary" style={{ background: 'var(--warning)', width: '100%' }} onClick={() => setShowFaceWarning(false)}>
-                                I Am Back, Continue
-                            </button>
-                        </motion.div>
-                    </motion.div>
-                )}
+    {/* Face Detection Warning Overlay */ }
+    <AnimatePresence>
+    { showFaceWarning && (
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                zIndex: 4500, padding: '2rem'
+            }}
+        >
+            <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="glass card"
+                style={{ maxWidth: '450px', textAlign: 'center', border: '1px solid var(--warning)' }}
+            >
+                <Camera size={64} color="var(--warning)" style={{ marginBottom: '1.5rem' }} />
+                <h2 style={{ color: 'var(--warning)', marginBottom: '1rem' }}>Face Detection Warning!</h2>
+                <p style={{ marginBottom: '2rem', lineHeight: '1.6' }}>
+                    The system cannot detect your face. Please ensure you are properly positioned in front of the camera and there is sufficient lighting.
+                    <br /><br />
+                    <strong>Warning {violationCheckRef.current.faceStrikes} of 2:</strong> A third violation will result in an <strong>immediate automatic submission</strong> of your test.
+                </p>
+                <button className="primary" style={{ background: 'var(--warning)', width: '100%' }} onClick={() => setShowFaceWarning(false)}>
+                    I Am Back, Continue
+                </button>
+            </motion.div>
+        </motion.div>
+    )}
             </AnimatePresence>
 
-            {/* Auto-Submit Overlay */}
-            <AnimatePresence>
-                {isSubmitting && timeLeft > 1 && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        style={{
-                            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                            background: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(10px)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            zIndex: 200
-                        }}
-                    >
-                        <div style={{ textAlign: 'center' }}>
-                            <div className="gradient-bg" style={{ width: '80px', height: '80px', borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: '2rem' }}>
-                                <AlertCircle color="white" size={40} className="spin" />
-                            </div>
-                            <h2>Submitting Your Responses...</h2>
-                            <p style={{ color: 'var(--text-muted)', marginTop: '1rem' }}>Please do not close this window.</p>
-                        </div>
-                    </motion.div>
-                )}
+    {/* Auto-Submit Overlay */ }
+    <AnimatePresence>
+    { isSubmitting && timeLeft > 1 && (
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            style={{
+                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                background: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(10px)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                zIndex: 200
+            }}
+        >
+            <div style={{ textAlign: 'center' }}>
+                <div className="gradient-bg" style={{ width: '80px', height: '80px', borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: '2rem' }}>
+                    <AlertCircle color="white" size={40} className="spin" />
+                </div>
+                <h2>Submitting Your Responses...</h2>
+                <p style={{ color: 'var(--text-muted)', marginTop: '1rem' }}>Please do not close this window.</p>
+            </div>
+        </motion.div>
+    )}
             </AnimatePresence>
 
-            {/* Continuous Proctoring Preview (Floating Circle) */}
-            {(() => {
-                const isInternal = exam?.test_type === 'internal';
-                const hardwareRequirements = JSON.parse(sessionStorage.getItem('hardware_requirements')) || { cam: true, mic: true };
-                if (isInternal || !hardwareRequirements.cam) return null;
-                return (
-                    <div style={{
-                        position: 'fixed',
-                        bottom: '2rem',
-                        right: '2rem',
-                        width: '150px',
-                        height: '150px',
-                        borderRadius: '50%',
-                        overflow: 'hidden',
-                        border: '3px solid var(--primary)',
-                        boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-                        zIndex: 1000,
-                        background: '#000',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                    }}>
-                        <video
-                            ref={videoRef}
-                            autoPlay
-                            playsInline
-                            muted
-                            style={{
-                                width: '100%',
-                                height: '100%',
-                                objectFit: 'cover'
-                            }}
-                        />
-                        {!streamRef.current && (
-                            <div style={{ position: 'absolute', color: 'red', textAlign: 'center', padding: '10px' }}>
-                                <AlertCircle size={32} style={{ margin: '0 auto' }} />
-                            </div>
-                        )}
+    {/* Continuous Proctoring Preview (Floating Circle) */ }
+{
+    (() => {
+        const isInternal = exam?.test_type === 'internal';
+        const hardwareRequirements = JSON.parse(sessionStorage.getItem('hardware_requirements')) || { cam: true, mic: true };
+        if (isInternal || !hardwareRequirements.cam) return null;
+        return (
+            <div style={{
+                position: 'fixed',
+                bottom: '2rem',
+                right: '2rem',
+                width: '150px',
+                height: '150px',
+                borderRadius: '50%',
+                overflow: 'hidden',
+                border: '3px solid var(--primary)',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+                zIndex: 1000,
+                background: '#000',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+            }}>
+                <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover'
+                    }}
+                />
+                {!streamRef.current && (
+                    <div style={{ position: 'absolute', color: 'red', textAlign: 'center', padding: '10px' }}>
+                        <AlertCircle size={32} style={{ margin: '0 auto' }} />
                     </div>
-                );
-            })()}
+                )}
+            </div>
+        );
+    })()
+}
 
-            {/* Proctoring Error Overlay */}
-            <AnimatePresence>
-                {proctoringError && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        style={{
-                            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                            background: 'rgba(239, 68, 68, 0.2)', backdropFilter: 'blur(10px)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            zIndex: 2000
-                        }}
-                    >
-                        <div className="glass card" style={{ maxWidth: '400px', textAlign: 'center', border: '2px solid var(--danger)' }}>
-                            <AlertCircle size={64} style={{ color: 'var(--danger)', marginBottom: '1rem' }} />
-                            <h2 style={{ color: 'var(--danger)' }}>Action Required!</h2>
-                            <p style={{ marginTop: '1rem', lineHeight: '1.6' }}>{proctoringError}</p>
-                            <button className="primary" style={{ marginTop: '2rem', background: 'var(--danger)' }} onClick={() => window.location.reload()}>
-                                Re-enable Access
-                            </button>
+{/* Proctoring Error Overlay */ }
+<AnimatePresence>
+    {proctoringError && (
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                background: 'rgba(239, 68, 68, 0.2)', backdropFilter: 'blur(10px)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                zIndex: 2000
+            }}
+        >
+            <div className="glass card" style={{ maxWidth: '400px', textAlign: 'center', border: '2px solid var(--danger)' }}>
+                <AlertCircle size={64} style={{ color: 'var(--danger)', marginBottom: '1rem' }} />
+                <h2 style={{ color: 'var(--danger)' }}>Action Required!</h2>
+                <p style={{ marginTop: '1rem', lineHeight: '1.6' }}>{proctoringError}</p>
+                <button className="primary" style={{ marginTop: '2rem', background: 'var(--danger)' }} onClick={() => window.location.reload()}>
+                    Re-enable Access
+                </button>
+            </div>
+        </motion.div>
+    )}
+</AnimatePresence>
+
+{/* Multiple Faces Warning Overlay */ }
+<AnimatePresence>
+    {showMultiFaceWarning && (
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                zIndex: 4000, padding: '2rem'
+            }}
+        >
+            <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="glass card"
+                style={{ maxWidth: '450px', textAlign: 'center', border: '1px solid var(--danger)' }}
+            >
+                <Users size={64} color="var(--danger)" style={{ marginBottom: '1.5rem' }} />
+                <h2 style={{ color: 'var(--danger)', marginBottom: '1rem' }}>Unauthorized Person Detected!</h2>
+                <p style={{ marginBottom: '2rem', lineHeight: '1.6' }}>
+                    Multiple faces have been detected in the camera frame. This is strictly prohibited.
+                    <br /><br />
+                    <strong>Warning:</strong> Ensure only one person is visible. A second violation will result in an <strong>immediate automatic submission</strong>.
+                </p>
+                <button className="primary" style={{ background: 'var(--danger)', width: '100%' }} onClick={() => setShowMultiFaceWarning(false)}>
+                    I Understand, Continue
+                </button>
+            </motion.div>
+        </motion.div>
+    )}
+</AnimatePresence>
+
+{/* Noise Warning Overlay */ }
+<AnimatePresence>
+    {showNoiseWarning && (
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                zIndex: 4000, padding: '2rem'
+            }}
+        >
+            <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="glass card"
+                style={{ maxWidth: '450px', textAlign: 'center', border: '1px solid var(--danger)' }}
+            >
+                <AlertTriangle size={64} color="var(--danger)" style={{ marginBottom: '1.5rem' }} />
+                <h2 style={{ color: 'var(--danger)', marginBottom: '1rem' }}>Excessive Noise Detected!</h2>
+                <p style={{ marginBottom: '2rem', lineHeight: '1.6' }}>
+                    Loud noise or talking has been detected. This is strictly prohibited during the assessment.
+                    <br /><br />
+                    <strong>Warning:</strong> Please ensure you are in a quiet environment. A second violation will result in an <strong>immediate automatic submission</strong>.
+                </p>
+                <button className="primary" style={{ background: 'var(--danger)', width: '100%' }} onClick={() => setShowNoiseWarning(false)}>
+                    I Understand, Continue
+                </button>
+            </motion.div>
+        </motion.div>
+    )}
+</AnimatePresence>
+
+{/* Fullscreen Requirement Overlay */ }
+<AnimatePresence>
+    {!isFullscreen && !isSubmitting && (
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                background: 'rgba(0,0,0,0.95)', backdropFilter: 'blur(20px)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                zIndex: 3000, padding: '2rem'
+            }}
+        >
+            <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="glass card"
+                style={{ maxWidth: '500px', textAlign: 'center', border: violationCheckRef.current.fullscreenStrikes > 0 ? '1px solid var(--warning)' : '1px solid var(--primary)' }}
+            >
+                {violationCheckRef.current.fullscreenStrikes > 0 ? (
+                    <AlertTriangle size={64} color="var(--warning)" style={{ marginBottom: '1.5rem' }} />
+                ) : (
+                    <AlertCircle size={64} color="var(--primary)" style={{ marginBottom: '1.5rem' }} />
+                )}
+
+                <h2 style={{ marginBottom: '1rem', color: violationCheckRef.current.fullscreenStrikes > 0 ? 'var(--warning)' : 'inherit' }}>
+                    {violationCheckRef.current.fullscreenStrikes > 0 ? 'Fullscreen Violation!' : 'Fullscreen Mode Required'}
+                </h2>
+
+                <p style={{ marginBottom: '2rem', lineHeight: '1.6', color: 'var(--text-muted)' }}>
+                    {violationCheckRef.current.fullscreenStrikes > 0 ? (
+                        <>
+                            You have exited fullscreen mode. This is prohibited.
+                            <br /><br />
+                            <strong style={{ color: 'var(--warning)' }}>Warning 1 of 1:</strong> A second violation will result in <strong>immediate automatic submission</strong>.
+                        </>
+                    ) : (
+                        <>
+                            To maintain examination integrity, you must be in fullscreen mode.
+                            <br />
+                            <strong>Exiting fullscreen will result in automatic submission after one warning.</strong>
+                        </>
+                    )}
+                </p>
+
+                <button className="primary" style={{ width: '100%', background: violationCheckRef.current.fullscreenStrikes > 0 ? 'var(--warning)' : 'var(--primary)' }} onClick={enterFullscreen}>
+                    {violationCheckRef.current.fullscreenStrikes > 0 ? 'Re-enter Fullscreen & Continue' : 'Enter Fullscreen & Start Exam'}
+                </button>
+            </motion.div>
+        </motion.div>
+    )}
+</AnimatePresence>
+
+{/* CPT Book Modal */ }
+<AnimatePresence>
+    {showCPTModal && (
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                zIndex: 6000, padding: '1rem'
+            }}
+        >
+            <motion.div
+                initial={{ scale: 0.95, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.95, opacity: 0, y: 20 }}
+                className="glass"
+                style={{
+                    width: '95vw',
+                    height: '90vh',
+                    borderRadius: '1.5rem',
+                    border: '1px solid var(--glass-border)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    overflow: 'hidden',
+                    position: 'relative'
+                }}
+            >
+                {/* Modal Header */}
+                <div style={{
+                    padding: '1rem 2rem',
+                    borderBottom: '1px solid var(--glass-border)',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    background: 'rgba(255, 255, 255, 0.05)'
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <div className="gradient-bg" style={{ padding: '0.5rem', borderRadius: '0.75rem' }}>
+                            <BookOpen size={20} color="white" />
                         </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            {/* Multiple Faces Warning Overlay */}
-            <AnimatePresence>
-                {showMultiFaceWarning && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
+                        <div>
+                            <h3 style={{ fontSize: '1.2rem', margin: 0 }}>CPT Reference 2026</h3>
+                            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0 }}>Use this reference to help with your coding assessment.</p>
+                        </div>
+                    </div>
+                    <button
+                        onClick={() => setShowCPTModal(false)}
                         style={{
-                            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                            background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            zIndex: 4000, padding: '2rem'
+                            padding: '0.5rem',
+                            borderRadius: '0.5rem',
+                            background: 'rgba(255,255,255,0.1)',
+                            border: 'none',
+                            color: 'white',
+                            cursor: 'pointer'
                         }}
                     >
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            className="glass card"
-                            style={{ maxWidth: '450px', textAlign: 'center', border: '1px solid var(--danger)' }}
-                        >
-                            <Users size={64} color="var(--danger)" style={{ marginBottom: '1.5rem' }} />
-                            <h2 style={{ color: 'var(--danger)', marginBottom: '1rem' }}>Unauthorized Person Detected!</h2>
-                            <p style={{ marginBottom: '2rem', lineHeight: '1.6' }}>
-                                Multiple faces have been detected in the camera frame. This is strictly prohibited.
-                                <br /><br />
-                                <strong>Warning:</strong> Ensure only one person is visible. A second violation will result in an <strong>immediate automatic submission</strong>.
-                            </p>
-                            <button className="primary" style={{ background: 'var(--danger)', width: '100%' }} onClick={() => setShowMultiFaceWarning(false)}>
-                                I Understand, Continue
-                            </button>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                        <X size={24} />
+                    </button>
+                </div>
 
-            {/* Noise Warning Overlay */}
-            <AnimatePresence>
-                {showNoiseWarning && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
+                {/* Modal Body */}
+                <div style={{ flex: 1, background: '#f5f5f5', position: 'relative' }}>
+                    <iframe
+                        src={`${resourcesAPI.getCPTBookUrl()}#toolbar=0&navpanes=0`}
+                        title="CPT Book Reference"
                         style={{
-                            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                            background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            zIndex: 4000, padding: '2rem'
+                            width: '100%',
+                            height: '100%',
+                            border: 'none'
                         }}
-                    >
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            className="glass card"
-                            style={{ maxWidth: '450px', textAlign: 'center', border: '1px solid var(--danger)' }}
-                        >
-                            <AlertTriangle size={64} color="var(--danger)" style={{ marginBottom: '1.5rem' }} />
-                            <h2 style={{ color: 'var(--danger)', marginBottom: '1rem' }}>Excessive Noise Detected!</h2>
-                            <p style={{ marginBottom: '2rem', lineHeight: '1.6' }}>
-                                Loud noise or talking has been detected. This is strictly prohibited during the assessment.
-                                <br /><br />
-                                <strong>Warning:</strong> Please ensure you are in a quiet environment. A second violation will result in an <strong>immediate automatic submission</strong>.
-                            </p>
-                            <button className="primary" style={{ background: 'var(--danger)', width: '100%' }} onClick={() => setShowNoiseWarning(false)}>
-                                I Understand, Continue
-                            </button>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                    />
+                </div>
 
-            {/* Fullscreen Requirement Overlay */}
-            <AnimatePresence>
-                {!isFullscreen && !isSubmitting && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        style={{
-                            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                            background: 'rgba(0,0,0,0.95)', backdropFilter: 'blur(20px)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            zIndex: 3000, padding: '2rem'
-                        }}
-                    >
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            className="glass card"
-                            style={{ maxWidth: '500px', textAlign: 'center', border: violationCheckRef.current.fullscreenStrikes > 0 ? '1px solid var(--warning)' : '1px solid var(--primary)' }}
-                        >
-                            {violationCheckRef.current.fullscreenStrikes > 0 ? (
-                                <AlertTriangle size={64} color="var(--warning)" style={{ marginBottom: '1.5rem' }} />
-                            ) : (
-                                <AlertCircle size={64} color="var(--primary)" style={{ marginBottom: '1.5rem' }} />
-                            )}
-
-                            <h2 style={{ marginBottom: '1rem', color: violationCheckRef.current.fullscreenStrikes > 0 ? 'var(--warning)' : 'inherit' }}>
-                                {violationCheckRef.current.fullscreenStrikes > 0 ? 'Fullscreen Violation!' : 'Fullscreen Mode Required'}
-                            </h2>
-
-                            <p style={{ marginBottom: '2rem', lineHeight: '1.6', color: 'var(--text-muted)' }}>
-                                {violationCheckRef.current.fullscreenStrikes > 0 ? (
-                                    <>
-                                        You have exited fullscreen mode. This is prohibited.
-                                        <br /><br />
-                                        <strong style={{ color: 'var(--warning)' }}>Warning 1 of 1:</strong> A second violation will result in <strong>immediate automatic submission</strong>.
-                                    </>
-                                ) : (
-                                    <>
-                                        To maintain examination integrity, you must be in fullscreen mode.
-                                        <br />
-                                        <strong>Exiting fullscreen will result in automatic submission after one warning.</strong>
-                                    </>
-                                )}
-                            </p>
-
-                            <button className="primary" style={{ width: '100%', background: violationCheckRef.current.fullscreenStrikes > 0 ? 'var(--warning)' : 'var(--primary)' }} onClick={enterFullscreen}>
-                                {violationCheckRef.current.fullscreenStrikes > 0 ? 'Re-enter Fullscreen & Continue' : 'Enter Fullscreen & Start Exam'}
-                            </button>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                {/* Modal Footer */}
+                <div style={{
+                    padding: '0.75rem 2rem',
+                    borderTop: '1px solid var(--glass-border)',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    background: 'rgba(255, 255, 255, 0.05)'
+                }}>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>
+                        Closing this window will return you to the test exactly where you left off.
+                    </p>
+                </div>
+            </motion.div>
+        </motion.div>
+    )}
+</AnimatePresence>
+                </div>
         </div>
     );
 };

@@ -85,4 +85,8 @@ export const proctoringAPI = {
     getDownloadUrl: (attemptId) => api.get(`/proctoring/download/${attemptId}`)
 };
 
+export const resourcesAPI = {
+    getCPTBookUrl: () => `${API_URL}/resources/cpt-book`
+};
+
 export default api;

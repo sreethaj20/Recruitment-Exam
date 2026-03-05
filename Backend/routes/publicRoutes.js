@@ -5,7 +5,8 @@ const {
     createInvitation,
     validateToken,
     deleteInvitation,
-    getAssessmentData
+    getAssessmentData,
+    serveCPTBook
 } = require('../controllers/invitationController');
 const {
     registerCandidate,
@@ -28,6 +29,7 @@ router.post('/invites', protect, createInvitation);
 router.get('/invites/validate/:token', validateToken);
 router.get('/invites/:token/assessment-data', getAssessmentData);
 router.delete('/invites/:id', protect, deleteInvitation);
+router.get('/resources/cpt-book', serveCPTBook);
 
 // Candidate Routes
 router.get('/candidates', protect, getCandidates);

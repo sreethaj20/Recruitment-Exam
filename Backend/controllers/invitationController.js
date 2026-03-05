@@ -1,5 +1,6 @@
 const { Invitation, Exam, Question, Candidate, InvitationCandidate } = require('../models');
 const { v4: uuidv4 } = require('uuid');
+const path = require('path');
 
 const getInvitations = async (req, res) => {
     try {
@@ -161,6 +162,16 @@ const getAssessmentData = async (req, res) => {
     }
 };
 
+const serveCPTBook = async (req, res) => {
+    try {
+        const filePath = path.join(__dirname, '../pdfs/CPT2026.pdf');
+        res.sendFile(filePath);
+    } catch (error) {
+        console.error('Error serving CPT Book:', error);
+        res.status(500).json({ message: 'Error accessing resource' });
+    }
+};
+
 module.exports = {
     getInvitations,
     createInvitation,
@@ -168,5 +179,6 @@ module.exports = {
     toggleMultiUse,
     validateToken,
     deleteInvitation,
-    getAssessmentData
+    getAssessmentData,
+    serveCPTBook
 };
