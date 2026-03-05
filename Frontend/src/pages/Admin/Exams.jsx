@@ -17,7 +17,10 @@ const Exams = () => {
         candidate_type_id: db.candidateTypes[0]?.id || '',
         duration_minutes: 30,
         question_pool_size: '',
-        resource_url: ''
+        resource_url: '',
+        resource_1_title: 'Reference Book 1',
+        resource_2_url: '',
+        resource_2_title: 'Reference Book 2'
     });
 
     const handleDeleteExam = async (id) => {
@@ -40,7 +43,10 @@ const Exams = () => {
             candidate_type_id: db.candidateTypes[0]?.id || '',
             duration_minutes: 30,
             question_pool_size: '',
-            resource_url: ''
+            resource_url: '',
+            resource_1_title: 'Reference Book 1',
+            resource_2_url: '',
+            resource_2_title: 'Reference Book 2'
         });
         setShowModal(true);
     };
@@ -53,7 +59,10 @@ const Exams = () => {
             candidate_type_id: exam.candidate_type_id,
             duration_minutes: exam.duration_minutes,
             question_pool_size: exam.question_pool_size || '',
-            resource_url: exam.resource_url || ''
+            resource_url: exam.resource_url || '',
+            resource_1_title: exam.resource_1_title || 'Reference Book 1',
+            resource_2_url: exam.resource_2_url || '',
+            resource_2_title: exam.resource_2_title || 'Reference Book 2'
         });
         setShowModal(true);
     };
@@ -91,7 +100,10 @@ const Exams = () => {
                 candidate_type_id: db.candidateTypes[0]?.id || '',
                 duration_minutes: 30,
                 question_pool_size: '',
-                resource_url: ''
+                resource_url: '',
+                resource_1_title: 'Reference Book 1',
+                resource_2_url: '',
+                resource_2_title: 'Reference Book 2'
             });
         } catch (err) {
             console.error("Error saving exam:", err);
@@ -260,14 +272,48 @@ const Exams = () => {
                                 </div>
                             </div>
 
-                            <div>
-                                <label>Resource URL (e.g. S3 PDF Link)</label>
-                                <input
-                                    placeholder="https://your-bucket.s3.amazonaws.com/book.pdf"
-                                    value={formData.resource_url}
-                                    onChange={(e) => setFormData({ ...formData, resource_url: e.target.value })}
-                                />
-                                <small style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>If left blank, the default CPT Reference book will be used.</small>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '0.75rem' }}>
+                                <div style={{ gridColumn: 'span 2' }}>
+                                    <h5 style={{ margin: 0, fontSize: '0.9rem', color: 'var(--primary)' }}>Reference Resource 1</h5>
+                                </div>
+                                <div>
+                                    <label>Resource Title</label>
+                                    <input
+                                        placeholder="e.g. CPT Book"
+                                        value={formData.resource_1_title}
+                                        onChange={(e) => setFormData({ ...formData, resource_1_title: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label>S3 URL</label>
+                                    <input
+                                        placeholder="https://..."
+                                        value={formData.resource_url}
+                                        onChange={(e) => setFormData({ ...formData, resource_url: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '0.75rem' }}>
+                                <div style={{ gridColumn: 'span 2' }}>
+                                    <h5 style={{ margin: 0, fontSize: '0.9rem', color: 'var(--primary)' }}>Reference Resource 2 (Optional)</h5>
+                                </div>
+                                <div>
+                                    <label>Resource Title</label>
+                                    <input
+                                        placeholder="e.g. ICD-10 Book"
+                                        value={formData.resource_2_title}
+                                        onChange={(e) => setFormData({ ...formData, resource_2_title: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label>S3 URL</label>
+                                    <input
+                                        placeholder="https://..."
+                                        value={formData.resource_2_url}
+                                        onChange={(e) => setFormData({ ...formData, resource_2_url: e.target.value })}
+                                    />
+                                </div>
                             </div>
 
                             <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>

@@ -24,6 +24,7 @@ const TestInterface = () => {
     const [attemptId, setAttemptId] = useState(null);
     const [tabSwitchCount, setTabSwitchCount] = useState(0);
     const [showCPTModal, setShowCPTModal] = useState(false);
+    const [selectedResourceId, setSelectedResourceId] = useState(1); // 1 or 2
     const videoRef = useRef(null);
     const streamRef = useRef(null);
     const [proctoringError, setProctoringError] = useState(null);
@@ -76,8 +77,8 @@ const TestInterface = () => {
         setAnswers({ ...answers, [questionId]: optionIndex });
     };
 
-    const getPdfUrl = useCallback(() => {
-        const baseUrl = exam?.resource_url;
+    const getPdfUrl = useCallback((resourceId = 1) => {
+        const baseUrl = resourceId === 1 ? exam?.resource_url : exam?.resource_2_url;
         if (!baseUrl) return null;
 
         // If it already has the toolbar params, return as is
@@ -593,21 +594,44 @@ const TestInterface = () => {
                             }).length} / {questions.length} Answered
                         </div>
 
-                        {exam?.resource_url && (
-                            <button
-                                className="secondary"
-                                onClick={() => setShowCPTModal(true)}
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.75rem',
-                                    padding: '0.5rem 1.25rem',
-                                    borderRadius: '2rem'
-                                }}
-                            >
-                                <BookOpen size={20} /> Reference Book
-                            </button>
-                        )}
+                        <div style={{ display: 'flex', gap: '1rem' }}>
+                            {exam?.resource_url && (
+                                <button
+                                    className="secondary"
+                                    onClick={() => {
+                                        setSelectedResourceId(1);
+                                        setShowCPTModal(true);
+                                    }}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.75rem',
+                                        padding: '0.5rem 1.25rem',
+                                        borderRadius: '2rem'
+                                    }}
+                                >
+                                    <BookOpen size={20} /> {exam.resource_1_title || 'Reference Book 1'}
+                                </button>
+                            )}
+                            {exam?.resource_2_url && (
+                                <button
+                                    className="secondary"
+                                    onClick={() => {
+                                        setSelectedResourceId(2);
+                                        setShowCPTModal(true);
+                                    }}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.75rem',
+                                        padding: '0.5rem 1.25rem',
+                                        borderRadius: '2rem'
+                                    }}
+                                >
+                                    <BookOpen size={20} /> {exam.resource_2_title || 'Reference Book 2'}
+                                </button>
+                            )}
+                        </div>
 
                         <button
                             className="primary"
@@ -1127,7 +1151,9 @@ const TestInterface = () => {
                                         <BookOpen size={20} color="white" />
                                     </div>
                                     <div>
-                                        <h3 style={{ fontSize: '1.2rem', margin: 0 }}>Reference Book</h3>
+                                        <h3 style={{ fontSize: '1.2rem', margin: 0 }}>
+                                            {selectedResourceId === 1 ? (exam?.resource_1_title || 'Reference Book 1') : (exam?.resource_2_title || 'Reference Book 2')}
+                                        </h3>
                                         <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0 }}>Use this reference to help with your assessment.</p>
                                     </div>
                                 </div>
@@ -1157,7 +1183,7 @@ const TestInterface = () => {
                                 onContextMenu={(e) => e.preventDefault()} // Disable right-click
                             >
                                 <object
-                                    data={getPdfUrl()}
+                                    data={getPdfUrl(selectedResourceId)}
                                     type="application/pdf"
                                     style={{
                                         width: '100%',
@@ -1177,7 +1203,7 @@ const TestInterface = () => {
                                     }}>
                                         <p>Unable to display PDF inline.</p>
                                         <a
-                                            href={getPdfUrl()}
+                                            href={getPdfUrl(selectedResourceId)}
                                             target="_blank"
                                             rel="noreferrer"
                                             className="primary"

@@ -33,6 +33,20 @@ const Exam = sequelize.define('Exam', {
     resource_url: {
         type: DataTypes.STRING,
         allowNull: true
+    },
+    resource_2_url: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    resource_1_title: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        defaultValue: 'Reference Book 1'
+    },
+    resource_2_title: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        defaultValue: 'Reference Book 2'
     }
 }, {
     timestamps: false
