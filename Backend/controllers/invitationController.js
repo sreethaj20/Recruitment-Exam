@@ -165,10 +165,37 @@ const getAssessmentData = async (req, res) => {
 const serveCPTBook = async (req, res) => {
     try {
         const filePath = path.join(__dirname, '../pdfs/CPT2026.pdf');
-        res.sendFile(filePath);
+        const fs = require('fs');
+
+        if (!fs.existsSync(filePath)) {
+            console.error('CPT Book file not found:', filePath);
+            return res.status(404).json({ message: 'Resource not found' });
+        }
+
+        const stats = fs.statSync(filePath);
+
+        // Set headers for large PDF serving
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Length', stats.size);
+        res.setHeader('Content-Disposition', 'inline; filename="CPT2026.pdf"');
+        res.setHeader('Accept-Ranges', 'bytes');
+
+        // Serve the file
+        res.sendFile(filePath, (err) => {
+            if (err) {
+                if (!res.headersSent) {
+                    console.error('Error sending file:', err);
+                    res.status(500).json({ message: 'Error streaming resource' });
+                } else {
+                    console.error('Stream interrupted:', err);
+                }
+            }
+        });
     } catch (error) {
         console.error('Error serving CPT Book:', error);
-        res.status(500).json({ message: 'Error accessing resource' });
+        if (!res.headersSent) {
+            res.status(500).json({ message: 'Error accessing resource' });
+        }
     }
 };
 

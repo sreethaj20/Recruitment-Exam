@@ -31,9 +31,12 @@ app.use(helmet({
         directives: {
             defaultSrc: ["'self'"],
             connectSrc: ["'self'", "https://api.assessmentcenter.mercuresolution.com"],
-            frameSrc: ["'self'", "https://api.assessmentcenter.mercuresolution.com"],
-            frameAncestors: ["'self'", "https://assessmentcenter.mercuresolution.com", "http://localhost:5173"], // Allow the frontend domain and localhost dev
-            objectSrc: ["'self'"], // Allow PDF viewer
+            frameSrc: ["'self'", "https://api.assessmentcenter.mercuresolution.com", "blob:"],
+            frameAncestors: ["'self'", "https://assessmentcenter.mercuresolution.com", "http://localhost:5173"],
+            objectSrc: ["'self'", "blob:", "data:"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://raw.githubusercontent.com"],
+            styleSrc: ["'self'", "'unsafe-inline'"],
+            imgSrc: ["'self'", "data:", "blob:"],
             upgradeInsecureRequests: [],
         },
     },
