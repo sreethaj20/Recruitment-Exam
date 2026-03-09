@@ -38,6 +38,7 @@ const TestInterface = () => {
         multiFace: 0,
         fullscreenStrikes: 0,
         mic: 0,
+        micStrikes: 0,
         noiseStrikes: 0,
         tabStrikes: 0,
         lastTabViolation: 0,
@@ -393,8 +394,8 @@ const TestInterface = () => {
                                 violationCheckRef.current.micStrikes++;
                                 console.log("Mic strike:", violationCheckRef.current.micStrikes);
 
-                                if (violationCheckRef.current.micStrikes < 2) {
-                                    setProctoringError("Microphone issue detected. Please ensure mic is ON.");
+                                if (violationCheckRef.current.micStrikes <= 2) {
+                                    setProctoringError(`Microphone issue detected. Warning ${violationCheckRef.current.micStrikes} of 2. Please ensure mic is ON.`);
                                 } else {
                                     if (handleSubmitRef.current && !isSubmittingRef.current) {
                                         handleSubmitRef.current('Auto-submitted: Microphone disabled multiple times');
