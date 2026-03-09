@@ -206,10 +206,10 @@ const TestInterface = () => {
         violationCheckRef.current.tabStrikes++;
         console.log(`Proctoring: Tab switch detected. Strike ${violationCheckRef.current.tabStrikes}`);
 
-        if (violationCheckRef.current.tabStrikes === 1) {
+        if (violationCheckRef.current.tabStrikes <= 2) {
             setShowWarning(true);
-        } else if (violationCheckRef.current.tabStrikes >= 2) {
-            console.log("Proctoring: Second tab switch violation. Auto-submitting...");
+        } else {
+            console.log("Proctoring: Third tab switch violation. Auto-submitting...");
             handleSubmitRef.current('Auto-submitted due to security violation (Multiple Tab Switches)');
         }
     }, []);
@@ -429,9 +429,9 @@ const TestInterface = () => {
                             } else if (detections.length > 1) {
                                 if (showMultiFaceWarningRef.current) return;
                                 violationCheckRef.current.multiFace++;
-                                if (violationCheckRef.current.multiFace === 1) {
+                                if (violationCheckRef.current.multiFace <= 2) {
                                     setShowMultiFaceWarning(true);
-                                } else if (violationCheckRef.current.multiFace >= 2) {
+                                } else {
                                     if (handleSubmitRef.current) {
                                         handleSubmitRef.current('Auto-submitted: Multiple faces detected multiple times');
                                     }
@@ -855,7 +855,7 @@ const TestInterface = () => {
                             <p style={{ marginBottom: '2rem', lineHeight: '1.6' }}>
                                 You have switched away from the examination window. This is strictly prohibited.
                                 <br /><br />
-                                <strong>Note:</strong> A second violation will result in an <strong>immediate automatic submission</strong> of your test.
+                                <strong>Warning {violationCheckRef.current.tabStrikes} of 2:</strong> A third violation will result in an <strong>immediate automatic submission</strong> of your test.
                             </p>
                             <button className="primary" style={{ background: 'var(--warning)', width: '100%' }} onClick={() => setShowWarning(false)}>
                                 I Understand, Continue
@@ -1016,7 +1016,7 @@ const TestInterface = () => {
                             <p style={{ marginBottom: '2rem', lineHeight: '1.6' }}>
                                 Multiple faces have been detected in the camera frame. This is strictly prohibited.
                                 <br /><br />
-                                <strong>Warning:</strong> Ensure only one person is visible. A second violation will result in an <strong>immediate automatic submission</strong>.
+                                <strong>Warning {violationCheckRef.current.multiFace} of 2:</strong> A third violation will result in an <strong>immediate automatic submission</strong> of your test.
                             </p>
                             <button className="primary" style={{ background: 'var(--danger)', width: '100%' }} onClick={() => setShowMultiFaceWarning(false)}>
                                 I Understand, Continue
@@ -1233,36 +1233,7 @@ const TestInterface = () => {
                                         `}</style>
                                     </div>
                                 )}
-                                {/* Fallback link if iframe fails or user needs full view */}
-                                <div style={{
-                                    position: 'absolute',
-                                    bottom: '2rem',
-                                    left: '50%',
-                                    transform: 'translateX(-50%)',
-                                    zIndex: 10,
-                                    pointerEvents: 'auto'
-                                }}>
-                                    <a
-                                        href={getPdfUrl(selectedResourceId)}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className="secondary"
-                                        style={{
-                                            padding: '0.5rem 1rem',
-                                            background: 'rgba(255,255,255,0.9)',
-                                            color: 'var(--primary)',
-                                            borderRadius: '0.5rem',
-                                            textDecoration: 'none',
-                                            fontSize: '0.8rem',
-                                            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '0.5rem'
-                                        }}
-                                    >
-                                        <Plus size={14} /> Open in New Tab
-                                    </a>
-                                </div>
+
                             </div>
 
                             {/* Modal Footer */}
