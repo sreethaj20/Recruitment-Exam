@@ -235,10 +235,10 @@ const TestInterface = () => {
                 violationCheckRef.current.fullscreenStrikes++;
                 console.log(`Proctoring: Fullscreen exit detected. Strike ${violationCheckRef.current.fullscreenStrikes}`);
 
-                if (violationCheckRef.current.fullscreenStrikes === 1) {
-                    setShowWarning(true);
-                } else if (violationCheckRef.current.fullscreenStrikes >= 2) {
-                    console.log("Proctoring: Second fullscreen violation. Auto-submitting...");
+                if (violationCheckRef.current.fullscreenStrikes <= 2) {
+                    // Just let the !isFullscreen overlay handle the warning
+                } else if (violationCheckRef.current.fullscreenStrikes >= 3) {
+                    console.log("Proctoring: Third fullscreen violation. Auto-submitting...");
                     handleSubmitRef.current('Auto-submitted: Multiple fullscreen violations');
                 }
             }
@@ -468,9 +468,9 @@ const TestInterface = () => {
                                         console.warn("Loud noise detected:", average);
                                         violationCheckRef.current.noiseStrikes++;
 
-                                        if (violationCheckRef.current.noiseStrikes === 1) {
+                                        if (violationCheckRef.current.noiseStrikes <= 2) {
                                             setShowNoiseWarning(true);
-                                        } else if (violationCheckRef.current.noiseStrikes >= 2) {
+                                        } else if (violationCheckRef.current.noiseStrikes >= 3) {
                                             if (handleSubmitRef.current) {
                                                 handleSubmitRef.current('Auto-submitted: Excessive noise detected multiple times');
                                             }
@@ -1051,7 +1051,7 @@ const TestInterface = () => {
                             <p style={{ marginBottom: '2rem', lineHeight: '1.6' }}>
                                 Loud noise or talking has been detected. This is strictly prohibited during the assessment.
                                 <br /><br />
-                                <strong>Warning:</strong> Please ensure you are in a quiet environment. A second violation will result in an <strong>immediate automatic submission</strong>.
+                                <strong>Warning {violationCheckRef.current.noiseStrikes} of 2:</strong> A third violation will result in an <strong>immediate automatic submission</strong> of your test.
                             </p>
                             <button className="primary" style={{ background: 'var(--danger)', width: '100%' }} onClick={() => setShowNoiseWarning(false)}>
                                 I Understand, Continue
@@ -1096,13 +1096,13 @@ const TestInterface = () => {
                                     <>
                                         You have exited fullscreen mode. This is prohibited.
                                         <br /><br />
-                                        <strong style={{ color: 'var(--warning)' }}>Warning 1 of 1:</strong> A second violation will result in <strong>immediate automatic submission</strong>.
+                                        <strong style={{ color: 'var(--warning)' }}>Warning {violationCheckRef.current.fullscreenStrikes} of 2:</strong> A third violation will result in <strong>immediate automatic submission</strong>.
                                     </>
                                 ) : (
                                     <>
                                         To maintain examination integrity, you must be in fullscreen mode.
                                         <br />
-                                        <strong>Exiting fullscreen will result in automatic submission after one warning.</strong>
+                                        <strong>Exiting fullscreen will result in automatic submission after two warnings.</strong>
                                     </>
                                 )}
                             </p>
