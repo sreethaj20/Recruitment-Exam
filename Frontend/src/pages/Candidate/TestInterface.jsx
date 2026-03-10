@@ -82,7 +82,7 @@ const TestInterface = () => {
         }
     }, [showCPTModal, selectedResourceId]);
 
-    const handleOptionSelect = (questionId, optionIndex) => {
+    const handleAnswerSelect = (questionId, optionIndex) => {
         setAnswers({ ...answers, [questionId]: optionIndex });
     };
 
