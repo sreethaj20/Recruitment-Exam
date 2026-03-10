@@ -6,6 +6,7 @@ import { useStore } from '../../store';
 const Registrations = () => {
     const { db, addCandidate, refreshData } = useStore();
     const [searchTerm, setSearchTerm] = useState('');
+    const [sortOrder, setSortOrder] = useState('latest');
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         name: '',
@@ -47,6 +48,10 @@ const Registrations = () => {
         c.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         c.mobile?.includes(searchTerm)
     );
+
+    const sortedCandidates = sortOrder === 'latest'
+        ? [...filteredCandidates].reverse()
+        : [...filteredCandidates];
 
     return (
         <div className="fade-in" style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '2rem' }}>
@@ -108,24 +113,42 @@ const Registrations = () => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h3>Registered Candidates</h3>
-                    <div style={{ position: 'relative' }}>
-                        <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                        <input
-                            placeholder="Search candidates..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            style={{ paddingLeft: '2.5rem', width: '250px', fontSize: '0.85rem' }}
-                        />
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                        <select
+                            value={sortOrder}
+                            onChange={(e) => setSortOrder(e.target.value)}
+                            style={{
+                                padding: '0.4rem 0.8rem',
+                                borderRadius: '0.5rem',
+                                background: 'var(--glass-bg)',
+                                border: '1px solid var(--glass-border)',
+                                fontSize: '0.85rem',
+                                color: 'white',
+                                outline: 'none'
+                            }}
+                        >
+                            <option value="latest">Latest to Oldest</option>
+                            <option value="oldest">Oldest to Latest</option>
+                        </select>
+                        <div style={{ position: 'relative' }}>
+                            <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                            <input
+                                placeholder="Search candidates..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                style={{ paddingLeft: '2.5rem', width: '200px', fontSize: '0.85rem' }}
+                            />
+                        </div>
                     </div>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '600px', overflowY: 'auto', paddingRight: '0.5rem' }}>
-                    {filteredCandidates.length === 0 ? (
+                    {sortedCandidates.length === 0 ? (
                         <div className="glass card" style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
                             <User size={48} style={{ opacity: 0.2, marginBottom: '1rem' }} />
                             <p>No candidates found.</p>
                         </div>
-                    ) : filteredCandidates.slice().reverse().map((candidate, idx) => (
+                    ) : sortedCandidates.map((candidate, idx) => (
                         <motion.div
                             key={candidate.id}
                             initial={{ opacity: 0, x: 20 }}
