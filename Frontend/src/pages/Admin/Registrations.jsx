@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { UserPlus, Mail, Phone, User, Trash2, Search } from 'lucide-react';
+import { UserPlus, Mail, Phone, User, Trash2, Search, Calendar } from 'lucide-react';
 import { useStore } from '../../store';
 
 const Registrations = () => {
@@ -43,15 +43,25 @@ const Registrations = () => {
     };
 
     const candidates = db.candidates || [];
-    const filteredCandidates = candidates.filter(c =>
-        c.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        c.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        c.mobile?.includes(searchTerm)
-    );
+    const filteredCandidates = candidates.filter(c => {
+        const search = searchTerm.toLowerCase();
+        const dateStr = c.createdAt ? new Date(c.createdAt).toLocaleDateString() : '';
+        const timeStr = c.createdAt ? new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
 
-    const sortedCandidates = sortOrder === 'latest'
-        ? [...filteredCandidates].reverse()
-        : [...filteredCandidates];
+        return (
+            c.name?.toLowerCase().includes(search) ||
+            c.email?.toLowerCase().includes(search) ||
+            c.mobile?.includes(searchTerm) ||
+            dateStr.includes(search) ||
+            timeStr.toLowerCase().includes(search)
+        );
+    });
+
+    const sortedCandidates = [...filteredCandidates].sort((a, b) => {
+        const dateA = new Date(a.createdAt || 0);
+        const dateB = new Date(b.createdAt || 0);
+        return sortOrder === 'latest' ? dateB - dateA : dateA - dateB;
+    });
 
     return (
         <div className="fade-in" style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '2rem' }}>
@@ -169,6 +179,12 @@ const Registrations = () => {
                                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                         <Phone size={12} /> {candidate.mobile}
                                     </div>
+                                    {candidate.createdAt && (
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.25rem' }}>
+                                            <Calendar size={12} />
+                                            {new Date(candidate.createdAt).toLocaleDateString()} {new Date(candidate.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                             <button

@@ -36,7 +36,7 @@ const Candidate = sequelize.define('Candidate', {
         type: DataTypes.TEXT
     }
 }, {
-    timestamps: false
+    timestamps: true
 });
 
 module.exports = Candidate;
