@@ -66,6 +66,10 @@ const validateToken = async (req, res) => {
             return res.status(410).json({ message: 'This invitation link has expired (8 hour limit exceeded)' });
         }
 
+        if (invitation.test_type === 'internal') {
+            invitation.require_microphone = false;
+        }
+
         res.json(invitation);
     } catch (error) {
         res.status(500).json({ message: 'Error validating token' });
@@ -154,7 +158,7 @@ const getAssessmentData = async (req, res) => {
         exam.Questions = questions;
         exam.test_type = invitation.test_type;
         exam.require_camera = invitation.require_camera;
-        exam.require_microphone = invitation.require_microphone;
+        exam.require_microphone = invitation.test_type === 'internal' ? false : invitation.require_microphone;
         res.json(exam);
     } catch (error) {
         console.error('Error fetching assessment data:', error);

@@ -219,8 +219,8 @@ const SystemCheck = () => {
                     {/* Status Indicators */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            {/* Camera Status (Only shown for non-internal) */}
-                            {!isInternal && (
+                            {/* Camera Status (Only shown if required) */}
+                            {invitation?.require_camera !== false && (
                                 <div className="glass" style={{
                                     padding: '1.25rem',
                                     borderRadius: '1rem',
@@ -251,35 +251,37 @@ const SystemCheck = () => {
                                 </div>
                             )}
 
-                            {/* Microphone Status */}
-                            <div className="glass" style={{
-                                padding: '1.25rem',
-                                borderRadius: '1rem',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '1rem',
-                                border: `1px solid ${status.microphone === 'success' ? 'rgba(16, 185, 129, 0.2)' : 'var(--glass-border)'}`
-                            }}>
-                                <div style={{
-                                    padding: '0.75rem',
-                                    background: status.microphone === 'success' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(255,255,255,0.05)',
-                                    borderRadius: '0.75rem',
-                                    color: status.microphone === 'success' ? '#10b981' : 'var(--text-muted)'
+                            {/* Microphone Status (Only shown if required) */}
+                            {invitation?.require_microphone !== false && (
+                                <div className="glass" style={{
+                                    padding: '1.25rem',
+                                    borderRadius: '1rem',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '1rem',
+                                    border: `1px solid ${status.microphone === 'success' ? 'rgba(16, 185, 129, 0.2)' : 'var(--glass-border)'}`
                                 }}>
-                                    <Mic size={24} />
+                                    <div style={{
+                                        padding: '0.75rem',
+                                        background: status.microphone === 'success' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(255,255,255,0.05)',
+                                        borderRadius: '0.75rem',
+                                        color: status.microphone === 'success' ? '#10b981' : 'var(--text-muted)'
+                                    }}>
+                                        <Mic size={24} />
+                                    </div>
+                                    <div style={{ flex: 1 }}>
+                                        <h4 style={{ margin: 0, fontSize: '1rem' }}>Microphone</h4>
+                                        <p style={{ margin: 0, fontSize: '0.875rem', color: status.microphone === 'success' ? '#10b981' : 'var(--text-muted)' }}>
+                                            {status.microphone === 'success' ? 'Enabled' : 'Not enabled'}
+                                        </p>
+                                    </div>
+                                    {status.microphone === 'success' ? (
+                                        <CheckCircle size={24} style={{ color: '#10b981' }} />
+                                    ) : (
+                                        <XCircle size={24} style={{ color: '#ef4444' }} />
+                                    )}
                                 </div>
-                                <div style={{ flex: 1 }}>
-                                    <h4 style={{ margin: 0, fontSize: '1rem' }}>Microphone</h4>
-                                    <p style={{ margin: 0, fontSize: '0.875rem', color: status.microphone === 'success' ? '#10b981' : 'var(--text-muted)' }}>
-                                        {status.microphone === 'success' ? 'Enabled' : 'Not enabled'}
-                                    </p>
-                                </div>
-                                {status.microphone === 'success' ? (
-                                    <CheckCircle size={24} style={{ color: '#10b981' }} />
-                                ) : (
-                                    <XCircle size={24} style={{ color: '#ef4444' }} />
-                                )}
-                            </div>
+                            )}
                         </div>
 
                         {status.error && (
