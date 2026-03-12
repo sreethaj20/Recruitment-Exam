@@ -328,14 +328,16 @@ const TestInterface = () => {
     }, []);
 
     // Proctoring Logic: Initialize and monitor camera/mic
+    // Proctoring Logic: Initialize and monitor camera/mic
     useEffect(() => {
         const startProctoring = async () => {
-            const hardwareRequirements = JSON.parse(sessionStorage.getItem('hardware_requirements')) || { cam: true, mic: true };
-            const isInternal = exam?.test_type === 'internal';
+            if (!exam) return;
 
-            // For internal tests, force cam to false just in case
-            const actualCamReq = isInternal ? false : hardwareRequirements.cam;
-            const actualMicReq = hardwareRequirements.mic;
+            const actualCamReq = !!exam.require_camera;
+            const actualMicReq = !!exam.require_microphone;
+            const isInternal = exam.test_type === 'internal';
+
+            console.log(`Proctoring Config: Cam=${actualCamReq}, Mic=${actualMicReq}, Type=${exam.test_type}`);
 
             if (!actualCamReq && !actualMicReq) {
                 console.log("Proctoring: No hardware monitoring required.");
@@ -445,7 +447,7 @@ const TestInterface = () => {
                         }
                     }
 
-                    // 4. Noise Detection (Safe Monitoring)
+                    // 4. Noise Detection (Safe Monitoring) - ONLY IF REQUIRED
                     if (actualMicReq && !isSubmittingRef.current) {
                         try {
                             if (!audioContextRef.current) {
@@ -528,10 +530,10 @@ const TestInterface = () => {
                 }
             } catch (err) {
                 console.error("Proctoring: Setup error", err);
-                if (isInternal) {
-                    setProctoringError('Microphone access is required for this internal assessment.');
-                } else {
-                    setProctoringError('Camera and microphone access is required throughout the exam.');
+                if (actualMicReq) {
+                    setProctoringError('Microphone access is required for this assessment.');
+                } else if (actualCamReq) {
+                    setProctoringError('Camera access is required throughout the exam.');
                 }
             }
         };

@@ -28,7 +28,7 @@ const createInvitation = async (req, res) => {
             is_multi_use: !!is_multi_use,
             test_type: test_type || 'internal',
             require_camera: require_camera !== undefined ? !!require_camera : true,
-            require_microphone: require_microphone !== undefined ? !!require_microphone : true
+            require_microphone: require_microphone !== undefined ? !!require_microphone : (test_type !== 'internal')
         });
 
         // Handle many-to-many candidates

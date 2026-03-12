@@ -246,8 +246,22 @@ const ReviewPanel = () => {
                                         >
                                             <Video size={16} /> Download
                                         </button>
+                                    ) : item.attempt?.status === 'completed' ? (
+                                        <div style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.5rem',
+                                            fontSize: '0.8rem',
+                                            color: 'var(--warning)',
+                                            padding: '0.5rem 1rem',
+                                            borderRadius: '0.5rem',
+                                            background: 'rgba(245, 158, 11, 0.1)',
+                                            border: '1px solid rgba(245, 158, 11, 0.2)'
+                                        }}>
+                                            <Clock size={14} className="spin" /> Processing...
+                                        </div>
                                     ) : (
-                                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>No Record</span>
+                                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Ongoing</span>
                                     )}
                                 </td>
                             </tr>

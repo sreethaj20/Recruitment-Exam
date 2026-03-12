@@ -84,37 +84,57 @@ const finalizeRecording = async (req, res) => {
         console.log(`[Proctoring] Binary concatenation complete: ${rawMergedPath}`);
 
         // 3. Process with FFMPEG to fix headers and duration
-        console.log(`[Proctoring] Processing with FFMPEG (Re-encoding to fix metadata)...`);
+        console.log(`[Proctoring] Checking for FFMPEG...`);
+        let finalPathToUpload = rawMergedPath;
 
-        await new Promise((resolve, reject) => {
-            ffmpeg()
-                .input(rawMergedPath)
-                // Re-encoding is necessary for WebM segments to fix timestamps and duration
-                .videoCodec('libvpx')
-                .audioCodec('libvorbis')
-                .outputOptions([
-                    '-fflags +genpts',
-                    '-crf 32', // Slightly lower quality for faster re-encoding
-                    '-b:v 800k'   // Target bitrate
-                ])
-                .on('start', (cmd) => console.log('[Proctoring] FFMPEG command:', cmd))
-                .on('progress', (progress) => {
-                    if (progress.percent) console.log(`[Proctoring] Merging progress: ${Math.round(progress.percent)}%`);
-                })
-                .on('end', () => {
-                    console.log('[Proctoring] FFMPEG merge completed.');
+        try {
+            await new Promise((resolve, reject) => {
+                ffmpeg.getAvailableCodecs((err, codecs) => {
+                    if (err) {
+                        console.warn('[Proctoring] FFMPEG not found or error checking codecs. Skipping re-encoding.');
+                        // If FFMPEG is not found, resolve to proceed with the raw merged file
+                        resolve();
+                        return;
+                    }
                     resolve();
-                })
-                .on('error', (err) => {
-                    console.error('[Proctoring] FFMPEG error:', err.message);
-                    reject(err);
-                })
-                .save(finalVideoPath);
-        });
+                });
+            });
+
+            console.log(`[Proctoring] Processing with FFMPEG (Re-encoding to fix metadata)...`);
+            await new Promise((resolve, reject) => {
+                ffmpeg()
+                    .input(rawMergedPath)
+                    .videoCodec('libvpx')
+                    .audioCodec('libvorbis')
+                    .outputOptions([
+                        '-fflags +genpts',
+                        '-crf 32',
+                        '-b:v 800k'
+                    ])
+                    .on('start', (cmd) => console.log('[Proctoring] FFMPEG command:', cmd))
+                    .on('progress', (progress) => {
+                        if (progress.percent) console.log(`[Proctoring] Merging progress: ${Math.round(progress.percent)}%`);
+                    })
+                    .on('end', () => {
+                        console.log('[Proctoring] FFMPEG merge completed.');
+                        finalPathToUpload = finalVideoPath;
+                        resolve();
+                    })
+                    .on('error', (err) => {
+                        console.error('[Proctoring] FFMPEG error:', err.message);
+                        console.warn('[Proctoring] Falling back to raw merged file.');
+                        resolve(); // Resolve to proceed with raw file
+                    })
+                    .save(finalVideoPath);
+            });
+        } catch (fError) {
+            console.error('[Proctoring] FFMPEG logic failed:', fError.message);
+            console.warn('[Proctoring] Using raw merged file instead.');
+        }
 
         // 4. Upload merged video to S3
-        console.log(`[Proctoring] Uploading final merged video to S3: ${finalS3Key}`);
-        const finalBuffer = fs.readFileSync(finalVideoPath);
+        console.log(`[Proctoring] Uploading merged video to S3: ${finalS3Key}`);
+        const finalBuffer = fs.readFileSync(finalPathToUpload);
         await uploadToS3(finalS3Key, finalBuffer, 'video/webm');
 
         // 5. Update Attempt table

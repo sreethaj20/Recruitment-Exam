@@ -22,32 +22,33 @@ const SystemCheck = () => {
         setIsChecking(true);
         setStatus({ camera: 'pending', microphone: 'pending', error: '' });
 
-        const hardwareReq = JSON.parse(sessionStorage.getItem('hardware_requirements')) || { cam: true, mic: true };
-
         try {
             // Stop any existing stream
             if (streamRef.current) {
                 streamRef.current.getTracks().forEach(track => track.stop());
             }
 
+            let currentInv = invitation;
+            if (!currentInv) {
+                const res = await invitationAPI.validate(token);
+                currentInv = res.data;
+                setInvitation(currentInv);
+            }
+
+            const camReq = currentInv?.require_camera ?? true;
+            const micReq = currentInv?.require_microphone ?? true;
+
+            if (!camReq && !micReq) {
+                setStatus({ camera: 'success', microphone: 'success', error: '' });
+                return;
+            }
+
             let stream;
             try {
-                // If it's an internal test, don't even try the camera
-                const isInternalTest = (invitation?.test_type === 'internal') || (await invitationAPI.validate(token).then(res => res.data.test_type === 'internal').catch(() => false));
-
-                if (isInternalTest) {
-                    console.log('Internal test: requesting microphone only.');
-                    stream = await navigator.mediaDevices.getUserMedia({
-                        video: false,
-                        audio: true
-                    });
-                } else {
-                    // Try to get both for external/default
-                    stream = await navigator.mediaDevices.getUserMedia({
-                        video: hardwareReq.cam,
-                        audio: hardwareReq.mic
-                    });
-                }
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: camReq,
+                    audio: micReq
+                });
             } catch (initialErr) {
                 console.warn('getUserMedia failed:', initialErr);
                 throw initialErr;
@@ -55,9 +56,9 @@ const SystemCheck = () => {
 
             streamRef.current = stream;
 
-            // Check if both tracks are active
-            const hasVideo = stream.getVideoTracks().some(track => track.readyState === 'live');
-            const hasAudio = stream.getAudioTracks().some(track => track.readyState === 'live');
+            // Check if tracks are active as required
+            const hasVideo = !camReq || stream.getVideoTracks().some(track => track.readyState === 'live');
+            const hasAudio = !micReq || stream.getAudioTracks().some(track => track.readyState === 'live');
 
             setStatus({
                 camera: hasVideo ? 'success' : 'error',
@@ -67,17 +68,13 @@ const SystemCheck = () => {
 
         } catch (err) {
             console.error('System check error:', err);
-            let errorMessage = 'Please enable camera and microphone to start the exam.';
+            let errorMessage = 'Please enable required devices to start the exam.';
 
             if (err.name === 'NotAllowedError') {
                 errorMessage = 'Permission denied. Please allow camera and microphone access in your browser settings.';
             } else if (err.name === 'NotFoundError') {
-                errorMessage = 'Camera or Microphone not found. Please connect the devices and try again.';
+                errorMessage = 'Required camera or microphone not found.';
             }
-
-            // For internal tests, if we have microphone but failed camera, don't show error box
-            // Actually, the catch only happens if the SECOND getUserMedia (mic only) also fails
-            // or if the first one fails and it's not internal.
 
             setStatus(prev => ({
                 ...prev,
@@ -92,7 +89,7 @@ const SystemCheck = () => {
 
     // Attach stream to video element when it becomes available
     useEffect(() => {
-        if (status.camera === 'success' && videoRef.current && streamRef.current) {
+        if (status.camera === 'success' && videoRef.current && streamRef.current && streamRef.current.getVideoTracks().length > 0) {
             videoRef.current.srcObject = streamRef.current;
             videoRef.current.play().catch(e => console.error("Video play error:", e));
         }
@@ -102,13 +99,14 @@ const SystemCheck = () => {
         const fetchInvitation = async () => {
             try {
                 const response = await invitationAPI.validate(token);
-                setInvitation(response.data);
+                const invData = response.data;
+                setInvitation(invData);
+                // System check will run after invitation is fetched
             } catch (err) {
                 console.error("Error fetching invitation:", err);
             }
         };
         fetchInvitation();
-        checkSystems();
 
         return () => {
             if (streamRef.current) {
@@ -117,16 +115,23 @@ const SystemCheck = () => {
         };
     }, [token]);
 
+    // Re-run system check when invitation is available
+    useEffect(() => {
+        if (invitation) {
+            checkSystems();
+        }
+    }, [invitation]);
+
     const isInternal = invitation?.test_type === 'internal';
 
     const handleStartExam = () => {
-        const canProceed = isInternal ? status.microphone === 'success' : (status.camera === 'success' && status.microphone === 'success');
-        if (canProceed) {
+        if (isSystemReady) {
             navigate(`/exam/${token}/test`, { replace: true });
         }
     };
 
-    const isSystemReady = isInternal ? status.microphone === 'success' : (status.camera === 'success' && status.microphone === 'success');
+    const isSystemReady = (status.camera === 'success' || (invitation && !invitation.require_camera)) &&
+        (status.microphone === 'success' || (invitation && !invitation.require_microphone));
 
     return (
         <div style={{ padding: '4rem 1rem' }}>

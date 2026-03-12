@@ -38,7 +38,7 @@ const Invitation = sequelize.define('Invitation', {
     },
     require_microphone: {
         type: DataTypes.BOOLEAN,
-        defaultValue: true
+        defaultValue: false
     }
 }, {
     timestamps: true
