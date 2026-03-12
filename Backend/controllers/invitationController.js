@@ -27,7 +27,7 @@ const createInvitation = async (req, res) => {
             token,
             is_multi_use: !!is_multi_use,
             test_type: test_type || 'internal',
-            require_camera: require_camera !== undefined ? !!require_camera : true,
+            require_camera: require_camera !== undefined ? !!require_camera : (test_type !== 'internal'),
             require_microphone: require_microphone !== undefined ? !!require_microphone : (test_type !== 'internal')
         });
 
@@ -67,6 +67,7 @@ const validateToken = async (req, res) => {
         }
 
         if (invitation.test_type === 'internal') {
+            invitation.require_camera = false;
             invitation.require_microphone = false;
         }
 
@@ -157,7 +158,7 @@ const getAssessmentData = async (req, res) => {
 
         exam.Questions = questions;
         exam.test_type = invitation.test_type;
-        exam.require_camera = invitation.require_camera;
+        exam.require_camera = invitation.test_type === 'internal' ? false : invitation.require_camera;
         exam.require_microphone = invitation.test_type === 'internal' ? false : invitation.require_microphone;
         res.json(exam);
     } catch (error) {

@@ -41,8 +41,11 @@ const ExamLanding = () => {
 
     const handleProceed = () => {
         if (invitation.test_type === 'internal') {
-            setShowHardwareCheck(true);
-            setCamChoice('no'); // Force no camera for internal
+            sessionStorage.setItem('hardware_requirements', JSON.stringify({
+                cam: false,
+                mic: false
+            }));
+            navigate(`/exam/${token}/form`);
         } else {
             // For external, we assume mandatory
             sessionStorage.setItem('hardware_requirements', JSON.stringify({

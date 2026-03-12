@@ -162,8 +162,8 @@ const SystemCheck = () => {
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2.5rem' }}>
-                    {/* Camera Preview (Only shown for non-internal) */}
-                    {!isInternal && (
+                    {/* Camera Preview (Only shown if required) */}
+                    {invitation?.require_camera !== false && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                             <div style={{
                                 aspectRatio: '16/9',
