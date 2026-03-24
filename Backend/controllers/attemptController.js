@@ -14,14 +14,17 @@ const startAttempt = async (req, res) => {
         const candidateEmail = candidate.email.toLowerCase();
         const candidateMobile = candidate.mobile;
 
-        // Check if candidate already has an attempt for THIS exam by email or phone
+        // Check if candidate already has an attempt for THIS exam by email or candidate ID
+        const orConditions = [{ candidate_id: candidate_id }];
+
+        if (candidateEmail && candidateEmail.trim() !== '') {
+            orConditions.push({ candidate_email: candidateEmail });
+        }
+
         const existingAttempt = await Attempt.findOne({
             where: {
                 exam_id,
-                [Op.or]: [
-                    { candidate_email: candidateEmail },
-                    { candidate_mobile: candidateMobile }
-                ]
+                [Op.or]: orConditions
             }
         });
 
