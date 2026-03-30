@@ -97,12 +97,14 @@ const TestInterface = () => {
         const baseUrl = resourceId === 1 ? exam?.resource_url : exam?.resource_2_url;
         if (!baseUrl) return null;
 
+        if (isMobile) return baseUrl; // Mobile viewers often prefer clean URLs
+
         // If it already has the toolbar params, return as is
         if (baseUrl.includes('#toolbar=0')) return baseUrl;
         // Otherwise, append them (handling potential existing hash/params)
         const separator = baseUrl.includes('#') ? '&' : '#';
         return `${baseUrl}${separator}toolbar=0&navpanes=0&scrollbar=0`;
-    }, [exam]);
+    }, [exam, isMobile]);
 
     const handleSubmit = useCallback(async (reason = 'Normal submission') => {
         // Grace period check (10 seconds)
@@ -613,25 +615,28 @@ const TestInterface = () => {
                     zIndex: 10,
                     gap: '1rem'
                 }}>
-                    <div style={{ flex: '1 1 auto', minWidth: '150px' }}>
-                        <h3 style={{ fontSize: 'clamp(1rem, 4vw, 1.25rem)', margin: 0 }}>{exam.title}</h3>
-                        <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', margin: 0 }}>Question {currentQuestionIndex + 1} of {questions.length}</p>
-                    </div>
+                    {!isMobile && (
+                        <div style={{ flex: '1 1 auto', minWidth: '150px' }}>
+                            <h3 style={{ fontSize: 'clamp(1rem, 4vw, 1.25rem)', margin: 0 }}>{exam.title}</h3>
+                            <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', margin: 0 }}>Question {currentQuestionIndex + 1} of {questions.length}</p>
+                        </div>
+                    )}
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(0.75rem, 2vw, 1.5rem)', flexWrap: 'wrap', justifyContent: 'flex-end', flex: '1 1 auto' }}>
-                        <div className="glass" style={{ padding: '0.4rem 1rem', borderRadius: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', border: timeLeft < 60 ? '1px solid var(--danger)' : '1px solid var(--glass-border)' }}>
-                            <Clock size={18} color={timeLeft < 60 ? 'var(--danger)' : 'var(--primary)'} />
-                            <span style={{ fontWeight: '700', fontSize: 'clamp(0.9rem, 3vw, 1.1rem)', color: timeLeft < 60 ? 'var(--danger)' : 'white' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '0.5rem' : '1.5rem', flexWrap: isMobile ? 'nowrap' : 'wrap', justifyContent: 'flex-end', flex: '1 1 auto' }}>
+                        <div className="glass" style={{ padding: isMobile ? '0.25rem 0.6rem' : '0.4rem 1rem', borderRadius: '2rem', display: 'flex', alignItems: 'center', gap: '0.4rem', border: timeLeft < 60 ? '1px solid var(--danger)' : '1px solid var(--glass-border)' }}>
+                            <Clock size={isMobile ? 14 : 18} color={timeLeft < 60 ? 'var(--danger)' : 'var(--primary)'} />
+                            <span style={{ fontWeight: '700', fontSize: isMobile ? '0.85rem' : '1.1rem', color: timeLeft < 60 ? 'var(--danger)' : 'white' }}>
                                 {formatTime(timeLeft)}
                             </span>
                         </div>
-                        <div style={{ fontSize: '0.875rem', whiteSpace: 'nowrap' }}>
+                        <div style={{ fontSize: isMobile ? '0.8rem' : '0.875rem', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                            <CheckCircle size={isMobile ? 14 : 18} color="var(--accent)" />
                             {Object.keys(answers).filter(id => {
                                 const q = questions.find(question => question.id === id);
                                 if (!q) return false;
                                 if (q.type === 'text' || q.type === 'fill_in_the_blank') return answers[id]?.trim().length > 0;
                                 return answers[id] !== undefined && answers[id] !== null;
-                            }).length} / {questions.length} <span style={{ display: 'inline', opacity: 0.8 }}>Answered</span>
+                            }).length}/{questions.length} {!isMobile && <span style={{ opacity: 0.8 }}>Answered</span>}
                         </div>
 
                         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
@@ -645,13 +650,13 @@ const TestInterface = () => {
                                     style={{
                                         display: 'flex',
                                         alignItems: 'center',
-                                        gap: '0.5rem',
-                                        padding: '0.4rem 1rem',
+                                        gap: '0.25rem',
+                                        padding: isMobile ? '0.25rem 0.6rem' : '0.4rem 1rem',
                                         borderRadius: '2rem',
-                                        fontSize: '0.875rem'
+                                        fontSize: isMobile ? '0.75rem' : '0.875rem'
                                     }}
                                 >
-                                    <BookOpen size={16} /> <span style={{ display: 'inline-block', maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{exam.resource_1_title || 'Ref 1'}</span>
+                                    <BookOpen size={isMobile ? 12 : 16} /> <span style={{ display: 'inline-block', maxWidth: isMobile ? '50px' : '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{exam.resource_1_title || 'Ref 1'}</span>
                                 </button>
                             )}
                             {exam?.resource_2_url && (
@@ -664,13 +669,13 @@ const TestInterface = () => {
                                     style={{
                                         display: 'flex',
                                         alignItems: 'center',
-                                        gap: '0.5rem',
-                                        padding: '0.4rem 1rem',
+                                        gap: '0.25rem',
+                                        padding: isMobile ? '0.25rem 0.6rem' : '0.4rem 1rem',
                                         borderRadius: '2rem',
-                                        fontSize: '0.875rem'
+                                        fontSize: isMobile ? '0.75rem' : '0.875rem'
                                     }}
                                 >
-                                    <BookOpen size={16} /> <span style={{ display: 'inline-block', maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{exam.resource_2_title || 'Ref 2'}</span>
+                                    <BookOpen size={isMobile ? 12 : 16} /> <span style={{ display: 'inline-block', maxWidth: isMobile ? '50px' : '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{exam.resource_2_title || 'Ref 2'}</span>
                                 </button>
                             )}
                         </div>
@@ -682,12 +687,12 @@ const TestInterface = () => {
                                 opacity: isAllAnswered ? 1 : 0.5,
                                 cursor: isAllAnswered ? 'pointer' : 'not-allowed',
                                 filter: isAllAnswered ? 'none' : 'grayscale(0.5)',
-                                padding: '0.5rem 1.25rem',
-                                fontSize: '0.9rem'
+                                padding: isMobile ? '0.4rem 0.8rem' : '0.5rem 1.25rem',
+                                fontSize: isMobile ? '0.8rem' : '0.9rem'
                             }}
                             title={isAllAnswered ? "Submit Test" : "Please answer all questions before submitting"}
                         >
-                            Submit
+                            {isMobile ? <Send size={14} /> : 'Submit'}
                         </button>
                     </div>
                 </header>
@@ -1191,7 +1196,7 @@ const TestInterface = () => {
                                 display: 'flex',
                                 justifyContent: 'space-between',
                                 alignItems: 'center',
-                                background: 'rgba(255, 255, 255, 0.05)'
+                                background: isMobile ? 'var(--bg-deep)' : 'rgba(255, 255, 255, 0.05)'
                             }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                     <div className="gradient-bg" style={{ padding: '0.5rem', borderRadius: '0.75rem' }}>
@@ -1225,7 +1230,8 @@ const TestInterface = () => {
                                     flex: 1,
                                     background: '#f5f5f5',
                                     position: 'relative',
-                                    overflow: 'hidden' // Clip the negative margin content
+                                    overflow: isMobile ? 'auto' : 'hidden', // Auto for mobile scrolling
+                                    WebkitOverflowScrolling: 'touch'
                                 }}
                                 onContextMenu={(e) => e.preventDefault()} // Disable right-click
                             >
@@ -1235,8 +1241,8 @@ const TestInterface = () => {
                                     onLoad={() => setIsPdfLoading(false)}
                                     style={{
                                         width: '100%',
-                                        height: 'calc(100% + 60px)', // Increase height to compensate for clip
-                                        marginTop: '-60px', // Push toolbar out of view
+                                        height: isMobile ? '100%' : 'calc(100% + 60px)', // Standard height on mobile
+                                        marginTop: isMobile ? '0' : '-60px', // Standard margin on mobile
                                         border: 'none',
                                         background: 'white',
                                         opacity: isPdfLoading ? 0 : 1,
