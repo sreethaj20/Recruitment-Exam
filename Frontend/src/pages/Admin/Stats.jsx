@@ -52,7 +52,7 @@ const Stats = () => {
 
     return (
         <div className="fade-in">
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
+            <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.25rem', marginBottom: '2.5rem' }}>
                 {statCards.map((stat, idx) => (
                     <motion.div
                         key={idx}
@@ -60,41 +60,38 @@ const Stats = () => {
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: idx * 0.1 }}
                         className="glass"
-                        style={{ padding: '1.5rem', borderRadius: '1.25rem', border: '1px solid var(--border)' }}
+                        style={{ padding: '1.25rem', borderRadius: '1.25rem', border: '1px solid var(--border)' }}
                     >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                            <div style={{ background: `rgba(${stat.color === 'var(--primary)' ? '99, 102, 241' : stat.color === 'var(--accent)' ? '16, 185, 129' : stat.color === 'var(--secondary)' ? '168, 85, 247' : '245, 158, 11'}, 0.1)`, padding: '0.75rem', borderRadius: '1rem' }}>
-                                <stat.icon size={24} color={stat.color} />
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                            <div style={{ background: `rgba(${stat.color === 'var(--primary)' ? '99, 102, 241' : stat.color === 'var(--accent)' ? '16, 185, 129' : stat.color === 'var(--secondary)' ? '168, 85, 247' : '245, 158, 11'}, 0.1)`, padding: '0.6rem', borderRadius: '0.8rem' }}>
+                                <stat.icon size={20} color={stat.color} />
                             </div>
-                            {/* <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: stat.trend.startsWith('+') ? 'var(--accent)' : 'var(--danger)', fontSize: '0.75rem', fontWeight: '600' }}>
-                                {stat.trend} <TrendingUp size={12} />
-                            </div> */}
                         </div>
-                        <h3 style={{ fontSize: '1.75rem', marginBottom: '0.25rem' }}>{stat.value}</h3>
-                        <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>{stat.label}</p>
+                        <h3 style={{ fontSize: 'clamp(1.5rem, 4vw, 1.75rem)', marginBottom: '0.25rem' }}>{stat.value}</h3>
+                        <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{stat.label}</p>
                     </motion.div>
                 ))}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2rem' }}>
-                <div className="glass" style={{ padding: '2rem', borderRadius: '1.25rem', border: '1px solid var(--border)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                        <h3>Recent Activity</h3>
-                        <button className="secondary" style={{ fontSize: '0.75rem', padding: '0.5rem 1rem' }}>View All</button>
+            <div className="performance-grid" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2rem' }}>
+                <div className="glass" style={{ padding: 'clamp(1.25rem, 4vw, 2rem)', borderRadius: '1.25rem', border: '1px solid var(--border)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                        <h3 style={{ fontSize: 'clamp(1.1rem, 4vw, 1.25rem)' }}>Recent Activity</h3>
+                        <button className="secondary" style={{ fontSize: '0.7rem', padding: '0.4rem 0.8rem' }}>View All</button>
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                         {db.attempts.slice(-4).reverse().map((attempt, idx) => {
                             const candidate = db.candidates.find(c => c.id === attempt.candidate_id);
                             return (
                                 <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                    <div className="gradient-bg" style={{ width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold' }}>
+                                    <div className="gradient-bg" style={{ width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold', fontSize: '0.8rem', flexShrink: 0 }}>
                                         {(candidate?.name || 'C').charAt(0)}
                                     </div>
-                                    <div style={{ flex: 1 }}>
-                                        <p style={{ fontWeight: '600', fontSize: '0.9rem' }}>{candidate?.name || 'A candidate'} submitted an exam</p>
-                                        <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>{attempt.completed_at ? new Date(attempt.completed_at).toLocaleString() : 'Just now'}</p>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                        <p style={{ fontWeight: '600', fontSize: '0.85rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{candidate?.name || 'A candidate'} submitted an exam</p>
+                                        <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>{attempt.completed_at ? new Date(attempt.completed_at).toLocaleString() : 'Just now'}</p>
                                     </div>
-                                    <div style={{ fontWeight: '700', color: parseFloat(attempt.percentage) >= 60 ? 'var(--accent)' : 'var(--danger)' }}>
+                                    <div style={{ fontWeight: '700', fontSize: '0.9rem', color: parseFloat(attempt.percentage) >= 60 ? 'var(--accent)' : 'var(--danger)' }}>
                                         {Math.round(parseFloat(attempt.percentage) || 0)}%
                                     </div>
                                 </div>
@@ -104,16 +101,16 @@ const Stats = () => {
                     </div>
                 </div>
 
-                <div className="glass" style={{ padding: '2rem', borderRadius: '1.25rem', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                    <h3>Performance Index</h3>
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '1.5rem' }}>
+                <div className="glass" style={{ padding: 'clamp(1.25rem, 4vw, 2rem)', borderRadius: '1.25rem', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                    <h3 style={{ fontSize: 'clamp(1.1rem, 4vw, 1.25rem)' }}>Performance Index</h3>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '1.25rem' }}>
                         {deptPerformance.map((dept, idx) => (
                             <div key={idx}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '0.5rem' }}>
-                                    <span>{dept.name}</span>
-                                    <span style={{ color: 'var(--text-muted)' }}>{dept.avg}%</span>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: '0.4rem' }}>
+                                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginRight: '0.5rem' }}>{dept.name}</span>
+                                    <span style={{ color: 'var(--text-muted)', flexShrink: 0 }}>{dept.avg}%</span>
                                 </div>
-                                <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
+                                <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
                                     <div style={{
                                         width: `${dept.avg}%`,
                                         height: '100%',

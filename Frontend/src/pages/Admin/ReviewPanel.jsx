@@ -111,18 +111,18 @@ const ReviewPanel = () => {
 
     return (
         <div className="fade-in">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+            <div className="admin-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', gap: '1rem' }}>
                 <div>
-                    <h2>Candidate Review</h2>
+                    <h2 style={{ fontSize: 'clamp(1.25rem, 5vw, 1.5rem)' }}>Candidate Review</h2>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Evaluate performances and manage hiring decisions.</p>
                 </div>
-                <div style={{ display: 'flex', gap: '1rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: '1 1 auto' }}>
                         <Filter size={18} color="var(--text-muted)" />
                         <select
                             value={selectedDept}
                             onChange={(e) => setSelectedDept(e.target.value)}
-                            style={{ width: '200px' }}
+                            style={{ minWidth: '160px', width: '100%', fontSize: '0.9rem' }}
                         >
                             <option value="all">All Departments</option>
                             {departments.map(dept => (
@@ -134,9 +134,9 @@ const ReviewPanel = () => {
                         className="secondary"
                         onClick={handleDownloadExcel}
                         disabled={reviewData.length === 0}
-                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', padding: '0.6rem 1rem' }}
                     >
-                        <Download size={18} /> Download Excel
+                        <Download size={18} /> Excel
                     </button>
                 </div>
             </div>

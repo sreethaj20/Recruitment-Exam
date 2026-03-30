@@ -51,10 +51,10 @@ const AdminDashboard = () => {
     ];
 
     return (
-        <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-deep)' }}>
+        <div className="admin-layout" style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-deep)' }}>
             {/* Sidebar */}
-            <aside className="glass" style={{ width: '280px', margin: '1rem', borderRadius: '1.5rem', display: 'flex', flexDirection: 'column', padding: '1.5rem', position: 'sticky', top: '1rem', alignSelf: 'flex-start', maxHeight: 'calc(100vh - 2rem)', overflowY: 'auto' }}>
-                <div style={{ padding: '1rem', marginBottom: '2rem' }}>
+            <aside className="glass admin-sidebar" style={{ width: '280px', margin: '1rem', borderRadius: '1.5rem', display: 'flex', flexDirection: 'column', padding: '1.5rem', position: 'sticky', top: '1rem', alignSelf: 'flex-start', maxHeight: 'calc(100vh - 2rem)', overflowY: 'auto' }}>
+                <div style={{ padding: '0.5rem 1rem', marginBottom: '1.5rem' }}>
                     <h2 className="gradient-text" style={{ fontSize: '1.5rem' }}>HR Admin</h2>
                 </div>
 
@@ -71,16 +71,17 @@ const AdminDashboard = () => {
                                     display: 'flex',
                                     alignItems: 'center',
                                     gap: '0.75rem',
-                                    padding: '1rem',
+                                    padding: '0.75rem 1rem',
                                     borderRadius: '1rem',
                                     background: isActive ? 'rgba(99, 102, 241, 0.15)' : 'transparent',
                                     border: isActive ? '1px solid rgba(99, 102, 241, 0.3)' : '1px solid transparent',
-                                    transition: 'all 0.2s ease'
+                                    transition: 'all 0.2s ease',
+                                    fontSize: '0.9rem'
                                 }}
                             >
-                                <item.icon size={20} color={isActive ? 'var(--primary)' : 'currentColor'} />
+                                <item.icon size={18} color={isActive ? 'var(--primary)' : 'currentColor'} />
                                 <span style={{ fontWeight: isActive ? '600' : '400' }}>{item.label}</span>
-                                {isActive && <ChevronRight size={16} style={{ marginLeft: 'auto' }} />}
+                                {isActive && <ChevronRight size={14} style={{ marginLeft: 'auto' }} />}
                             </Link>
                         );
                     })}
@@ -89,31 +90,31 @@ const AdminDashboard = () => {
                 <button
                     onClick={handleLogout}
                     className="secondary"
-                    style={{ marginTop: 'auto', width: '100%', justifyContent: 'flex-start', color: 'var(--danger)' }}
+                    style={{ marginTop: '2rem', width: '100%', justifyContent: 'flex-start', color: 'var(--danger)', fontSize: '0.9rem', padding: '0.75rem 1rem' }}
                 >
-                    <LogOut size={20} />
+                    <LogOut size={18} />
                     Sign Out
                 </button>
             </aside>
 
             {/* Main Content */}
-            <main style={{ flex: 1, padding: '2rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-                <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <main className="admin-main" style={{ flex: 1, padding: '2rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                <header className="admin-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
-                        <h1 style={{ fontSize: '1.75rem' }}>Dashboard</h1>
+                        <h1 style={{ fontSize: 'clamp(1.25rem, 5vw, 1.75rem)' }}>Dashboard</h1>
                         <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                         <div style={{ textAlign: 'right' }}>
-                            <p style={{ fontWeight: '600' }}>{user.name}</p>
+                            <p style={{ fontWeight: '600', fontSize: '0.9rem' }}>{user.name}</p>
                             <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Administrator</p>
                         </div>
-                        <div className="gradient-bg" style={{ width: '45px', height: '45px', borderRadius: '50%', border: '2px solid var(--glass-border)' }}></div>
+                        <div className="gradient-bg" style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2px solid var(--glass-border)' }}></div>
                     </div>
                 </header>
 
-                <div className="card glass" style={{ flex: 1, minHeight: '500px' }}>
+                <div className="card glass" style={{ flex: 1, minHeight: '500px', padding: 'clamp(1rem, 3vw, 2rem)' }}>
                     <Routes>
                         <Route path="/" element={<Stats />} />
                         <Route path="/exams" element={<Exams />} />

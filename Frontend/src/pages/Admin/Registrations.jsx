@@ -64,99 +64,103 @@ const Registrations = () => {
     });
 
     return (
-        <div className="fade-in" style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '2rem' }}>
+        <div className="fade-in performance-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '2rem' }}>
             {/* Registration Form */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                <div>
-                    <h2>Register Candidate</h2>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Add new candidates to the system for future assessments.</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <div className="admin-header">
+                    <h2 style={{ fontSize: 'clamp(1.25rem, 5vw, 1.5rem)' }}>Register Candidate</h2>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Add new candidates for future assessments.</p>
                 </div>
 
-                <div className="glass card" style={{ padding: '2.5rem' }}>
-                    <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <div className="glass card" style={{ padding: 'clamp(1.5rem, 5vw, 2.5rem)' }}>
+                    <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                         <div>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <User size={16} color="var(--primary)" /> Full Name
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+                                <User size={14} color="var(--primary)" /> Full Name
                             </label>
                             <input
                                 required
-                                placeholder="Enter candidate's full name"
+                                placeholder="Candidate name"
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                style={{ fontSize: '0.9rem' }}
                             />
                         </div>
 
                         <div>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <Mail size={16} color="var(--primary)" /> Email Address
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+                                <Mail size={14} color="var(--primary)" /> Email Address
                             </label>
                             <input
                                 required
                                 type="email"
-                                placeholder="candidate@example.com"
+                                placeholder="name@email.com"
                                 value={formData.email}
                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                style={{ fontSize: '0.9rem' }}
                             />
                         </div>
 
                         <div>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <Phone size={16} color="var(--primary)" /> Mobile Number
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+                                <Phone size={14} color="var(--primary)" /> Mobile Number
                             </label>
                             <input
                                 required
                                 type="tel"
-                                placeholder="+91 98765 43210"
+                                placeholder="+91 00000 00000"
                                 value={formData.mobile}
                                 onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
+                                style={{ fontSize: '0.9rem' }}
                             />
                         </div>
 
-                        <button className="primary" style={{ marginTop: '1rem', width: '100%' }} disabled={loading}>
-                            <UserPlus size={20} /> {loading ? 'Registering...' : 'Complete Registration'}
+                        <button className="primary" style={{ marginTop: '0.5rem', width: '100%', padding: '0.75rem', fontSize: '0.9rem' }} disabled={loading}>
+                            <UserPlus size={18} /> {loading ? 'Registering...' : 'Complete Register'}
                         </button>
                     </form>
                 </div>
             </div>
 
             {/* Candidate List */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3>Registered Candidates</h3>
-                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <div className="admin-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                    <h3 style={{ fontSize: '1.1rem', margin: 0 }}>Registered Candidates</h3>
+                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap', flex: '1 1 auto', justifyContent: 'flex-end' }}>
                         <select
                             value={sortOrder}
                             onChange={(e) => setSortOrder(e.target.value)}
                             style={{
-                                padding: '0.4rem 0.8rem',
+                                padding: '0.4rem 0.6rem',
                                 borderRadius: '0.5rem',
                                 background: 'var(--glass-bg)',
                                 border: '1px solid var(--glass-border)',
-                                fontSize: '0.85rem',
+                                fontSize: '0.8rem',
                                 color: 'white',
-                                outline: 'none'
+                                outline: 'none',
+                                flex: '1 1 auto'
                             }}
                         >
-                            <option value="latest">Latest to Oldest</option>
-                            <option value="oldest">Oldest to Latest</option>
+                            <option value="latest">Newest First</option>
+                            <option value="oldest">Oldest First</option>
                         </select>
-                        <div style={{ position: 'relative' }}>
-                            <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                        <div style={{ position: 'relative', flex: '2 1 180px' }}>
+                            <Search size={14} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                             <input
-                                placeholder="Search candidates..."
+                                placeholder="Search..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                style={{ paddingLeft: '2.5rem', width: '200px', fontSize: '0.85rem' }}
+                                style={{ paddingLeft: '2.2rem', width: '100%', fontSize: '0.85rem', height: '36px' }}
                             />
                         </div>
                     </div>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '600px', overflowY: 'auto', paddingRight: '0.5rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '550px', overflowY: 'auto', paddingRight: '0.25rem' }}>
                     {sortedCandidates.length === 0 ? (
-                        <div className="glass card" style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
-                            <User size={48} style={{ opacity: 0.2, marginBottom: '1rem' }} />
-                            <p>No candidates found.</p>
+                        <div className="glass card" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
+                            <User size={40} style={{ opacity: 0.2, marginBottom: '0.75rem' }} />
+                            <p style={{ fontSize: '0.9rem' }}>No candidates found.</p>
                         </div>
                     ) : sortedCandidates.map((candidate, idx) => (
                         <motion.div
@@ -165,34 +169,34 @@ const Registrations = () => {
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: idx * 0.05 }}
                             className="glass"
-                            style={{ padding: '1.25rem', borderRadius: '1rem', border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                            style={{ padding: '1rem', borderRadius: '1rem', border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}
                         >
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                <div className="gradient-bg" style={{ width: '45px', height: '45px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0 }}>
+                                <div className="gradient-bg" style={{ width: '40px', height: '40px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold', fontSize: '0.9rem', flexShrink: 0 }}>
                                     {candidate.name?.charAt(0) || '?'}
                                 </div>
-                                <div>
-                                    <div style={{ fontWeight: '600' }}>{candidate.name}</div>
-                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                        <Mail size={12} /> {candidate.email}
+                                <div style={{ minWidth: 0 }}>
+                                    <div style={{ fontWeight: '600', fontSize: '0.9rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{candidate.name}</div>
+                                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.35rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                        <Mail size={10} /> {candidate.email}
                                     </div>
-                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                        <Phone size={12} /> {candidate.mobile}
+                                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                                        <Phone size={10} /> {candidate.mobile}
                                     </div>
                                     {candidate.createdAt && (
-                                        <div style={{ fontSize: '0.75rem', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.25rem' }}>
-                                            <Calendar size={12} />
-                                            {new Date(candidate.createdAt).toLocaleDateString()} {new Date(candidate.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        <div style={{ fontSize: '0.65rem', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.35rem', marginTop: '0.15rem' }}>
+                                            <Calendar size={10} />
+                                            {new Date(candidate.createdAt).toLocaleDateString()}
                                         </div>
                                     )}
                                 </div>
                             </div>
                             <button
                                 className="secondary"
-                                style={{ padding: '0.6rem', color: 'var(--danger)' }}
+                                style={{ padding: '0.5rem', color: 'var(--danger)', borderRadius: '0.5rem', flexShrink: 0 }}
                                 onClick={() => handleDeleteCandidate(candidate.id)}
                             >
-                                <Trash2 size={18} />
+                                <Trash2 size={16} />
                             </button>
                         </motion.div>
                     ))}

@@ -112,17 +112,17 @@ const Exams = () => {
 
     return (
         <div className="fade-in">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+            <div className="admin-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', gap: '1rem' }}>
                 <div>
-                    <h2>Exam Management</h2>
+                    <h2 style={{ fontSize: 'clamp(1.25rem, 5vw, 1.5rem)' }}>Exam Management</h2>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Create and organize assessments for different departments.</p>
                 </div>
-                <button className="primary" onClick={openCreateModal}>
-                    <Plus size={20} /> New Exam
+                <button className="primary" onClick={openCreateModal} style={{ padding: '0.6rem 1.25rem', fontSize: '0.9rem', flexShrink: 0 }}>
+                    <Plus size={18} /> New Exam
                 </button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '1.5rem' }}>
+            <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 350px), 1fr))', gap: '1.25rem' }}>
                 {db.exams.map((exam, idx) => {
                     const dept = db.departments.find(d => d.id === exam.department_id);
                     const type = db.candidateTypes.find(t => t.id === exam.candidate_type_id);
@@ -134,57 +134,57 @@ const Exams = () => {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: idx * 0.1 }}
                             className="glass"
-                            style={{ padding: '1.5rem', borderRadius: '1.25rem', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}
+                            style={{ padding: '1.25rem', borderRadius: '1.25rem', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '1rem' }}
                         >
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                <div className="gradient-bg" style={{ padding: '0.75rem', borderRadius: '1rem' }}>
-                                    <FileText size={20} color="white" />
+                                <div className="gradient-bg" style={{ padding: '0.6rem', borderRadius: '0.8rem' }}>
+                                    <FileText size={18} color="white" />
                                 </div>
                                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                                     <button
                                         className="secondary"
-                                        style={{ padding: '0.5rem', color: 'var(--primary)' }}
+                                        style={{ padding: '0.4rem', color: 'var(--primary)' }}
                                         onClick={() => openEditModal(exam)}
                                     >
-                                        <Edit size={16} />
+                                        <Edit size={14} />
                                     </button>
                                     <button
                                         className="secondary"
-                                        style={{ padding: '0.5rem', color: 'var(--danger)' }}
+                                        style={{ padding: '0.4rem', color: 'var(--danger)' }}
                                         onClick={() => handleDeleteExam(exam.id)}
                                     >
-                                        <Trash2 size={16} />
+                                        <Trash2 size={14} />
                                     </button>
                                 </div>
                             </div>
 
                             <div>
-                                <h4 style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>{exam.title}</h4>
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '1rem' }}>
-                                    <span className="glass" style={{ fontSize: '0.65rem', padding: '0.25rem 0.6rem', borderRadius: '4px', textTransform: 'uppercase', color: 'var(--primary)' }}>
+                                <h4 style={{ fontSize: '1.05rem', marginBottom: '0.4rem' }}>{exam.title}</h4>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginTop: '0.75rem' }}>
+                                    <span className="glass" style={{ fontSize: '0.6rem', padding: '0.2rem 0.5rem', borderRadius: '4px', textTransform: 'uppercase', color: 'var(--primary)' }}>
                                         {dept?.name}
                                     </span>
-                                    <span className="glass" style={{ fontSize: '0.65rem', padding: '0.25rem 0.6rem', borderRadius: '4px', textTransform: 'uppercase', color: 'var(--secondary)' }}>
+                                    <span className="glass" style={{ fontSize: '0.6rem', padding: '0.2rem 0.5rem', borderRadius: '4px', textTransform: 'uppercase', color: 'var(--secondary)' }}>
                                         {type?.name}
                                     </span>
                                 </div>
                             </div>
 
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid var(--border)' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-                                    <Clock size={14} /> {exam.duration_minutes} Mins
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: 'auto', paddingTop: '0.75rem', borderTop: '1px solid var(--border)' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+                                    <Clock size={12} /> {exam.duration_minutes} Mins
                                 </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-                                    <Users size={14} /> {exam.question_pool_size ? `${exam.question_pool_size} (Pool: ${exam.questions_count})` : `${exam.questions_count} Questions`}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+                                    <Users size={12} /> {exam.question_pool_size ? `${exam.question_pool_size} (Pool: ${exam.questions_count})` : `${exam.questions_count} Qs`}
                                 </div>
                             </div>
 
                             <button
                                 className="secondary"
-                                style={{ width: '100%', marginTop: '0.5rem', fontSize: '0.85rem' }}
+                                style={{ width: '100%', marginTop: '0.5rem', fontSize: '0.8rem', padding: '0.5rem' }}
                                 onClick={() => navigate('/admin/dashboard/questions', { state: { selectedExamId: exam.id } })}
                             >
-                                View Questions <ArrowRight size={16} />
+                                View Questions <ArrowRight size={14} />
                             </button>
                         </motion.div>
                     );
@@ -192,35 +192,37 @@ const Exams = () => {
             </div>
 
             {showModal && createPortal(
-                <div className="modal-overlay">
+                <div className="modal-overlay" style={{ padding: '1rem' }}>
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         className="glass card"
-                        style={{ maxWidth: '500px', width: '90%', padding: '2rem' }}
+                        style={{ maxWidth: '500px', width: '100%', padding: 'clamp(1.5rem, 5vw, 2rem)', maxHeight: '90vh', overflowY: 'auto' }}
                     >
                         <h3>{editingExam ? 'Edit Exam' : 'Create New Exam'}</h3>
-                        <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: '2rem' }}>
+                        <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
                             {editingExam ? 'Update assessment module details.' : 'Define a new assessment module for candidates.'}
                         </p>
 
-                        <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                        <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                             <div>
-                                <label>Exam Title</label>
+                                <label style={{ fontSize: '0.85rem' }}>Exam Title</label>
                                 <input
                                     required
                                     placeholder="e.g. Senior Medical Coder Assessment"
                                     value={formData.title}
                                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                    style={{ fontSize: '0.9rem' }}
                                 />
                             </div>
 
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <div className="performance-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                 <div>
-                                    <label>Department</label>
+                                    <label style={{ fontSize: '0.85rem' }}>Department</label>
                                     <select
                                         value={formData.department_id}
                                         onChange={(e) => setFormData({ ...formData, department_id: e.target.value })}
+                                        style={{ fontSize: '0.9rem' }}
                                     >
                                         {db.departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                                         <option value="others" style={{ fontWeight: 'bold', color: 'var(--primary)' }}>+ Others (Add New)</option>
@@ -228,97 +230,105 @@ const Exams = () => {
                                 </div>
                                 {formData.department_id === 'others' && (
                                     <div className="fade-in" style={{ gridColumn: 'span 2' }}>
-                                        <label>New Department Name</label>
+                                        <label style={{ fontSize: '0.85rem' }}>New Department Name</label>
                                         <input
                                             required
                                             placeholder="e.g. Human Resources"
                                             value={customDeptName}
                                             onChange={(e) => setCustomDeptName(e.target.value)}
                                             autoFocus
+                                            style={{ fontSize: '0.9rem' }}
                                         />
                                     </div>
                                 )}
                                 <div>
-                                    <label>Candidate Type</label>
+                                    <label style={{ fontSize: '0.85rem' }}>Candidate Type</label>
                                     <select
                                         value={formData.candidate_type_id}
                                         onChange={(e) => setFormData({ ...formData, candidate_type_id: e.target.value })}
+                                        style={{ fontSize: '0.9rem' }}
                                     >
                                         {db.candidateTypes.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                                     </select>
                                 </div>
                             </div>
 
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <div className="performance-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                 <div>
-                                    <label>Duration (Minutes)</label>
+                                    <label style={{ fontSize: '0.85rem' }}>Duration (Minutes)</label>
                                     <input
                                         type="number"
                                         min="1"
                                         required
                                         value={formData.duration_minutes || ''}
                                         onChange={(e) => setFormData({ ...formData, duration_minutes: parseInt(e.target.value) || 0 })}
+                                        style={{ fontSize: '0.9rem' }}
                                     />
                                 </div>
                                 <div>
-                                    <label>Question Pool Size (Optional)</label>
+                                    <label style={{ fontSize: '0.85rem' }}>Question Pool Size (Optional)</label>
                                     <input
                                         type="number"
                                         min="1"
                                         placeholder="Pick N random questions"
                                         value={formData.question_pool_size || ''}
                                         onChange={(e) => setFormData({ ...formData, question_pool_size: parseInt(e.target.value) || '' })}
+                                        style={{ fontSize: '0.9rem' }}
                                     />
                                 </div>
                             </div>
 
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '0.75rem' }}>
+                            <div className="performance-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', padding: '0.75rem', background: 'rgba(255,255,255,0.05)', borderRadius: '0.75rem' }}>
                                 <div style={{ gridColumn: 'span 2' }}>
-                                    <h5 style={{ margin: 0, fontSize: '0.9rem', color: 'var(--primary)' }}>Reference Resource 1</h5>
+                                    <h5 style={{ margin: 0, fontSize: '0.85rem', color: 'var(--primary)' }}>Reference Resource 1</h5>
                                 </div>
                                 <div>
-                                    <label>Resource Title</label>
+                                    <label style={{ fontSize: '0.75rem' }}>Resource Title</label>
                                     <input
                                         placeholder="e.g. CPT Book"
                                         value={formData.resource_1_title}
                                         onChange={(e) => setFormData({ ...formData, resource_1_title: e.target.value })}
+                                        style={{ fontSize: '0.85rem', padding: '0.5rem' }}
                                     />
                                 </div>
                                 <div>
-                                    <label>S3 URL</label>
+                                    <label style={{ fontSize: '0.75rem' }}>S3 URL</label>
                                     <input
                                         placeholder="https://..."
                                         value={formData.resource_url}
                                         onChange={(e) => setFormData({ ...formData, resource_url: e.target.value })}
+                                        style={{ fontSize: '0.85rem', padding: '0.5rem' }}
                                     />
                                 </div>
                             </div>
 
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '0.75rem' }}>
+                            <div className="performance-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', padding: '0.75rem', background: 'rgba(255,255,255,0.05)', borderRadius: '0.75rem' }}>
                                 <div style={{ gridColumn: 'span 2' }}>
-                                    <h5 style={{ margin: 0, fontSize: '0.9rem', color: 'var(--primary)' }}>Reference Resource 2 (Optional)</h5>
+                                    <h5 style={{ margin: 0, fontSize: '0.85rem', color: 'var(--primary)' }}>Reference Resource 2 (Optional)</h5>
                                 </div>
                                 <div>
-                                    <label>Resource Title</label>
+                                    <label style={{ fontSize: '0.75rem' }}>Resource Title</label>
                                     <input
                                         placeholder="e.g. ICD-10 Book"
                                         value={formData.resource_2_title}
                                         onChange={(e) => setFormData({ ...formData, resource_2_title: e.target.value })}
+                                        style={{ fontSize: '0.85rem', padding: '0.5rem' }}
                                     />
                                 </div>
                                 <div>
-                                    <label>S3 URL</label>
+                                    <label style={{ fontSize: '0.75rem' }}>S3 URL</label>
                                     <input
                                         placeholder="https://..."
                                         value={formData.resource_2_url}
                                         onChange={(e) => setFormData({ ...formData, resource_2_url: e.target.value })}
+                                        style={{ fontSize: '0.85rem', padding: '0.5rem' }}
                                     />
                                 </div>
                             </div>
 
-                            <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                                <button type="button" className="secondary" style={{ flex: 1 }} onClick={() => setShowModal(false)}>Cancel</button>
-                                <button type="submit" className="primary" style={{ flex: 1 }}>{editingExam ? 'Save Changes' : 'Create Exam'}</button>
+                            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
+                                <button type="button" className="secondary" style={{ flex: 1, fontSize: '0.9rem', padding: '0.6rem' }} onClick={() => setShowModal(false)}>Cancel</button>
+                                <button type="submit" className="primary" style={{ flex: 1, fontSize: '0.9rem', padding: '0.6rem' }}>{editingExam ? 'Save' : 'Create'}</button>
                             </div>
                         </form>
                     </motion.div>

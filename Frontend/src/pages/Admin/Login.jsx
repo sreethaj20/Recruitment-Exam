@@ -40,18 +40,18 @@ const AdminLogin = () => {
     };
 
     return (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: 'clamp(1rem, 5vw, 2rem)', background: 'var(--bg-deep)' }}>
             <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 className="glass card"
-                style={{ width: '100%', maxWidth: '400px' }}
+                style={{ width: '100%', maxWidth: '400px', padding: 'clamp(1.5rem, 5vw, 2.5rem)' }}
             >
-                <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-                    <div className="gradient-bg" style={{ width: '60px', height: '60px', borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem' }}>
+                <div style={{ textAlign: 'center', marginBottom: 'clamp(1.5rem, 5vw, 2rem)' }}>
+                    <div className="gradient-bg" style={{ width: 'clamp(50px, 15vw, 60px)', height: 'clamp(50px, 15vw, 60px)', borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem' }}>
                         <Lock color="white" size={24} />
                     </div>
-                    <h2>Admin Portal</h2>
+                    <h2 style={{ fontSize: 'clamp(1.25rem, 5vw, 1.5rem)' }}>Admin Portal</h2>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Secure access for HR professionals</p>
                 </div>
 
@@ -64,7 +64,7 @@ const AdminLogin = () => {
 
                 <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                     <div>
-                        <label>Email Address</label>
+                        <label style={{ fontSize: '0.85rem', marginBottom: '0.5rem', display: 'block' }}>Email Address</label>
                         <div style={{ position: 'relative' }}>
                             <Mail size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                             <input
@@ -72,14 +72,14 @@ const AdminLogin = () => {
                                 placeholder="hr@company.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                style={{ paddingLeft: '2.5rem' }}
+                                style={{ paddingLeft: '2.5rem', fontSize: '0.95rem' }}
                                 required
                             />
                         </div>
                     </div>
 
                     <div>
-                        <label>Password</label>
+                        <label style={{ fontSize: '0.85rem', marginBottom: '0.5rem', display: 'block' }}>Password</label>
                         <div style={{ position: 'relative' }}>
                             <Lock size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                             <input
@@ -87,13 +87,13 @@ const AdminLogin = () => {
                                 placeholder="••••••••"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                style={{ paddingLeft: '2.5rem' }}
+                                style={{ paddingLeft: '2.5rem', fontSize: '0.95rem' }}
                                 required
                             />
                         </div>
                     </div>
 
-                    <button type="submit" className="primary" style={{ marginTop: '0.5rem' }}>
+                    <button type="submit" className="primary" style={{ marginTop: '0.5rem', padding: '0.75rem' }}>
                         Sign In
                     </button>
                 </form>
@@ -101,7 +101,7 @@ const AdminLogin = () => {
                 <div style={{ marginTop: '2rem', textAlign: 'center' }}>
                     <button
                         className="secondary"
-                        style={{ width: '100%' }}
+                        style={{ width: '100%', fontSize: '0.9rem' }}
                         onClick={() => navigate('/')}
                     >
                         Back to Home

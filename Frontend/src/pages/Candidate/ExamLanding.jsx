@@ -141,39 +141,39 @@ const ExamLanding = () => {
     }
 
     return (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '2rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: 'clamp(1rem, 5vw, 2rem)' }}>
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="glass card"
-                style={{ maxWidth: '600px', width: '100%' }}
+                style={{ maxWidth: '600px', width: '100%', padding: 'clamp(1.25rem, 5vw, 2rem)' }}
             >
-                <div className="gradient-bg" style={{ padding: '2rem', borderRadius: '1rem', marginBottom: '2rem', textAlign: 'center', color: 'white' }}>
-                    <BookOpen size={40} style={{ marginBottom: '1rem' }} />
-                    <h2>{exam.title}</h2>
-                    <p style={{ opacity: 0.9 }}>Merit Matters</p>
+                <div className="gradient-bg" style={{ padding: 'clamp(1.5rem, 5vw, 2.5rem)', borderRadius: '1rem', marginBottom: '1.5rem', textAlign: 'center', color: 'white' }}>
+                    <BookOpen size={clamp(32, 40)} style={{ marginBottom: '0.75rem' }} />
+                    <h2 style={{ fontSize: 'clamp(1.25rem, 6vw, 1.75rem)', lineHeight: '1.2' }}>{exam.title}</h2>
+                    <p style={{ opacity: 0.9, fontSize: '0.9rem', marginTop: '0.5rem' }}>Merit Matters</p>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2.5rem' }}>
-                    <div className="glass" style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        <Clock size={24} color="var(--primary)" />
+                <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+                    <div className="glass" style={{ padding: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.75rem', borderRadius: '0.75rem' }}>
+                        <Clock size={20} color="var(--primary)" />
                         <div>
-                            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Duration</p>
-                            <p style={{ fontWeight: '600' }}>{exam.duration_minutes} Minutes</p>
+                            <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Duration</p>
+                            <p style={{ fontWeight: '600', fontSize: '0.9rem' }}>{exam.duration_minutes} Minutes</p>
                         </div>
                     </div>
-                    <div className="glass" style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        <CheckCircle2 size={24} color="var(--accent)" />
+                    <div className="glass" style={{ padding: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.75rem', borderRadius: '0.75rem' }}>
+                        <CheckCircle2 size={20} color="var(--accent)" />
                         <div>
-                            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Format</p>
-                            <p style={{ fontWeight: '600' }}>Mixed-Format Assessment</p>
+                            <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Format</p>
+                            <p style={{ fontWeight: '600', fontSize: '0.9rem' }}>Mixed-Format</p>
                         </div>
                     </div>
                 </div>
 
-                <div style={{ marginBottom: '2.5rem' }}>
-                    <h4 style={{ marginBottom: '1rem' }}>Exam Instructions</h4>
-                    <ul style={{ color: 'var(--text-muted)', fontSize: '0.9rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', paddingLeft: '1.25rem' }}>
+                <div style={{ marginBottom: '2rem' }}>
+                    <h4 style={{ marginBottom: '0.75rem', fontSize: '1rem' }}>Exam Instructions</h4>
+                    <ul style={{ color: 'var(--text-muted)', fontSize: '0.875rem', display: 'flex', flexDirection: 'column', gap: '0.6rem', paddingLeft: '1.1rem', lineHeight: '1.5' }}>
                         <li>Ensure you have a stable internet connection.</li>
                         <li>Once started, the timer cannot be paused.</li>
                         <li>Switching tabs or leaving the exam window will result in immediate <strong>automatic submission</strong> of your test.</li>
@@ -183,7 +183,7 @@ const ExamLanding = () => {
 
                 <button
                     className="primary"
-                    style={{ width: '100%', padding: '1rem' }}
+                    style={{ width: '100%', padding: '0.9rem', fontSize: '1rem' }}
                     onClick={handleProceed}
                 >
                     Proceed to Registration

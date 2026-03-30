@@ -54,26 +54,26 @@ const CandidateResultView = () => {
     return (
         <div className="fade-in" style={{ paddingBottom: '4rem' }}>
             {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginBottom: '2.5rem' }}>
+            <div className="admin-header" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginBottom: '2.5rem' }}>
                 <button
                     onClick={() => navigate(-1)}
                     className="glass"
-                    style={{ padding: '0.75rem', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                    style={{ padding: '0.6rem', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
                 >
-                    <ArrowLeft size={20} />
+                    <ArrowLeft size={18} />
                 </button>
                 <div>
-                    <h2 style={{ fontSize: '2rem' }}>Performance Analysis</h2>
-                    <p style={{ color: 'var(--text-muted)' }}>Detailed breakdown of candidate responses and evaluation.</p>
+                    <h2 style={{ fontSize: 'clamp(1.25rem, 5vw, 2rem)', margin: 0 }}>Performance Analysis</h2>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Detailed breakdown of candidate responses and evaluation.</p>
                 </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '2rem', alignItems: 'start' }}>
+            <div className="performance-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '2rem', alignItems: 'start' }}>
                 {/* Left Side: Question Breakdown */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                     {questions.length === 0 ? (
-                        <div className="glass card" style={{ textAlign: 'center', padding: '4rem' }}>
-                            <HelpCircle size={48} color="var(--text-muted)" style={{ marginBottom: '1rem' }} />
+                        <div className="glass card" style={{ textAlign: 'center', padding: '3rem' }}>
+                            <HelpCircle size={40} color="var(--text-muted)" style={{ marginBottom: '1rem' }} />
                             <p>No question data available for this attempt snapshot.</p>
                         </div>
                     ) : (
@@ -84,10 +84,9 @@ const CandidateResultView = () => {
                                 ? candidateAnswer == q.correct_answer
                                 : (q.type === 'fill_in_the_blank'
                                     ? candidateAnswer?.toLowerCase()?.trim() === q.correct_answer?.toLowerCase()?.trim()
-                                    : false // Manual/Subjective logic would go here if needed
+                                    : false 
                                 );
 
-                            // Special display for text/subjective if responses exist
                             const isText = q.type === 'text';
                             let textStatus = 'pending';
                             if (isText && candidateAnswer) {
@@ -96,37 +95,37 @@ const CandidateResultView = () => {
                             }
 
                             return (
-                                <div key={q.id} className="glass card" style={{ padding: '2rem', borderLeft: `4px solid ${isMCQ || q.type === 'fill_in_the_blank' ? (isCorrect ? 'var(--accent)' : 'var(--danger)') : (textStatus === 'accepted' ? 'var(--accent)' : 'var(--danger)')}` }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600', textTransform: 'uppercase' }}>
+                                <div key={q.id} className="glass card" style={{ padding: 'clamp(1.25rem, 4vw, 2rem)', borderLeft: `4px solid ${isMCQ || q.type === 'fill_in_the_blank' ? (isCorrect ? 'var(--accent)' : 'var(--danger)') : (textStatus === 'accepted' ? 'var(--accent)' : 'var(--danger)')}` }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600', textTransform: 'uppercase' }}>
                                             Question {idx + 1} • {q.type?.replace('_', ' ').toUpperCase() || 'MCQ'}
                                         </span>
                                         {isText ? (
-                                            <span style={{ color: textStatus === 'accepted' ? 'var(--accent)' : 'var(--danger)', fontSize: '0.8rem', fontWeight: '700' }}>
-                                                {textStatus.toUpperCase()} ({q.keywords?.filter(k => candidateAnswer?.toLowerCase().includes(k.toLowerCase())).length || 0} Keywords Matched)
+                                            <span style={{ color: textStatus === 'accepted' ? 'var(--accent)' : 'var(--danger)', fontSize: '0.75rem', fontWeight: '700' }}>
+                                                {textStatus.toUpperCase()}
                                             </span>
                                         ) : (
-                                            <span style={{ color: isCorrect ? 'var(--accent)' : 'var(--danger)', fontSize: '0.8rem', fontWeight: '700' }}>
+                                            <span style={{ color: isCorrect ? 'var(--accent)' : 'var(--danger)', fontSize: '0.75rem', fontWeight: '700' }}>
                                                 {isCorrect ? 'CORRECT' : 'INCORRECT'}
                                             </span>
                                         )}
                                     </div>
-                                    <h4 style={{ fontSize: '1.1rem', marginBottom: '1.5rem', lineHeight: '1.5' }}>{q.text}</h4>
+                                    <h4 style={{ fontSize: '1.05rem', marginBottom: '1.25rem', lineHeight: '1.5' }}>{q.text}</h4>
 
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
-                                        <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '0.75rem' }}>
-                                            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Candidate's Response:</p>
-                                            <p style={{ fontWeight: '600', color: (isMCQ || q.type === 'fill_in_the_blank') ? (isCorrect ? 'var(--accent)' : 'var(--danger)') : 'white' }}>
+                                    <div className="performance-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                        <div style={{ padding: '0.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: '0.6rem' }}>
+                                            <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.4rem' }}>Candidate's Response:</p>
+                                            <p style={{ fontWeight: '600', fontSize: '0.9rem', color: (isMCQ || q.type === 'fill_in_the_blank') ? (isCorrect ? 'var(--accent)' : 'var(--danger)') : 'white', wordBreak: 'break-word' }}>
                                                 {isMCQ
                                                     ? (candidateAnswer !== undefined && candidateAnswer !== null ? q.options[candidateAnswer] : 'No response')
                                                     : (candidateAnswer || 'No response')
                                                 }
                                             </p>
                                         </div>
-                                        <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '0.75rem' }}>
-                                            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Correct Reference:</p>
-                                            <p style={{ fontWeight: '600', color: 'var(--accent)' }}>
-                                                {isMCQ ? q.options[q.correct_answer] : (isText ? `Keywords: ${q.keywords?.join(', ')}` : q.correct_answer)}
+                                        <div style={{ padding: '0.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: '0.6rem' }}>
+                                            <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.4rem' }}>Correct Reference:</p>
+                                            <p style={{ fontWeight: '600', fontSize: '0.9rem', color: 'var(--accent)', wordBreak: 'break-word' }}>
+                                                {isMCQ ? q.options[q.correct_answer] : (isText ? `Keywords: ${q.keywords?.slice(0, 3).join(', ')}...` : q.correct_answer)}
                                             </p>
                                         </div>
                                     </div>
@@ -137,69 +136,70 @@ const CandidateResultView = () => {
                 </div>
 
                 {/* Right Side: Score Summary */}
-                <div style={{ position: 'sticky', top: '2rem' }}>
-                    <div className="glass card" style={{ padding: '2rem' }}>
-                        <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+                <div style={{ position: 'sticky', top: '1rem', alignSelf: 'start' }}>
+                    <div className="glass card" style={{ padding: '1.5rem' }}>
+                        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
                             <div style={{
-                                width: '120px',
-                                height: '120px',
-                                margin: '0 auto 1.5rem',
+                                width: '100px',
+                                height: '100px',
+                                margin: '0 auto 1.25rem',
                                 borderRadius: '50%',
-                                border: `8px solid ${getStatusColor(attempt.percentage)}`,
+                                border: `6px solid ${getStatusColor(attempt.percentage)}`,
                                 display: 'flex',
                                 flexDirection: 'column',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                boxShadow: `0 0 20px -5px ${getStatusColor(attempt.percentage)}`
+                                boxShadow: `0 0 15px -5px ${getStatusColor(attempt.percentage)}`
                             }}>
-                                <span style={{ fontSize: '2rem', fontWeight: '800' }}>{Math.round(attempt.percentage)}%</span>
-                                <span style={{ fontSize: '0.75rem', opacity: 0.7 }}>SCORE</span>
+                                <span style={{ fontSize: '1.75rem', fontWeight: '800' }}>{Math.round(attempt.percentage)}%</span>
+                                <span style={{ fontSize: '0.7rem', opacity: 0.7 }}>SCORE</span>
                             </div>
-                            <h3 style={{ fontSize: '1.5rem' }}>{candidate?.name}</h3>
-                            <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>{candidate?.email}</p>
+                            <h3 style={{ fontSize: '1.25rem' }}>{candidate?.name}</h3>
+                            <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{candidate?.email}</p>
                         </div>
 
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                <div style={{ padding: '0.5rem', background: 'rgba(99, 102, 241, 0.1)', borderRadius: '0.5rem', color: 'var(--primary)' }}>
-                                    <Book size={18} />
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                <div style={{ padding: '0.4rem', background: 'rgba(99, 102, 241, 0.1)', borderRadius: '0.5rem', color: 'var(--primary)' }}>
+                                    <Book size={16} />
                                 </div>
-                                <div>
-                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Assessment</p>
-                                    <p style={{ fontWeight: '600', fontSize: '0.9rem' }}>{exam?.title}</p>
-                                </div>
-                            </div>
-
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                <div style={{ padding: '0.5rem', background: 'rgba(16, 185, 129, 0.1)', borderRadius: '0.5rem', color: 'var(--accent)' }}>
-                                    <BarChart3 size={18} />
-                                </div>
-                                <div>
-                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Raw Score</p>
-                                    <p style={{ fontWeight: '600', fontSize: '0.9rem' }}>{attempt.score} / {attempt.total_questions} Correct</p>
+                                <div style={{ minWidth: 0 }}>
+                                    <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', margin: 0 }}>Assessment</p>
+                                    <p style={{ fontWeight: '600', fontSize: '0.85rem', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{exam?.title}</p>
                                 </div>
                             </div>
 
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                <div style={{ padding: '0.5rem', background: 'rgba(245, 158, 11, 0.1)', borderRadius: '0.5rem', color: 'var(--warning)' }}>
-                                    <Clock size={18} />
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                <div style={{ padding: '0.4rem', background: 'rgba(16, 185, 129, 0.1)', borderRadius: '0.5rem', color: 'var(--accent)' }}>
+                                    <BarChart3 size={16} />
                                 </div>
                                 <div>
-                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Completed On</p>
-                                    <p style={{ fontWeight: '600', fontSize: '0.9rem' }}>{new Date(attempt.completed_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}</p>
+                                    <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', margin: 0 }}>Raw Score</p>
+                                    <p style={{ fontWeight: '600', fontSize: '0.85rem', margin: 0 }}>{attempt.score} / {attempt.total_questions}</p>
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                <div style={{ padding: '0.4rem', background: 'rgba(245, 158, 11, 0.1)', borderRadius: '0.5rem', color: 'var(--warning)' }}>
+                                    <Clock size={16} />
+                                </div>
+                                <div style={{ minWidth: 0 }}>
+                                    <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', margin: 0 }}>Completed On</p>
+                                    <p style={{ fontWeight: '600', fontSize: '0.85rem', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{new Date(attempt.completed_at).toLocaleDateString()}</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div style={{ marginTop: '2.5rem', padding: '1.25rem', background: attempt.percentage >= 90 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)', borderRadius: '1rem', textAlign: 'center', border: `1px solid ${attempt.percentage >= 90 ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}` }}>
-                            <p style={{ fontWeight: '700', color: attempt.percentage >= 90 ? 'var(--accent)' : 'var(--danger)', fontSize: '0.85rem', letterSpacing: '1px' }}>
-                                {attempt.percentage >= 90 ? 'RECOMMENDED FOR PROCEEDING' : 'DID NOT MEET THE THRESHOLD'}
+                        <div style={{ marginTop: '2rem', padding: '1rem', background: attempt.percentage >= 90 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)', borderRadius: '0.8rem', textAlign: 'center', border: `1px solid ${attempt.percentage >= 90 ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}` }}>
+                            <p style={{ fontWeight: '700', color: attempt.percentage >= 90 ? 'var(--accent)' : 'var(--danger)', fontSize: '0.75rem', letterSpacing: '0.5px', margin: 0 }}>
+                                {attempt.percentage >= 90 ? 'RECO. FOR PROCEEDING' : 'THRESHOLD NOT MET'}
                             </p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
     );
 };
 
