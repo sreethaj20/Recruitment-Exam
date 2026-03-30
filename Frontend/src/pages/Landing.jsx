@@ -22,45 +22,46 @@ const Landing = () => {
     };
 
     return (
-        <div className="container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', textAlign: 'center' }}>
+        <div className="container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', textAlign: 'center', paddingBottom: '2rem' }}>
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
+                style={{ width: '100%' }}
             >
-                <h1 style={{ fontSize: '3.5rem', marginBottom: '1rem' }}>
+                <h1 style={{ fontSize: 'var(--h1-size)', marginBottom: '1rem' }}>
                     <span className="gradient-text">Merit Matters</span>
                 </h1>
-                <p style={{ color: 'var(--text-muted)', fontSize: '1.25rem', marginBottom: '3rem', maxWidth: '600px' }}>
+                <p style={{ color: 'var(--text-muted)', fontSize: 'clamp(1rem, 4vw, 1.25rem)', marginBottom: '3rem', maxWidth: '600px', marginInline: 'auto' }}>
                     Welcome to our secure examination portal. Please select your role to proceed.
                 </p>
             </motion.div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem', width: '100%', maxWidth: '900px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 350px), 1fr))', gap: '1.5rem', width: '100%', maxWidth: '900px' }}>
                 {/* Candidate Card */}
                 <motion.div
                     whileHover={{ y: -10 }}
                     className="glass card"
                     style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
                 >
-                    <div className="gradient-bg" style={{ width: '50px', height: '50px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div className="gradient-bg" style={{ width: '50px', height: '50px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                         <Briefcase color="white" />
                     </div>
                     <div>
-                        <h3>Candidates</h3>
+                        <h3 style={{ fontSize: 'var(--h3-size)' }}>Candidates</h3>
                         <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.5rem' }}>
                             Have an invitation code? Enter it below to start your application and assessment.
                         </p>
                     </div>
-                    <form onSubmit={handleCandidateAccess} style={{ display: 'flex', gap: '0.5rem' }}>
+                    <form onSubmit={handleCandidateAccess} style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                         <input
                             type="text"
                             placeholder="Enter invite code..."
                             value={inviteToken}
                             onChange={(e) => setInviteToken(e.target.value)}
-                            style={{ flex: 1 }}
+                            style={{ flex: '1 1 200px' }}
                         />
-                        <button type="submit" className="primary" style={{ padding: '0.75rem' }}>
+                        <button type="submit" className="primary" style={{ padding: '0.75rem', flex: '0 0 auto' }}>
                             <ArrowRight size={20} />
                         </button>
                     </form>
@@ -72,11 +73,11 @@ const Landing = () => {
                     className="glass card"
                     style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
                 >
-                    <div style={{ background: 'var(--secondary)', width: '50px', height: '50px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ background: 'var(--secondary)', width: '50px', height: '50px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                         <ShieldCheck color="white" />
                     </div>
                     <div>
-                        <h3>Administration</h3>
+                        <h3 style={{ fontSize: 'var(--h3-size)' }}>Administration</h3>
                         <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.5rem' }}>
                             Access the HR dashboard to manage exams, invite candidates, and review assessment results.
                         </p>
@@ -91,7 +92,7 @@ const Landing = () => {
                 </motion.div>
             </div>
 
-            <footer style={{ marginTop: '5rem', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+            <footer style={{ marginTop: 'clamp(2rem, 10vh, 5rem)', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
                 &copy; 2026 Online Recruitment Examination System. Secure & Verified.
             </footer>
         </div>

@@ -580,32 +580,42 @@ const TestInterface = () => {
     });
 
     return (
-        <div ref={containerRef} style={{ height: '100vh', overflowY: 'auto', background: 'var(--bg)', color: 'var(--text)' }}>
-            <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '2rem', filter: !isFullscreen ? 'blur(10px)' : 'none', pointerEvents: !isFullscreen ? 'none' : 'auto' }}>
+        <div ref={containerRef} style={{ height: '100vh', overflowY: 'auto', background: 'var(--bg-deep)', color: 'var(--text-main)' }}>
+            <div style={{ padding: 'clamp(1rem, 3vw, 2rem)', display: 'flex', flexDirection: 'column', gap: 'clamp(1rem, 3vw, 2rem)', filter: !isFullscreen ? 'blur(10px)' : 'none', pointerEvents: !isFullscreen ? 'none' : 'auto' }}>
                 {/* Header */}
-                <header className="glass container" style={{ padding: '1rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: '1rem', zIndex: 10 }}>
-                    <div>
-                        <h3 style={{ fontSize: '1.25rem' }}>{exam.title}</h3>
-                        <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Question {currentQuestionIndex + 1} of {questions.length}</p>
+                <header className="glass container" style={{ 
+                    padding: 'clamp(0.75rem, 2vw, 1rem) clamp(1rem, 3vw, 2rem)', 
+                    display: 'flex', 
+                    flexWrap: 'wrap',
+                    justifyContent: 'space-between', 
+                    alignItems: 'center', 
+                    position: 'sticky', 
+                    top: '1rem', 
+                    zIndex: 10,
+                    gap: '1rem'
+                }}>
+                    <div style={{ flex: '1 1 auto', minWidth: '150px' }}>
+                        <h3 style={{ fontSize: 'clamp(1rem, 4vw, 1.25rem)', margin: 0 }}>{exam.title}</h3>
+                        <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', margin: 0 }}>Question {currentQuestionIndex + 1} of {questions.length}</p>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                        <div className="glass" style={{ padding: '0.5rem 1.25rem', borderRadius: '2rem', display: 'flex', alignItems: 'center', gap: '0.75rem', border: timeLeft < 60 ? '1px solid var(--danger)' : '1px solid var(--glass-border)' }}>
-                            <Clock size={20} color={timeLeft < 60 ? 'var(--danger)' : 'var(--primary)'} />
-                            <span style={{ fontWeight: '700', fontSize: '1.1rem', color: timeLeft < 60 ? 'var(--danger)' : 'white' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(0.75rem, 2vw, 1.5rem)', flexWrap: 'wrap', justifyContent: 'flex-end', flex: '1 1 auto' }}>
+                        <div className="glass" style={{ padding: '0.4rem 1rem', borderRadius: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', border: timeLeft < 60 ? '1px solid var(--danger)' : '1px solid var(--glass-border)' }}>
+                            <Clock size={18} color={timeLeft < 60 ? 'var(--danger)' : 'var(--primary)'} />
+                            <span style={{ fontWeight: '700', fontSize: 'clamp(0.9rem, 3vw, 1.1rem)', color: timeLeft < 60 ? 'var(--danger)' : 'white' }}>
                                 {formatTime(timeLeft)}
                             </span>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <div style={{ fontSize: '0.875rem', whiteSpace: 'nowrap' }}>
                             {Object.keys(answers).filter(id => {
                                 const q = questions.find(question => question.id === id);
                                 if (!q) return false;
                                 if (q.type === 'text' || q.type === 'fill_in_the_blank') return answers[id]?.trim().length > 0;
                                 return answers[id] !== undefined && answers[id] !== null;
-                            }).length} / {questions.length} Answered
+                            }).length} / {questions.length} <span style={{ display: 'inline', opacity: 0.8 }}>Answered</span>
                         </div>
 
-                        <div style={{ display: 'flex', gap: '1rem' }}>
+                        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                             {exam?.resource_url && (
                                 <button
                                     className="secondary"
@@ -616,12 +626,13 @@ const TestInterface = () => {
                                     style={{
                                         display: 'flex',
                                         alignItems: 'center',
-                                        gap: '0.75rem',
-                                        padding: '0.5rem 1.25rem',
-                                        borderRadius: '2rem'
+                                        gap: '0.5rem',
+                                        padding: '0.4rem 1rem',
+                                        borderRadius: '2rem',
+                                        fontSize: '0.875rem'
                                     }}
                                 >
-                                    <BookOpen size={20} /> {exam.resource_1_title || 'Reference Book 1'}
+                                    <BookOpen size={16} /> <span style={{ display: 'inline-block', maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{exam.resource_1_title || 'Ref 1'}</span>
                                 </button>
                             )}
                             {exam?.resource_2_url && (
@@ -634,12 +645,13 @@ const TestInterface = () => {
                                     style={{
                                         display: 'flex',
                                         alignItems: 'center',
-                                        gap: '0.75rem',
-                                        padding: '0.5rem 1.25rem',
-                                        borderRadius: '2rem'
+                                        gap: '0.5rem',
+                                        padding: '0.4rem 1rem',
+                                        borderRadius: '2rem',
+                                        fontSize: '0.875rem'
                                     }}
                                 >
-                                    <BookOpen size={20} /> {exam.resource_2_title || 'Reference Book 2'}
+                                    <BookOpen size={16} /> <span style={{ display: 'inline-block', maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{exam.resource_2_title || 'Ref 2'}</span>
                                 </button>
                             )}
                         </div>
@@ -650,11 +662,13 @@ const TestInterface = () => {
                             style={{
                                 opacity: isAllAnswered ? 1 : 0.5,
                                 cursor: isAllAnswered ? 'pointer' : 'not-allowed',
-                                filter: isAllAnswered ? 'none' : 'grayscale(0.5)'
+                                filter: isAllAnswered ? 'none' : 'grayscale(0.5)',
+                                padding: '0.5rem 1.25rem',
+                                fontSize: '0.9rem'
                             }}
                             title={isAllAnswered ? "Submit Test" : "Please answer all questions before submitting"}
                         >
-                            Submit Test
+                            Submit
                         </button>
                     </div>
                 </header>
@@ -663,8 +677,8 @@ const TestInterface = () => {
                 <main className="container" style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
                     <div style={{ width: '100%', maxWidth: '800px', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
 
-                        <div className="card glass fade-in" style={{ padding: '3rem' }}>
-                            <h2 style={{ marginBottom: '2.5rem', lineHeight: '1.4' }}>{currentQuestion.text}</h2>
+                        <div className="card glass fade-in" style={{ padding: 'clamp(1.5rem, 5vw, 3rem)' }}>
+                            <h2 style={{ marginBottom: 'clamp(1.5rem, 5vw, 2.5rem)', lineHeight: '1.4', fontSize: 'clamp(1.25rem, 5vw, 1.75rem)' }}>{currentQuestion.text}</h2>
 
                             {currentQuestion.type === 'text' ? (
                                 <div className="fade-in">
@@ -676,11 +690,11 @@ const TestInterface = () => {
                                         onChange={(e) => handleAnswerSelect(currentQuestion.id, e.target.value)}
                                         style={{
                                             width: '100%',
-                                            padding: '1.5rem',
+                                            padding: '1.25rem',
                                             borderRadius: '1rem',
                                             background: 'var(--glass-bg)',
                                             border: '1px solid var(--glass-border)',
-                                            fontSize: '1.1rem',
+                                            fontSize: '1rem',
                                             lineHeight: '1.6',
                                             resize: 'none',
                                             transition: 'all 0.3s ease',
@@ -693,7 +707,7 @@ const TestInterface = () => {
                                     </p>
                                 </div>
                             ) : currentQuestion.type === 'fill_in_the_blank' ? (
-                                <div className="fade-in" style={{ fontSize: '1.25rem', lineHeight: '1.8' }}>
+                                <div className="fade-in" style={{ fontSize: 'clamp(1.1rem, 4vw, 1.25rem)', lineHeight: '1.8' }}>
                                     {(() => {
                                         const parts = currentQuestion.text.split('________');
                                         if (parts.length > 1) {
@@ -709,8 +723,8 @@ const TestInterface = () => {
                                                             borderRadius: '0.5rem',
                                                             background: 'var(--glass-bg)',
                                                             border: '2px solid var(--primary)',
-                                                            fontSize: '1.1rem',
-                                                            width: '200px',
+                                                            fontSize: '1rem',
+                                                            width: 'clamp(150px, 40vw, 200px)',
                                                             color: 'white'
                                                         }}
                                                         placeholder="answer..."
@@ -721,7 +735,6 @@ const TestInterface = () => {
                                         }
                                         return (
                                             <div>
-                                                <h2 style={{ marginBottom: '2rem' }}>{currentQuestion.text}</h2>
                                                 <input
                                                     type="text"
                                                     value={answers[currentQuestion.id] || ''}
@@ -753,25 +766,26 @@ const TestInterface = () => {
                                                 onClick={() => handleAnswerSelect(currentQuestion.id, idx)}
                                                 className="glass"
                                                 style={{
-                                                    padding: '1.25rem 1.5rem',
+                                                    padding: '1rem 1.25rem',
                                                     borderRadius: '1rem',
                                                     cursor: 'pointer',
                                                     display: 'flex',
                                                     alignItems: 'center',
-                                                    gap: '1.25rem',
+                                                    gap: '1rem',
                                                     border: isSelected ? '2px solid var(--primary)' : '1px solid var(--glass-border)',
                                                     background: isSelected ? 'rgba(99, 102, 241, 0.1)' : 'var(--glass-bg)',
                                                     transition: 'all 0.2s ease'
                                                 }}
                                             >
                                                 <div style={{
-                                                    width: '24px',
-                                                    height: '24px',
+                                                    width: '20px',
+                                                    height: '20px',
                                                     borderRadius: '50%',
                                                     border: isSelected ? '6px solid var(--primary)' : '2px solid var(--glass-border)',
-                                                    background: 'transparent'
+                                                    background: 'transparent',
+                                                    flexShrink: 0
                                                 }}></div>
-                                                <span style={{ fontSize: '1.1rem', fontWeight: isSelected ? '600' : '400' }}>{option}</span>
+                                                <span style={{ fontSize: 'clamp(0.95rem, 3.5vw, 1.1rem)', fontWeight: isSelected ? '600' : '400' }}>{option}</span>
                                             </motion.div>
                                         );
                                     })}
@@ -779,59 +793,62 @@ const TestInterface = () => {
                             )}
                         </div>
 
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', paddingBottom: '2rem' }}>
                             <button
                                 className="secondary"
                                 disabled={currentQuestionIndex === 0}
                                 onClick={() => setCurrentQuestionIndex(prev => prev - 1)}
-                                style={{ opacity: currentQuestionIndex === 0 ? 0.5 : 1 }}
+                                style={{ 
+                                    opacity: currentQuestionIndex === 0 ? 0.5 : 1,
+                                    padding: '0.6rem 1rem',
+                                    fontSize: '0.9rem'
+                                }}
                             >
-                                <ChevronLeft size={20} /> Previous
+                                <ChevronLeft size={18} /> <span style={{ display: 'inline' }}>Prev</span>
                             </button>
 
-                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'center', maxWidth: '50%' }}>
                                 {questions.map((q, idx) => {
                                     const isAnswered = q.type === 'text' || q.type === 'fill_in_the_blank'
                                         ? answers[q.id]?.trim().length > 0
                                         : answers[q.id] !== undefined && answers[q.id] !== null;
+                                    const isCurrent = idx === currentQuestionIndex;
+                                    
+                                    // Limit visible dots on very small screens
+                                    if (questions.length > 10 && (idx < currentQuestionIndex - 3 || idx > currentQuestionIndex + 3)) return null;
+
                                     return (
                                         <div
                                             key={idx}
+                                            onClick={() => setCurrentQuestionIndex(idx)}
                                             style={{
-                                                width: '8px',
-                                                height: '8px',
+                                                width: '10px',
+                                                height: '10px',
                                                 borderRadius: '50%',
-                                                background: currentQuestionIndex === idx ? 'var(--primary)' : (isAnswered ? 'var(--accent)' : 'var(--glass-border)'),
-                                                border: isAnswered ? 'none' : '1px solid var(--glass-border)',
-                                                transition: 'all 0.3s ease'
+                                                background: isCurrent ? 'var(--primary)' : (isAnswered ? 'rgba(16, 185, 129, 0.4)' : 'rgba(255,255,255,0.1)'),
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s'
                                             }}
                                         />
                                     );
                                 })}
                             </div>
 
-                            {isLastQuestion ? (
-                                <button
-                                    className="primary"
-                                    onClick={isAllAnswered ? () => handleSubmit() : undefined}
-                                    style={{
-                                        background: isAllAnswered ? 'var(--accent)' : 'var(--text-muted)',
-                                        opacity: isAllAnswered ? 1 : 0.6,
-                                        cursor: isAllAnswered ? 'pointer' : 'not-allowed'
-                                    }}
-                                    title={isAllAnswered ? "Final Submission" : "Please answer all questions before submitting"}
-                                >
-                                    Final Submission <Send size={18} style={{ marginLeft: '0.5rem' }} />
-                                </button>
-                            ) : (
-                                <button className="secondary" onClick={() => setCurrentQuestionIndex(prev => prev + 1)}>
-                                    Next Question <ChevronRight size={20} style={{ marginLeft: '0.5rem' }} />
-                                </button>
-                            )}
+                            <button
+                                className="primary"
+                                disabled={isLastQuestion}
+                                onClick={() => setCurrentQuestionIndex(prev => prev + 1)}
+                                style={{ 
+                                    opacity: isLastQuestion ? 0.5 : 1,
+                                    padding: '0.6rem 1rem',
+                                    fontSize: '0.9rem'
+                                }}
+                            >
+                                <span style={{ display: 'inline' }}>Next</span> <ChevronRight size={18} />
+                            </button>
                         </div>
                     </div>
                 </main>
-            </div>
 
             {/* Warning Overlay */}
             <AnimatePresence>
@@ -1255,6 +1272,7 @@ const TestInterface = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
+            </div>
         </div>
     );
 };

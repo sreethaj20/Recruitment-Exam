@@ -134,7 +134,7 @@ const SystemCheck = () => {
         (status.microphone === 'success' || (invitation && !invitation.require_microphone));
 
     return (
-        <div style={{ padding: '4rem 1rem' }}>
+        <div style={{ padding: 'clamp(1rem, 5vh, 4rem) 1rem' }}>
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -143,8 +143,8 @@ const SystemCheck = () => {
             >
                 <div style={{ marginBottom: '2.5rem', textAlign: 'center' }}>
                     <div style={{
-                        width: '64px',
-                        height: '64px',
+                        width: 'clamp(48px, 10vw, 64px)',
+                        height: 'clamp(48px, 10vw, 64px)',
                         background: 'rgba(59, 130, 246, 0.1)',
                         borderRadius: '50%',
                         display: 'flex',
@@ -155,13 +155,13 @@ const SystemCheck = () => {
                     }}>
                         <ShieldCheck size={32} />
                     </div>
-                    <h2 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>System Integrity Check</h2>
+                    <h2 style={{ fontSize: 'var(--h2-size)', marginBottom: '0.5rem' }}>System Integrity Check</h2>
                     <p style={{ color: 'var(--text-muted)' }}>
                         Ensure your devices are working properly for the proctored examination.
                     </p>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2.5rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '2.5rem' }}>
                     {/* Camera Preview (Only shown if required) */}
                     {invitation?.require_camera !== false && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -191,10 +191,11 @@ const SystemCheck = () => {
                                         alignItems: 'center',
                                         justifyContent: 'center',
                                         color: 'rgba(255,255,255,0.3)',
-                                        gap: '1rem'
+                                        gap: '1rem',
+                                        padding: '1rem'
                                     }}>
                                         <Camera size={48} />
-                                        <span>Camera preview unavailable</span>
+                                        <span style={{ textAlign: 'center', fontSize: '0.9rem' }}>Camera preview unavailable</span>
                                     </div>
                                 )}
                             </div>
@@ -233,7 +234,8 @@ const SystemCheck = () => {
                                         padding: '0.75rem',
                                         background: status.camera === 'success' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(255,255,255,0.05)',
                                         borderRadius: '0.75rem',
-                                        color: status.camera === 'success' ? '#10b981' : 'var(--text-muted)'
+                                        color: status.camera === 'success' ? '#10b981' : 'var(--text-muted)',
+                                        flexShrink: 0
                                     }}>
                                         <Camera size={24} />
                                     </div>
@@ -244,9 +246,9 @@ const SystemCheck = () => {
                                         </p>
                                     </div>
                                     {status.camera === 'success' ? (
-                                        <CheckCircle size={24} style={{ color: '#10b981' }} />
+                                        <CheckCircle size={24} style={{ color: '#10b981', flexShrink: 0 }} />
                                     ) : (
-                                        <XCircle size={24} style={{ color: '#ef4444' }} />
+                                        <XCircle size={24} style={{ color: '#ef4444', flexShrink: 0 }} />
                                     )}
                                 </div>
                             )}
@@ -265,7 +267,8 @@ const SystemCheck = () => {
                                         padding: '0.75rem',
                                         background: status.microphone === 'success' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(255,255,255,0.05)',
                                         borderRadius: '0.75rem',
-                                        color: status.microphone === 'success' ? '#10b981' : 'var(--text-muted)'
+                                        color: status.microphone === 'success' ? '#10b981' : 'var(--text-muted)',
+                                        flexShrink: 0
                                     }}>
                                         <Mic size={24} />
                                     </div>
@@ -276,9 +279,9 @@ const SystemCheck = () => {
                                         </p>
                                     </div>
                                     {status.microphone === 'success' ? (
-                                        <CheckCircle size={24} style={{ color: '#10b981' }} />
+                                        <CheckCircle size={24} style={{ color: '#10b981', flexShrink: 0 }} />
                                     ) : (
-                                        <XCircle size={24} style={{ color: '#ef4444' }} />
+                                        <XCircle size={24} style={{ color: '#ef4444', flexShrink: 0 }} />
                                     )}
                                 </div>
                             )}
@@ -313,7 +316,8 @@ const SystemCheck = () => {
                                 padding: '1rem',
                                 borderRadius: '0.75rem',
                                 cursor: 'pointer',
-                                transition: 'all 0.2s'
+                                transition: 'all 0.2s',
+                                width: '100%'
                             }}
                         >
                             <RefreshCw size={18} className={isChecking ? 'spin' : ''} />
@@ -322,19 +326,20 @@ const SystemCheck = () => {
                     </div>
                 </div>
 
-                <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'center' }}>
+                <div style={{ marginTop: 'clamp(2rem, 5vh, 3rem)', paddingTop: '2rem', borderTop: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'center' }}>
                     <button
                         onClick={handleStartExam}
                         disabled={!isSystemReady}
                         className="primary"
                         style={{
-                            padding: '1rem 3rem',
+                            padding: '1rem clamp(1.5rem, 5vw, 3rem)',
                             opacity: isSystemReady ? 1 : 0.5,
                             cursor: isSystemReady ? 'pointer' : 'not-allowed',
                             display: 'flex',
                             alignItems: 'center',
                             gap: '1rem',
-                            fontSize: '1.125rem'
+                            fontSize: 'clamp(1rem, 4vw, 1.125rem)',
+                            width: 'min(100%, 400px)'
                         }}
                     >
                         Start Exam <ArrowRight size={20} />
