@@ -32,6 +32,13 @@ const TestInterface = () => {
     const [isFullscreen, setIsFullscreen] = useState(false);
     const containerRef = useRef(null);
     const [isModelsLoaded, setIsModelsLoaded] = useState(false);
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
     const violationCheckRef = useRef({
         face: 0,
         faceStrikes: 0,
@@ -581,7 +588,14 @@ const TestInterface = () => {
 
     return (
         <div ref={containerRef} style={{ height: '100vh', overflowY: 'auto', background: 'var(--bg-deep)', color: 'var(--text-main)' }}>
-            <div style={{ padding: 'clamp(1rem, 3vw, 2rem)', display: 'flex', flexDirection: 'column', gap: 'clamp(1rem, 3vw, 2rem)', filter: !isFullscreen ? 'blur(10px)' : 'none', pointerEvents: !isFullscreen ? 'none' : 'auto' }}>
+            <div style={{ 
+                padding: 'clamp(1rem, 3vw, 2rem)', 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: 'clamp(1rem, 3vw, 2rem)', 
+                filter: (!isFullscreen && !isMobile) ? 'blur(10px)' : 'none', 
+                pointerEvents: (!isFullscreen && !isMobile) ? 'none' : 'auto' 
+            }}>
                 {/* Header */}
                 <header className="glass container" style={{ 
                     padding: 'clamp(0.75rem, 2vw, 1rem) clamp(1rem, 3vw, 2rem)', 
@@ -1083,7 +1097,7 @@ const TestInterface = () => {
 
             {/* Fullscreen Requirement Overlay */}
             <AnimatePresence>
-                {!isFullscreen && !isSubmitting && (
+                {!isFullscreen && !isSubmitting && !isMobile && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
