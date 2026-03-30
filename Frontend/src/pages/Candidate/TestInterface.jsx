@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, AlertTriangle, ChevronLeft, ChevronRight, Send, AlertCircle, Users, Camera, BookOpen, X, Plus } from 'lucide-react';
+import { Clock, AlertTriangle, ChevronLeft, ChevronRight, Send, AlertCircle, Users, Camera, BookOpen, X, Plus, CheckCircle } from 'lucide-react';
 import { useStore } from '../../store';
 import useTabVisibility from '../../hooks/useTabVisibility';
 import { examAPI, attemptAPI, proctoringAPI } from '../../services/api';
