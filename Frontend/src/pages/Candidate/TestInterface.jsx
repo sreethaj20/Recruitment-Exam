@@ -286,7 +286,16 @@ const TestInterface = () => {
 
                 setExam(assessmentData);
                 setQuestions(assessmentData.Questions || []);
-                setTimeLeft(assessmentData.duration_minutes * 60);
+                
+                // Absolute Timer Logic: Use sessionStorage to keep a stable end time
+                let endTime = sessionStorage.getItem(`exam_end_time_${token}`);
+                if (!endTime) {
+                    endTime = Date.now() + (assessmentData.duration_minutes * 60 * 1000);
+                    sessionStorage.setItem(`exam_end_time_${token}`, endTime);
+                }
+                
+                const remaining = Math.max(0, Math.floor((endTime - Date.now()) / 1000));
+                setTimeLeft(remaining);
                 setAttemptId(attempt.id);
             } catch (err) {
                 console.error("Test initialization error:", err);
@@ -297,22 +306,26 @@ const TestInterface = () => {
         initializeTest();
     }, [token, navigate, db.exams]);
 
-    // Timer Logic
+    // Timer Logic: Sync with absolute end time
     useEffect(() => {
-        if (timeLeft === null || timeLeft <= 0 || isSubmitting) {
-            if (timeLeft === 0 && examRef.current) {
-                console.log("Proctoring: Time limit reached. Submitting...");
-                handleSubmitRef.current();
-            }
-            return;
-        }
+        if (timeLeft === null || isSubmitting) return;
 
         const timer = setInterval(() => {
-            setTimeLeft(prev => prev - 1);
+            const endTime = sessionStorage.getItem(`exam_end_time_${token}`);
+            if (endTime) {
+                const remaining = Math.max(0, Math.floor((endTime - Date.now()) / 1000));
+                setTimeLeft(remaining);
+                
+                if (remaining <= 0) {
+                    clearInterval(timer);
+                    console.log("Proctoring: Time limit reached. Submitting...");
+                    if (handleSubmitRef.current) handleSubmitRef.current('Auto-submitted: Time limit reached');
+                }
+            }
         }, 1000);
 
         return () => clearInterval(timer);
-    }, [timeLeft, isSubmitting]);
+    }, [token, isSubmitting, timeLeft === null]); // Initial trigger
 
     useTabVisibility((count) => {
         console.log(`Proctoring: Visibility violation detected (Count: ${count})`);
