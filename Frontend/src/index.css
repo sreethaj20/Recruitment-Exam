@@ -89,31 +89,79 @@ body {
     /* Admin Specific Responsiveness */
     .admin-layout {
         flex-direction: column !important;
+        position: relative;
     }
 
     .admin-sidebar {
-        width: calc(100% - 2rem) !important;
-        margin: 1rem !important;
-        position: static !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: -300px !important; /* Start off-screen */
+        width: 280px !important;
+        height: 100vh !important;
+        margin: 0 !important;
+        border-radius: 0 1.5rem 1.5rem 0 !important;
+        z-index: 1000 !important;
+        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
         max-height: none !important;
+        box-shadow: 20px 0 50px rgba(0,0,0,0.5) !important;
+    }
+
+    .admin-sidebar.open {
+        left: 0 !important;
+    }
+
+    .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
+        z-index: 999;
+        display: block;
     }
 
     .admin-main {
         padding: 1rem !important;
+        width: 100% !important;
     }
 
     .admin-header {
-        flex-direction: column;
-        align-items: flex-start !important;
+        flex-direction: row !important; /* Keep horizontal on mobile if we have toggle */
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 0.5rem 0;
+    }
+
+    .admin-header-left {
+        display: flex;
+        align-items: center;
         gap: 1rem;
     }
 
+    .mobile-only {
+        display: flex !important;
+    }
+
+    .desktop-only {
+        display: none !important;
+    }
     .stats-grid {
         grid-template-columns: 1fr !important;
     }
 
     .performance-grid {
         grid-template-columns: 1fr !important;
+    }
+}
+
+@media (min-width: 481px) {
+    .mobile-only {
+        display: none !important;
+    }
+    .desktop-only {
+        display: flex !important;
     }
 }
 

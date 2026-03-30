@@ -30,7 +30,7 @@ const SuccessPage = () => {
                     marginBottom: '1.5rem',
                     background: 'var(--accent)'
                 }}>
-                    <ShieldCheck size={clamp(32, 40)} color="white" />
+                    <ShieldCheck size={40} color="white" />
                 </div>
 
                 <h1 style={{ marginBottom: '1rem', color: 'var(--accent)', fontSize: 'clamp(1.5rem, 6vw, 2.25rem)' }}>

@@ -149,7 +149,7 @@ const ExamLanding = () => {
                 style={{ maxWidth: '600px', width: '100%', padding: 'clamp(1.25rem, 5vw, 2rem)' }}
             >
                 <div className="gradient-bg" style={{ padding: 'clamp(1.5rem, 5vw, 2.5rem)', borderRadius: '1rem', marginBottom: '1.5rem', textAlign: 'center', color: 'white' }}>
-                    <BookOpen size={clamp(32, 40)} style={{ marginBottom: '0.75rem' }} />
+                    <BookOpen size={40} style={{ marginBottom: '0.75rem' }} />
                     <h2 style={{ fontSize: 'clamp(1.25rem, 6vw, 1.75rem)', lineHeight: '1.2' }}>{exam.title}</h2>
                     <p style={{ opacity: 0.9, fontSize: '0.9rem', marginTop: '0.5rem' }}>Merit Matters</p>
                 </div>
