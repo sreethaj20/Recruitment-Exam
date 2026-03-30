@@ -205,6 +205,9 @@ const TestInterface = () => {
     // Anti-Cheating Handler
     const onViolation = useCallback((count) => {
         if (isSubmittingRef.current || showCPTModalRef.current) return;
+        
+        const isInternal = examRef.current?.test_type === 'internal';
+        if (isInternal && isMobile) return; // Bypass for internal mobile tests
 
         const now = Date.now();
         if (now - violationCheckRef.current.lastTabViolation < 1500) return;
@@ -235,7 +238,9 @@ const TestInterface = () => {
             setIsFullscreen(isFull);
 
             // Only count exits if they have actually entered once
+            const isInternal = examRef.current?.test_type === 'internal';
             if (!isFull && !isSubmittingRef.current && !showCPTModalRef.current && examRef.current && violationCheckRef.current.hasEnteredFullscreen) {
+                if (isInternal && isMobile) return; // Bypass for internal mobile tests
                 const now = Date.now();
                 if (now - violationCheckRef.current.lastFullscreenViolation < 1500) return;
                 violationCheckRef.current.lastFullscreenViolation = now;
@@ -455,7 +460,7 @@ const TestInterface = () => {
                     }
 
                     // 4. Noise Detection (Safe Monitoring) - ONLY IF REQUIRED
-                    if (actualMicReq && !isSubmittingRef.current) {
+                    if (actualMicReq && !isSubmittingRef.current && !(isInternal && isMobile)) {
                         try {
                             if (!audioContextRef.current) {
                                 audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
