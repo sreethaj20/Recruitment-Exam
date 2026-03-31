@@ -212,20 +212,8 @@ const TestInterface = () => {
 
     // Anti-Cheating Handler
     const onViolation = useCallback((count) => {
-        if (isSubmittingRef.current || showCPTModalRef.current) return;
-        
-        const isInternal = examRef.current?.test_type === 'internal';
-        if (isInternal && isMobile) return; // Bypass only for internal mobile tests
-
-        const now = Date.now();
-        if (now - violationCheckRef.current.lastTabViolation < 1500) return;
-        violationCheckRef.current.lastTabViolation = now;
-
-        setTabSwitchCount(count);
-        console.log(`Proctoring: Tab switch detected.`);
-
-        // VIOLATION REMOVED: Strikes and auto-submission disabled
-        setShowWarning(true);
+        // TAB VIOLATION REMOVED: No warnings, no strikes, no interruption.
+        console.log(`Proctoring: Visibility change detected.`);
     }, []);
 
     // Prevent back button
@@ -867,40 +855,6 @@ const TestInterface = () => {
                     </div>
                 </main>
 
-            {/* Warning Overlay */}
-            <AnimatePresence>
-                {showWarning && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        style={{
-                            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                            background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            zIndex: 5000, padding: 'clamp(1rem, 5vw, 2rem)'
-                        }}
-                    >
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            className="glass card"
-                            style={{ width: '100%', maxWidth: '450px', textAlign: 'center', border: '1px solid var(--warning)', padding: 'clamp(1.5rem, 5vw, 2.5rem)' }}
-                        >
-                            <AlertTriangle size={64} color="var(--warning)" style={{ marginBottom: '1.5rem' }} />
-                            <h2 style={{ color: 'var(--warning)', marginBottom: '1rem' }}>Security Warning!</h2>
-                            <p style={{ marginBottom: '2rem', lineHeight: '1.6' }}>
-                                You have switched away from the examination window. This is strictly prohibited.
-                                <br /><br />
-                                <strong>Please remain within the examination window</strong> to maintain examination integrity. Focus on your assessment.
-                            </p>
-                            <button className="primary" style={{ background: 'var(--warning)', width: '100%' }} onClick={() => setShowWarning(false)}>
-                                I Understand, Continue
-                            </button>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
             {/* Face Detection Warning Overlay */}
             <AnimatePresence>
                 {showFaceWarning && (
