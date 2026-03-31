@@ -593,8 +593,8 @@ const TestInterface = () => {
                 display: 'flex', 
                 flexDirection: 'column', 
                 gap: 'clamp(1rem, 3vw, 2rem)', 
-                filter: (!isFullscreen && !isMobile) ? 'blur(10px)' : 'none', 
-                pointerEvents: (!isFullscreen && !isMobile) ? 'none' : 'auto' 
+                filter: 'none', 
+                pointerEvents: 'auto' 
             }}>
                 {/* Header */}
                 <header className="glass container" style={{ 
@@ -1098,59 +1098,6 @@ const TestInterface = () => {
                 )}
             </AnimatePresence>
 
-            {/* Fullscreen Requirement Overlay */}
-            <AnimatePresence>
-                {!isFullscreen && !isSubmitting && !isMobile && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        style={{
-                            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                            background: 'rgba(0,0,0,0.95)', backdropFilter: 'blur(20px)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            zIndex: 3000, padding: 'clamp(1rem, 5vw, 2rem)'
-                        }}
-                    >
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            className="glass card"
-                            style={{ width: '100%', maxWidth: '500px', textAlign: 'center', border: violationCheckRef.current.hasEnteredFullscreen ? '1px solid var(--warning)' : '1px solid var(--primary)', padding: 'clamp(1.5rem, 5vw, 2.5rem)' }}
-                        >
-                            {violationCheckRef.current.hasEnteredFullscreen ? (
-                                <AlertTriangle size={64} color="var(--warning)" style={{ marginBottom: '1.5rem' }} />
-                            ) : (
-                                <AlertCircle size={64} color="var(--primary)" style={{ marginBottom: '1.5rem' }} />
-                            )}
-
-                            <h2 style={{ marginBottom: '1rem', color: violationCheckRef.current.hasEnteredFullscreen ? 'var(--warning)' : 'inherit' }}>
-                                {violationCheckRef.current.hasEnteredFullscreen ? 'Fullscreen Violation!' : 'Fullscreen Mode Required'}
-                            </h2>
-
-                            <p style={{ marginBottom: '2rem', lineHeight: '1.6', color: 'var(--text-muted)' }}>
-                                {violationCheckRef.current.hasEnteredFullscreen ? (
-                                    <>
-                                        You have exited fullscreen mode. Please re-enter to continue.
-                                        <br /><br />
-                                        Fullscreen mode is <strong>required</strong> to maintain examination integrity.
-                                    </>
-                                ) : (
-                                    <>
-                                        To maintain examination integrity, you must be in fullscreen mode.
-                                        <br />
-                                        Please click the button below to start in fullscreen.
-                                    </>
-                                )}
-                            </p>
-
-                            <button className="primary" style={{ width: '100%', background: violationCheckRef.current.hasEnteredFullscreen ? 'var(--warning)' : 'var(--primary)' }} onClick={enterFullscreen}>
-                                {violationCheckRef.current.hasEnteredFullscreen ? 'Re-enter Fullscreen & Continue' : 'Enter Fullscreen & Start Exam'}
-                            </button>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
 
             {/* CPT Book Modal */}
             <AnimatePresence>
