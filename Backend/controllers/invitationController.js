@@ -60,10 +60,10 @@ const validateToken = async (req, res) => {
             return res.status(404).json({ message: 'Invalid token' });
         }
 
-        // 8 Hours expiration check
+        // 14 Hours expiration check
         const hoursSinceCreation = (new Date() - new Date(invitation.createdAt)) / (1000 * 60 * 60);
-        if (hoursSinceCreation > 8) {
-            return res.status(410).json({ message: 'This invitation link has expired (8 hour limit exceeded)' });
+        if (hoursSinceCreation > 14) {
+            return res.status(410).json({ message: 'This invitation link has expired (14 hour limit exceeded)' });
         }
 
         if (invitation.test_type === 'internal') {
@@ -131,10 +131,10 @@ const getAssessmentData = async (req, res) => {
             return res.status(404).json({ message: 'Invalid token' });
         }
 
-        // 8 Hours expiration check
+        // 14 Hours expiration check
         const hoursSinceCreation = (new Date() - new Date(invitation.createdAt)) / (1000 * 60 * 60);
-        if (hoursSinceCreation > 8) {
-            return res.status(410).json({ message: 'This assessment link has expired (8 hour limit exceeded)' });
+        if (hoursSinceCreation > 14) {
+            return res.status(410).json({ message: 'This assessment link has expired (14 hour limit exceeded)' });
         }
 
         const exam = invitation.Exam.toJSON();

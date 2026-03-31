@@ -131,12 +131,12 @@ const ApplicationForm = () => {
 
                             <div>
                                 <label style={{ fontSize: '0.85rem' }}>Email Address</label>
-                                <input name="email" type="email" value={formData.email} onChange={handleChange} placeholder="john@example.com" required style={{ fontSize: '0.9rem' }} />
+                                <input name="email" type="email" value={formData.email} onChange={handleChange} placeholder="abc@gmail.com" required style={{ fontSize: '0.9rem' }} />
                             </div>
 
                             <div>
                                 <label style={{ fontSize: '0.85rem' }}>Mobile Number</label>
-                                <input name="mobile" value={formData.mobile} onChange={handleChange} placeholder="+1 234 567 890" required style={{ fontSize: '0.9rem' }} />
+                                <input name="mobile" value={formData.mobile} onChange={handleChange} placeholder="9999999999" required style={{ fontSize: '0.9rem' }} />
                             </div>
                         </div>
 
