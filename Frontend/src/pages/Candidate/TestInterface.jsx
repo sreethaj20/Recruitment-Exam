@@ -32,10 +32,16 @@ const TestInterface = () => {
     const [isFullscreen, setIsFullscreen] = useState(false);
     const containerRef = useRef(null);
     const [isModelsLoaded, setIsModelsLoaded] = useState(false);
-    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+    const getIsMobile = () => {
+        return window.innerWidth <= 1024 || 
+               /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+               (window.matchMedia("(pointer: coarse)").matches);
+    };
+
+    const [isMobile, setIsMobile] = useState(getIsMobile());
 
     useEffect(() => {
-        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        const handleResize = () => setIsMobile(getIsMobile());
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
@@ -209,22 +215,17 @@ const TestInterface = () => {
         if (isSubmittingRef.current || showCPTModalRef.current) return;
         
         const isInternal = examRef.current?.test_type === 'internal';
-        if (isInternal && isMobile) return; // Bypass for internal mobile tests
+        if (isInternal && isMobile) return; // Bypass only for internal mobile tests
 
         const now = Date.now();
         if (now - violationCheckRef.current.lastTabViolation < 1500) return;
         violationCheckRef.current.lastTabViolation = now;
 
         setTabSwitchCount(count);
-        violationCheckRef.current.tabStrikes++;
-        console.log(`Proctoring: Tab switch detected. Strike ${violationCheckRef.current.tabStrikes}`);
+        console.log(`Proctoring: Tab switch detected.`);
 
-        if (violationCheckRef.current.tabStrikes <= 2) {
-            setShowWarning(true);
-        } else {
-            console.log("Proctoring: Third tab switch violation. Auto-submitting...");
-            handleSubmitRef.current('Auto-submitted due to security violation (Multiple Tab Switches)');
-        }
+        // VIOLATION REMOVED: Strikes and auto-submission disabled
+        setShowWarning(true);
     }, []);
 
     // Prevent back button
@@ -413,7 +414,8 @@ const TestInterface = () => {
                                 violationCheckRef.current.mic = 0;
                                 console.log("Microphone issue detected.");
                                 // VIOLATION REMOVED: Strikes and auto-submission disabled
-                                setProctoringError(`Microphone issue detected. Please ensure your microphone is enabled and working.`);
+                                // VIOLATION REMOVED: Non-blocking warning instead of setProctoringError
+                                setShowNoiseWarning(true); // Using noise warning as a general non-blocking "check your mic" alert
                             }
                         } else {
                             violationCheckRef.current.mic = 0; // reset if normal
@@ -459,7 +461,8 @@ const TestInterface = () => {
                     }
 
                     // 4. Noise Detection (Safe Monitoring) - ONLY IF REQUIRED
-                    if (actualMicReq && !isSubmittingRef.current && !isMobile) {
+                    // 4. Noise Detection (Safe Monitoring) - ALWAYS ACTIVE FOR SIGNAL, BUT NO STRIKES
+                    if (actualMicReq && !isSubmittingRef.current) {
                         try {
                             if (!audioContextRef.current) {
                                 audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
@@ -889,7 +892,7 @@ const TestInterface = () => {
                             <p style={{ marginBottom: '2rem', lineHeight: '1.6' }}>
                                 You have switched away from the examination window. This is strictly prohibited.
                                 <br /><br />
-                                <strong>Warning {violationCheckRef.current.tabStrikes} of 2:</strong> A third violation will result in an <strong>immediate automatic submission</strong> of your test.
+                                <strong>Please remain within the examination window</strong> to maintain examination integrity. Focus on your assessment.
                             </p>
                             <button className="primary" style={{ background: 'var(--warning)', width: '100%' }} onClick={() => setShowWarning(false)}>
                                 I Understand, Continue
