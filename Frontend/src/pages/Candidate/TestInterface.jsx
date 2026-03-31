@@ -459,7 +459,7 @@ const TestInterface = () => {
                     }
 
                     // 4. Noise Detection (Safe Monitoring) - ONLY IF REQUIRED
-                    if (actualMicReq && !isSubmittingRef.current && !(isInternal && isMobile)) {
+                    if (actualMicReq && !isSubmittingRef.current && !isMobile) {
                         try {
                             if (!audioContextRef.current) {
                                 audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
@@ -590,8 +590,8 @@ const TestInterface = () => {
                 display: 'flex', 
                 flexDirection: 'column', 
                 gap: 'clamp(1rem, 3vw, 2rem)', 
-                filter: (!isFullscreen && (!isMobile || exam?.test_type !== 'internal')) ? 'blur(10px)' : 'none', 
-                pointerEvents: (!isFullscreen && (!isMobile || exam?.test_type !== 'internal')) ? 'none' : 'auto' 
+                filter: (!isFullscreen && !isMobile) ? 'blur(10px)' : 'none', 
+                pointerEvents: (!isFullscreen && !isMobile) ? 'none' : 'auto' 
             }}>
                 {/* Header */}
                 <header className="glass container" style={{ 
@@ -605,7 +605,7 @@ const TestInterface = () => {
                     zIndex: 10,
                     gap: '1rem'
                 }}>
-                    {(!isMobile || exam?.test_type !== 'internal') && (
+                    {!isMobile && (
                         <div style={{ flex: '1 1 auto', minWidth: isMobile ? '100px' : '150px' }}>
                             <h3 style={{ fontSize: 'clamp(0.875rem, 4vw, 1.25rem)', margin: 0, maxWidth: isMobile ? '120px' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{exam.title}</h3>
                             <p style={{ fontSize: isMobile ? '0.75rem' : '0.875rem', color: 'var(--text-muted)', margin: 0 }}>Quest. {currentQuestionIndex + 1}/{questions.length}</p>
@@ -1097,7 +1097,7 @@ const TestInterface = () => {
 
             {/* Fullscreen Requirement Overlay */}
             <AnimatePresence>
-                {!isFullscreen && !isSubmitting && (!isMobile || exam?.test_type !== 'internal') && (
+                {!isFullscreen && !isSubmitting && !isMobile && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
