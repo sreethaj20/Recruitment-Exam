@@ -176,8 +176,8 @@ const ExamLanding = () => {
                     <ul style={{ color: 'var(--text-muted)', fontSize: '0.875rem', display: 'flex', flexDirection: 'column', gap: '0.6rem', paddingLeft: '1.1rem', lineHeight: '1.5' }}>
                         <li>Ensure you have a stable internet connection.</li>
                         <li>Once started, the timer cannot be paused.</li>
-                        <li>Switching tabs or leaving the exam window will result in immediate <strong>automatic submission</strong> of your test.</li>
-                        <li>Do not refresh the page during the examination.</li>
+                        {/* <li>Switching tabs or leaving the exam window will result in immediate <strong>automatic submission</strong> of your test.</li>
+                        <li>Do not refresh the page during the examination.</li> */}
                     </ul>
                 </div>
 
