@@ -240,22 +240,13 @@ const TestInterface = () => {
             setIsFullscreen(isFull);
 
             // Only count exits if they have actually entered once
-            const isInternal = examRef.current?.test_type === 'internal';
             if (!isFull && !isSubmittingRef.current && !showCPTModalRef.current && examRef.current && violationCheckRef.current.hasEnteredFullscreen) {
-                if (isInternal && isMobile) return; // Bypass for internal mobile tests
                 const now = Date.now();
                 if (now - violationCheckRef.current.lastFullscreenViolation < 1500) return;
                 violationCheckRef.current.lastFullscreenViolation = now;
 
-                violationCheckRef.current.fullscreenStrikes++;
-                console.log(`Proctoring: Fullscreen exit detected. Strike ${violationCheckRef.current.fullscreenStrikes}`);
-
-                if (violationCheckRef.current.fullscreenStrikes <= 2) {
-                    // Just let the !isFullscreen overlay handle the warning
-                } else if (violationCheckRef.current.fullscreenStrikes >= 3) {
-                    console.log("Proctoring: Third fullscreen violation. Auto-submitting...");
-                    handleSubmitRef.current('Auto-submitted: Multiple fullscreen violations');
-                }
+                console.log(`Proctoring: Fullscreen exit detected.`);
+                // VIOLATION REMOVED: Strikes and auto-submission disabled
             }
         };
 
@@ -420,16 +411,9 @@ const TestInterface = () => {
                             // wait 3 intervals (~6 sec)
                             if (violationCheckRef.current.mic >= 3) {
                                 violationCheckRef.current.mic = 0;
-                                violationCheckRef.current.micStrikes++;
-                                console.log("Mic strike:", violationCheckRef.current.micStrikes);
-
-                                if (violationCheckRef.current.micStrikes <= 2) {
-                                    setProctoringError(`Microphone issue detected. Warning ${violationCheckRef.current.micStrikes} of 2. Please ensure mic is ON.`);
-                                } else {
-                                    if (handleSubmitRef.current && !isSubmittingRef.current) {
-                                        handleSubmitRef.current('Auto-submitted: Microphone disabled multiple times');
-                                    }
-                                }
+                                console.log("Microphone issue detected.");
+                                // VIOLATION REMOVED: Strikes and auto-submission disabled
+                                setProctoringError(`Microphone issue detected. Please ensure your microphone is enabled and working.`);
                             }
                         } else {
                             violationCheckRef.current.mic = 0; // reset if normal
@@ -496,15 +480,8 @@ const TestInterface = () => {
 
                                     if (average > 65) { // Threshold for loud talking
                                         console.warn("Loud noise detected:", average);
-                                        violationCheckRef.current.noiseStrikes++;
-
-                                        if (violationCheckRef.current.noiseStrikes <= 2) {
-                                            setShowNoiseWarning(true);
-                                        } else if (violationCheckRef.current.noiseStrikes >= 3) {
-                                            if (handleSubmitRef.current) {
-                                                handleSubmitRef.current('Auto-submitted: Excessive noise detected multiple times');
-                                            }
-                                        }
+                                        // VIOLATION REMOVED: Strikes and auto-submission disabled
+                                        setShowNoiseWarning(true);
                                     }
                                 }, 1000);
                             }
@@ -613,8 +590,8 @@ const TestInterface = () => {
                 display: 'flex', 
                 flexDirection: 'column', 
                 gap: 'clamp(1rem, 3vw, 2rem)', 
-                filter: (!isFullscreen && !isMobile) ? 'blur(10px)' : 'none', 
-                pointerEvents: (!isFullscreen && !isMobile) ? 'none' : 'auto' 
+                filter: (!isFullscreen && (!isMobile || exam?.test_type !== 'internal')) ? 'blur(10px)' : 'none', 
+                pointerEvents: (!isFullscreen && (!isMobile || exam?.test_type !== 'internal')) ? 'none' : 'auto' 
             }}>
                 {/* Header */}
                 <header className="glass container" style={{ 
@@ -628,10 +605,10 @@ const TestInterface = () => {
                     zIndex: 10,
                     gap: '1rem'
                 }}>
-                    {!isMobile && (
-                        <div style={{ flex: '1 1 auto', minWidth: '150px' }}>
-                            <h3 style={{ fontSize: 'clamp(1rem, 4vw, 1.25rem)', margin: 0 }}>{exam.title}</h3>
-                            <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', margin: 0 }}>Question {currentQuestionIndex + 1} of {questions.length}</p>
+                    {(!isMobile || exam?.test_type !== 'internal') && (
+                        <div style={{ flex: '1 1 auto', minWidth: isMobile ? '100px' : '150px' }}>
+                            <h3 style={{ fontSize: 'clamp(0.875rem, 4vw, 1.25rem)', margin: 0, maxWidth: isMobile ? '120px' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{exam.title}</h3>
+                            <p style={{ fontSize: isMobile ? '0.75rem' : '0.875rem', color: 'var(--text-muted)', margin: 0 }}>Quest. {currentQuestionIndex + 1}/{questions.length}</p>
                         </div>
                     )}
 
@@ -898,14 +875,14 @@ const TestInterface = () => {
                             position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
                             background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            zIndex: 5000, padding: '2rem'
+                            zIndex: 5000, padding: 'clamp(1rem, 5vw, 2rem)'
                         }}
                     >
                         <motion.div
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             className="glass card"
-                            style={{ maxWidth: '450px', textAlign: 'center', border: '1px solid var(--warning)' }}
+                            style={{ width: '100%', maxWidth: '450px', textAlign: 'center', border: '1px solid var(--warning)', padding: 'clamp(1.5rem, 5vw, 2.5rem)' }}
                         >
                             <AlertTriangle size={64} color="var(--warning)" style={{ marginBottom: '1.5rem' }} />
                             <h2 style={{ color: 'var(--warning)', marginBottom: '1rem' }}>Security Warning!</h2>
@@ -932,14 +909,14 @@ const TestInterface = () => {
                             position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
                             background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            zIndex: 4500, padding: '2rem'
+                            zIndex: 4500, padding: 'clamp(1rem, 5vw, 2rem)'
                         }}
                     >
                         <motion.div
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             className="glass card"
-                            style={{ maxWidth: '450px', textAlign: 'center', border: '1px solid var(--warning)' }}
+                            style={{ width: '100%', maxWidth: '450px', textAlign: 'center', border: '1px solid var(--warning)', padding: 'clamp(1.5rem, 5vw, 2.5rem)' }}
                         >
                             <Camera size={64} color="var(--warning)" style={{ marginBottom: '1.5rem' }} />
                             <h2 style={{ color: 'var(--warning)', marginBottom: '1rem' }}>Face Detection Warning!</h2>
@@ -988,10 +965,10 @@ const TestInterface = () => {
                 return (
                     <div style={{
                         position: 'fixed',
-                        bottom: '2rem',
-                        right: '2rem',
-                        width: '150px',
-                        height: '150px',
+                        bottom: isMobile ? '1rem' : '2rem',
+                        right: isMobile ? '1rem' : '2rem',
+                        width: isMobile ? '80px' : '150px',
+                        height: isMobile ? '80px' : '150px',
                         borderRadius: '50%',
                         overflow: 'hidden',
                         border: '3px solid var(--primary)',
@@ -1036,7 +1013,7 @@ const TestInterface = () => {
                             zIndex: 2000
                         }}
                     >
-                        <div className="glass card" style={{ maxWidth: '400px', textAlign: 'center', border: '2px solid var(--danger)' }}>
+                        <div className="glass card" style={{ width: '100%', maxWidth: '400px', textAlign: 'center', border: '2px solid var(--danger)', padding: 'clamp(1.5rem, 5vw, 2.5rem)' }}>
                             <AlertCircle size={64} style={{ color: 'var(--danger)', marginBottom: '1rem' }} />
                             <h2 style={{ color: 'var(--danger)' }}>Action Required!</h2>
                             <p style={{ marginTop: '1rem', lineHeight: '1.6' }}>{proctoringError}</p>
@@ -1059,14 +1036,14 @@ const TestInterface = () => {
                             position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
                             background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            zIndex: 4000, padding: '2rem'
+                            zIndex: 4000, padding: 'clamp(1rem, 5vw, 2rem)'
                         }}
                     >
                         <motion.div
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             className="glass card"
-                            style={{ maxWidth: '450px', textAlign: 'center', border: '1px solid var(--danger)' }}
+                            style={{ width: '100%', maxWidth: '450px', textAlign: 'center', border: '1px solid var(--danger)', padding: 'clamp(1.5rem, 5vw, 2.5rem)' }}
                         >
                             <Users size={64} color="var(--danger)" style={{ marginBottom: '1.5rem' }} />
                             <h2 style={{ color: 'var(--danger)', marginBottom: '1rem' }}>Unauthorized Person Detected!</h2>
@@ -1094,21 +1071,21 @@ const TestInterface = () => {
                             position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
                             background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            zIndex: 4000, padding: '2rem'
+                            zIndex: 4000, padding: 'clamp(1rem, 5vw, 2rem)'
                         }}
                     >
                         <motion.div
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             className="glass card"
-                            style={{ maxWidth: '450px', textAlign: 'center', border: '1px solid var(--danger)' }}
+                            style={{ width: '100%', maxWidth: '450px', textAlign: 'center', border: '1px solid var(--danger)', padding: 'clamp(1.5rem, 5vw, 2.5rem)' }}
                         >
                             <AlertTriangle size={64} color="var(--danger)" style={{ marginBottom: '1.5rem' }} />
                             <h2 style={{ color: 'var(--danger)', marginBottom: '1rem' }}>Excessive Noise Detected!</h2>
                             <p style={{ marginBottom: '2rem', lineHeight: '1.6' }}>
-                                Loud noise or talking has been detected. This is strictly prohibited during the assessment.
+                                Loud noise or talking has been detected. This is prohibited during the assessment.
                                 <br /><br />
-                                <strong>Warning {violationCheckRef.current.noiseStrikes} of 2:</strong> A third violation will result in an <strong>immediate automatic submission</strong> of your test.
+                                Please ensure you are in a <strong>quiet environment</strong> to maintain examination integrity.
                             </p>
                             <button className="primary" style={{ background: 'var(--danger)', width: '100%' }} onClick={() => setShowNoiseWarning(false)}>
                                 I Understand, Continue
@@ -1120,7 +1097,7 @@ const TestInterface = () => {
 
             {/* Fullscreen Requirement Overlay */}
             <AnimatePresence>
-                {!isFullscreen && !isSubmitting && !isMobile && (
+                {!isFullscreen && !isSubmitting && (!isMobile || exam?.test_type !== 'internal') && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -1129,43 +1106,43 @@ const TestInterface = () => {
                             position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
                             background: 'rgba(0,0,0,0.95)', backdropFilter: 'blur(20px)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            zIndex: 3000, padding: '2rem'
+                            zIndex: 3000, padding: 'clamp(1rem, 5vw, 2rem)'
                         }}
                     >
                         <motion.div
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             className="glass card"
-                            style={{ maxWidth: '500px', textAlign: 'center', border: violationCheckRef.current.fullscreenStrikes > 0 ? '1px solid var(--warning)' : '1px solid var(--primary)' }}
+                            style={{ width: '100%', maxWidth: '500px', textAlign: 'center', border: violationCheckRef.current.hasEnteredFullscreen ? '1px solid var(--warning)' : '1px solid var(--primary)', padding: 'clamp(1.5rem, 5vw, 2.5rem)' }}
                         >
-                            {violationCheckRef.current.fullscreenStrikes > 0 ? (
+                            {violationCheckRef.current.hasEnteredFullscreen ? (
                                 <AlertTriangle size={64} color="var(--warning)" style={{ marginBottom: '1.5rem' }} />
                             ) : (
                                 <AlertCircle size={64} color="var(--primary)" style={{ marginBottom: '1.5rem' }} />
                             )}
 
-                            <h2 style={{ marginBottom: '1rem', color: violationCheckRef.current.fullscreenStrikes > 0 ? 'var(--warning)' : 'inherit' }}>
-                                {violationCheckRef.current.fullscreenStrikes > 0 ? 'Fullscreen Violation!' : 'Fullscreen Mode Required'}
+                            <h2 style={{ marginBottom: '1rem', color: violationCheckRef.current.hasEnteredFullscreen ? 'var(--warning)' : 'inherit' }}>
+                                {violationCheckRef.current.hasEnteredFullscreen ? 'Fullscreen Violation!' : 'Fullscreen Mode Required'}
                             </h2>
 
                             <p style={{ marginBottom: '2rem', lineHeight: '1.6', color: 'var(--text-muted)' }}>
-                                {violationCheckRef.current.fullscreenStrikes > 0 ? (
+                                {violationCheckRef.current.hasEnteredFullscreen ? (
                                     <>
-                                        You have exited fullscreen mode. This is prohibited.
+                                        You have exited fullscreen mode. Please re-enter to continue.
                                         <br /><br />
-                                        <strong style={{ color: 'var(--warning)' }}>Warning {violationCheckRef.current.fullscreenStrikes} of 2:</strong> A third violation will result in <strong>immediate automatic submission</strong>.
+                                        Fullscreen mode is <strong>required</strong> to maintain examination integrity.
                                     </>
                                 ) : (
                                     <>
                                         To maintain examination integrity, you must be in fullscreen mode.
                                         <br />
-                                        <strong>Exiting fullscreen will result in automatic submission after two warnings.</strong>
+                                        Please click the button below to start in fullscreen.
                                     </>
                                 )}
                             </p>
 
-                            <button className="primary" style={{ width: '100%', background: violationCheckRef.current.fullscreenStrikes > 0 ? 'var(--warning)' : 'var(--primary)' }} onClick={enterFullscreen}>
-                                {violationCheckRef.current.fullscreenStrikes > 0 ? 'Re-enter Fullscreen & Continue' : 'Enter Fullscreen & Start Exam'}
+                            <button className="primary" style={{ width: '100%', background: violationCheckRef.current.hasEnteredFullscreen ? 'var(--warning)' : 'var(--primary)' }} onClick={enterFullscreen}>
+                                {violationCheckRef.current.hasEnteredFullscreen ? 'Re-enter Fullscreen & Continue' : 'Enter Fullscreen & Start Exam'}
                             </button>
                         </motion.div>
                     </motion.div>
