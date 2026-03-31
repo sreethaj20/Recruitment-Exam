@@ -422,24 +422,12 @@ const TestInterface = () => {
                                     violationCheckRef.current.face = 0; // Reset minor counter
                                     violationCheckRef.current.faceStrikes++;
 
-                                    if (violationCheckRef.current.faceStrikes < 3) {
-                                        setShowFaceWarning(true);
-                                    } else {
-                                        if (handleSubmitRef.current) {
-                                            handleSubmitRef.current('Auto-submitted: No face detected (3 violations)');
-                                        }
-                                    }
+                                    setShowFaceWarning(true);
                                 }
                             } else if (detections.length > 1) {
                                 if (showMultiFaceWarningRef.current) return;
                                 violationCheckRef.current.multiFace++;
-                                if (violationCheckRef.current.multiFace <= 2) {
-                                    setShowMultiFaceWarning(true);
-                                } else {
-                                    if (handleSubmitRef.current) {
-                                        handleSubmitRef.current('Auto-submitted: Multiple faces detected multiple times');
-                                    }
-                                }
+                                setShowMultiFaceWarning(true);
                             } else {
                                 violationCheckRef.current.face = 0;
                             }
@@ -880,7 +868,7 @@ const TestInterface = () => {
                             <p style={{ marginBottom: '2rem', lineHeight: '1.6' }}>
                                 The system cannot detect your face. Please ensure you are properly positioned in front of the camera and there is sufficient lighting.
                                 <br /><br />
-                                <strong>Warning {violationCheckRef.current.faceStrikes} of 2:</strong> A third violation will result in an <strong>immediate automatic submission</strong> of your test.
+                                To maintain <strong>examination integrity</strong>, please ensure your face remains visible throughout the assessment.
                             </p>
                             <button className="primary" style={{ background: 'var(--warning)', width: '100%' }} onClick={() => setShowFaceWarning(false)}>
                                 I Am Back, Continue
@@ -1007,7 +995,7 @@ const TestInterface = () => {
                             <p style={{ marginBottom: '2rem', lineHeight: '1.6' }}>
                                 Multiple faces have been detected in the camera frame. This is strictly prohibited.
                                 <br /><br />
-                                <strong>Warning {violationCheckRef.current.multiFace} of 2:</strong> A third violation will result in an <strong>immediate automatic submission</strong> of your test.
+                                To maintain <strong>examination integrity</strong>, please ensure only you are visible to the camera.
                             </p>
                             <button className="primary" style={{ background: 'var(--danger)', width: '100%' }} onClick={() => setShowMultiFaceWarning(false)}>
                                 I Understand, Continue

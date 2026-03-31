@@ -34,15 +34,15 @@ const startAttempt = async (req, res) => {
             });
         }
 
-        // Check invitation expiration (14 hours)
+        // Check invitation expiration (12 hours)
         const invitation = await Invitation.findOne({ where: { token } });
         if (!invitation) {
             return res.status(404).json({ message: 'Invalid token' });
         }
-
+    
         const hoursSinceCreation = (new Date() - new Date(invitation.createdAt)) / (1000 * 60 * 60);
-        if (hoursSinceCreation > 14) {
-            return res.status(410).json({ message: 'This invitation link has expired (14 hour limit exceeded)' });
+        if (hoursSinceCreation > 12) {
+            return res.status(410).json({ message: 'This invitation link has expired (12 hour limit exceeded)' });
         }
 
         const attempt = await Attempt.create({
