@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Search, Filter, ExternalLink, CheckCircle, XCircle, Clock, MoreVertical, MessageSquare, Download, Video } from 'lucide-react';
+import { Search, Filter, ExternalLink, CheckCircle, XCircle, Clock, MoreVertical, MessageSquare, Download, Video, RefreshCw } from 'lucide-react';
 import { useStore } from '../../store';
 import * as XLSX from 'xlsx';
 
@@ -9,6 +9,7 @@ const ReviewPanel = () => {
     const navigate = useNavigate();
     const { db, refreshData } = useStore();
     const [selectedDept, setSelectedDept] = useState('all');
+    const [searchTerm, setSearchTerm] = useState('');
     const [remarkModal, setRemarkModal] = useState({ isOpen: false, candidateId: null, text: '' });
 
     const candidates = db.candidates || [];
@@ -41,6 +42,16 @@ const ReviewPanel = () => {
             .filter(item => {
                 // Filter by Department
                 if (selectedDept !== 'all' && item.exam?.department_id !== selectedDept) return false;
+
+                // Filter by Search Term
+                if (searchTerm) {
+                    const searchLower = searchTerm.toLowerCase();
+                    return (
+                        item.name.toLowerCase().includes(searchLower) ||
+                        item.email.toLowerCase().includes(searchLower) ||
+                        item.exam?.title?.toLowerCase().includes(searchLower)
+                    );
+                }
 
                 return true;
             });
@@ -107,6 +118,18 @@ const ReviewPanel = () => {
         }
     };
 
+    const handleRetryFinalize = async (attemptId) => {
+        try {
+            const { proctoringAPI } = await import('../../services/api');
+            await proctoringAPI.finalize(attemptId);
+            alert("Video finalization re-triggered in background. Please refresh the page in a few minutes.");
+            refreshData();
+        } catch (err) {
+            console.error("Error retrying finalization:", err);
+            alert("Failed to trigger finalization. Ensure chunks exist for this attempt.");
+        }
+    };
+
     const reviewData = getReviewData();
 
     return (
@@ -116,13 +139,22 @@ const ReviewPanel = () => {
                     <h2 style={{ fontSize: 'clamp(1.25rem, 5vw, 1.5rem)' }}>Candidate Review</h2>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Evaluate performances and manage hiring decisions.</p>
                 </div>
-                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: '1 1 auto' }}>
+                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', flex: '1 1 auto', justifyContent: 'flex-end' }}>
+                    <div style={{ position: 'relative', flex: '2 1 250px', minWidth: '200px' }}>
+                        <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                        <input
+                            placeholder="Search name, email, or exam..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            style={{ paddingLeft: '2.5rem', width: '100%', fontSize: '0.9rem', height: '42px' }}
+                        />
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: '1 1 auto', minWidth: '160px' }}>
                         <Filter size={18} color="var(--text-muted)" />
                         <select
                             value={selectedDept}
                             onChange={(e) => setSelectedDept(e.target.value)}
-                            style={{ minWidth: '160px', width: '100%', fontSize: '0.9rem' }}
+                            style={{ width: '100%', fontSize: '0.9rem', height: '42px' }}
                         >
                             <option value="all">All Departments</option>
                             {departments.map(dept => (
@@ -134,7 +166,7 @@ const ReviewPanel = () => {
                         className="secondary"
                         onClick={handleDownloadExcel}
                         disabled={reviewData.length === 0}
-                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', padding: '0.6rem 1rem' }}
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', padding: '0.6rem 1rem', height: '42px' }}
                     >
                         <Download size={18} /> Excel
                     </button>
@@ -247,18 +279,37 @@ const ReviewPanel = () => {
                                             <Video size={16} /> Download
                                         </button>
                                     ) : item.attempt?.status === 'completed' ? (
-                                        <div style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '0.5rem',
-                                            fontSize: '0.8rem',
-                                            color: 'var(--warning)',
-                                            padding: '0.5rem 1rem',
-                                            borderRadius: '0.5rem',
-                                            background: 'rgba(245, 158, 11, 0.1)',
-                                            border: '1px solid rgba(245, 158, 11, 0.2)'
-                                        }}>
-                                            <Clock size={14} className="spin" /> Processing...
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                            <div style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '0.5rem',
+                                                fontSize: '0.8rem',
+                                                color: 'var(--warning)',
+                                                padding: '0.5rem 1rem',
+                                                borderRadius: '0.5rem',
+                                                background: 'rgba(245, 158, 11, 0.1)',
+                                                border: '1px solid rgba(245, 158, 11, 0.2)'
+                                            }}>
+                                                <Clock size={14} className="spin" /> Processing...
+                                            </div>
+                                            <button
+                                                onClick={() => handleRetryFinalize(item.id)}
+                                                title="Retry Finalization"
+                                                style={{
+                                                    padding: '0.5rem',
+                                                    borderRadius: '0.5rem',
+                                                    background: 'rgba(255,255,255,0.05)',
+                                                    border: '1px solid var(--border)',
+                                                    color: 'var(--text-muted)',
+                                                    cursor: 'pointer',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center'
+                                                }}
+                                            >
+                                                <RefreshCw size={14} />
+                                            </button>
                                         </div>
                                     ) : (
                                         <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Ongoing</span>

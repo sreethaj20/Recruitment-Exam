@@ -39,122 +39,120 @@ const finalizeRecording = async (req, res) => {
     const { attemptId } = req.body;
     const tempDir = path.join(__dirname, '../temp', `attempt-${attemptId}`);
 
-    try {
-        console.log(`[Proctoring] Starting finalization for attempt: ${attemptId}`);
-
-        // 1. Fetch chunks sorted by timestamp
-        const chunks = await ExamRecording.findAll({
-            where: { attempt_id: attemptId },
-            order: [['timestamp', 'ASC']]
-        });
-
-        console.log(`[Proctoring] Found ${chunks.length} chunks for attempt ${attemptId}`);
-
-        if (chunks.length === 0) {
-            return res.status(404).json({ message: 'No recordings found for this attempt' });
-        }
-
-        if (!fs.existsSync(tempDir)) {
-            fs.mkdirSync(tempDir, { recursive: true });
-        }
-
-        const rawMergedPath = path.resolve(tempDir, 'raw_merged.webm');
-        const finalVideoPath = path.resolve(tempDir, 'final.webm');
-        const candidateEmail = chunks[0].candidate_email;
-        const finalS3Key = `recordings/${candidateEmail}/attempt-${attemptId}/final.webm`;
-
-        // 2. Download and Binary Concatenate
-        console.log(`[Proctoring] Downloading and concatenating ${chunks.length} chunks...`);
-        const writeStream = fs.createWriteStream(rawMergedPath);
-        writeStream.setMaxListeners(0);
-
-        for (let i = 0; i < chunks.length; i++) {
-            const chunk = chunks[i];
-            const s3Key = chunk.s3_key || (chunk.s3_video_url ? chunk.s3_video_url.split('.com/')[1] : null);
-            if (!s3Key) continue;
-
-            console.log(`[Proctoring] Appending chunk ${i}: ${s3Key}`);
-            const bodyStream = await getS3Object(s3Key);
-            await pipeline(bodyStream, writeStream, { end: false });
-        }
-        writeStream.end();
-
-        // Wait for writeStream to finish
-        await new Promise((resolve) => writeStream.on('finish', resolve));
-        console.log(`[Proctoring] Binary concatenation complete: ${rawMergedPath}`);
-
-        // 3. Process with FFMPEG to fix headers and duration
-        console.log(`[Proctoring] Checking for FFMPEG...`);
-        let finalPathToUpload = rawMergedPath;
-
-        try {
-            await new Promise((resolve, reject) => {
-                ffmpeg.getAvailableCodecs((err, codecs) => {
-                    if (err) {
-                        console.warn('[Proctoring] FFMPEG not found or error checking codecs. Skipping re-encoding.');
-                        // If FFMPEG is not found, resolve to proceed with the raw merged file
-                        resolve();
-                        return;
-                    }
-                    resolve();
-                });
-            });
-
-            console.log(`[Proctoring] Processing with FFMPEG (Re-encoding to fix metadata)...`);
-            await new Promise((resolve, reject) => {
-                ffmpeg()
-                    .input(rawMergedPath)
-                    .videoCodec('libvpx')
-                    .audioCodec('libvorbis')
-                    .outputOptions([
-                        '-fflags +genpts',
-                        '-crf 32',
-                        '-b:v 800k'
-                    ])
-                    .on('start', (cmd) => console.log('[Proctoring] FFMPEG command:', cmd))
-                    .on('progress', (progress) => {
-                        if (progress.percent) console.log(`[Proctoring] Merging progress: ${Math.round(progress.percent)}%`);
-                    })
-                    .on('end', () => {
-                        console.log('[Proctoring] FFMPEG merge completed.');
-                        finalPathToUpload = finalVideoPath;
-                        resolve();
-                    })
-                    .on('error', (err) => {
-                        console.error('[Proctoring] FFMPEG error:', err.message);
-                        console.warn('[Proctoring] Falling back to raw merged file.');
-                        resolve(); // Resolve to proceed with raw file
-                    })
-                    .save(finalVideoPath);
-            });
-        } catch (fError) {
-            console.error('[Proctoring] FFMPEG logic failed:', fError.message);
-            console.warn('[Proctoring] Using raw merged file instead.');
-        }
-
-        // 4. Upload merged video to S3
-        console.log(`[Proctoring] Uploading merged video to S3: ${finalS3Key}`);
-        const finalBuffer = fs.readFileSync(finalPathToUpload);
-        await uploadToS3(finalS3Key, finalBuffer, 'video/webm');
-
-        // 5. Update Attempt table
-        await Attempt.update(
-            { final_video_key: finalS3Key },
-            { where: { id: attemptId } }
-        );
-
-        // 6. Cleanup
-        fs.rmSync(tempDir, { recursive: true, force: true });
-
-        res.json({ message: 'Recording finalized successfully', finalS3Key });
-    } catch (error) {
-        console.error('Error in finalizeRecording:', error);
-        // Ensure cleanup on error
-        if (fs.existsSync(tempDir)) {
-            fs.rmSync(tempDir, { recursive: true, force: true });
-        }
-        res.status(500).json({ message: 'Error finalizing recording' });
+    // Check if chunks exist before starting background process
+    const chunksCount = await ExamRecording.count({ where: { attempt_id: attemptId } });
+    if (chunksCount === 0) {
+        return res.status(404).json({ message: 'No recordings found for this attempt' });
     }
+
+    // Return response immediately to prevent frontend timeout/cancellation
+    res.status(202).json({ message: 'Finalization started in background' });
+
+    // Execute heavy logic in background
+    (async () => {
+        try {
+            console.log(`[Proctoring] Starting background finalization for attempt: ${attemptId}`);
+
+            // 1. Fetch chunks sorted by timestamp
+            const chunks = await ExamRecording.findAll({
+                where: { attempt_id: attemptId },
+                order: [['timestamp', 'ASC']]
+            });
+
+            if (!fs.existsSync(tempDir)) {
+                fs.mkdirSync(tempDir, { recursive: true });
+            }
+
+            const rawMergedPath = path.resolve(tempDir, 'raw_merged.webm');
+            const finalVideoPath = path.resolve(tempDir, 'final.webm');
+            const candidateEmail = chunks[0].candidate_email;
+            const finalS3Key = `recordings/${candidateEmail}/attempt-${attemptId}/final.webm`;
+
+            // 2. Download and Binary Concatenate
+            console.log(`[Proctoring] Downloading and concatenating ${chunks.length} chunks...`);
+            const writeStream = fs.createWriteStream(rawMergedPath);
+            writeStream.setMaxListeners(0);
+
+            for (let i = 0; i < chunks.length; i++) {
+                const chunk = chunks[i];
+                const s3Key = chunk.s3_key || (chunk.s3_video_url ? chunk.s3_video_url.split('.com/')[1] : null);
+                if (!s3Key) continue;
+
+                // Use simple backoff retry for chunk downloads
+                let chunkDownloaded = false;
+                for (let retry = 0; retry < 3; retry++) {
+                    try {
+                        const bodyStream = await getS3Object(s3Key);
+                        await pipeline(bodyStream, writeStream, { end: false });
+                        chunkDownloaded = true;
+                        break;
+                    } catch (err) {
+                        console.error(`[Proctoring] Chunk download failed (retry ${retry + 1}):`, s3Key, err.message);
+                        await new Promise(r => setTimeout(r, 2000));
+                    }
+                }
+                if (!chunkDownloaded) {
+                    console.warn(`[Proctoring] Skipping unretrievable chunk: ${s3Key}`);
+                }
+            }
+            writeStream.end();
+
+            await new Promise((resolve) => writeStream.on('finish', resolve));
+            console.log(`[Proctoring] Binary concatenation complete: ${rawMergedPath}`);
+
+            // 3. Process with FFMPEG (Optional)
+            console.log(`[Proctoring] Checking for FFMPEG...`);
+            let finalPathToUpload = rawMergedPath;
+
+            try {
+                const hasFfmpeg = await new Promise((resolve) => {
+                    ffmpeg.getAvailableCodecs((err) => resolve(!err));
+                });
+
+                if (hasFfmpeg) {
+                    console.log(`[Proctoring] Processing with FFMPEG (fixing headers)...`);
+                    await new Promise((resolve) => {
+                        ffmpeg()
+                            .input(rawMergedPath)
+                            .videoCodec('libvpx')
+                            .audioCodec('libvorbis')
+                            .outputOptions(['-fflags +genpts', '-crf 32', '-b:v 800k'])
+                            .on('end', () => {
+                                finalPathToUpload = finalVideoPath;
+                                resolve();
+                            })
+                            .on('error', (err) => {
+                                console.error('[Proctoring] FFMPEG error:', err.message);
+                                resolve();
+                            })
+                            .save(finalVideoPath);
+                    });
+                }
+            } catch (fError) {
+                console.warn('[Proctoring] FFMPEG logic failed, proceeding with raw merge.');
+            }
+
+            // 4. Upload merged video to S3 (Using streaming for memory efficiency)
+            console.log(`[Proctoring] Uploading merged video to S3: ${finalS3Key}`);
+            const finalStream = fs.createReadStream(finalPathToUpload);
+            await uploadToS3(finalS3Key, finalStream, 'video/webm');
+
+            // 5. Update Attempt table
+            await Attempt.update(
+                { final_video_key: finalS3Key },
+                { where: { id: attemptId } }
+            );
+
+            // 6. Cleanup
+            fs.rmSync(tempDir, { recursive: true, force: true });
+            console.log(`[Proctoring] Finalization complete for attempt: ${attemptId}`);
+        } catch (error) {
+            console.error('[Proctoring] Error in background finalization:', error);
+            if (fs.existsSync(tempDir)) {
+                fs.rmSync(tempDir, { recursive: true, force: true });
+            }
+        }
+    })();
 };
 
 const getRecordingUrl = async (req, res) => {

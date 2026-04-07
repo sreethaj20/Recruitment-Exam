@@ -185,8 +185,12 @@ const TestInterface = () => {
                 noise_violations: violationCheckRef.current.noiseStrikes
             });
 
-            // Trigger Finalization (Asynchronous)
-            proctoringAPI.finalize(attemptId).catch(err => console.error("Finalization error:", err));
+            // Trigger Finalization (Awaiting ensures the request is sent before navigation)
+            try {
+                await proctoringAPI.finalize(attemptId);
+            } catch (finalizeErr) {
+                console.error("Finalization request error:", finalizeErr);
+            }
 
             sessionStorage.setItem('last_result', JSON.stringify({
                 ...results,
